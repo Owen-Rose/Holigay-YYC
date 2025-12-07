@@ -164,17 +164,17 @@
 - ✅ Create `src/middleware.ts`
 - ✅ Configure protected routes (/dashboard requires auth, /login|/signup redirect if already logged in)
 - ✅ Verify: Redirects work (dashboard → /login?redirectTo=/dashboard when unauthenticated)
-- ⬜ Commit: `git commit -m "feat: add auth middleware"`
+- ✅ Commit: `git commit -m "feat: add auth middleware"`
 
 **Files created:** `src/middleware.ts`, `src/app/dashboard/page.tsx` (placeholder)
 
 ---
 
 ### Task 3.5: Create Dashboard Layout
-- ⬜ Create `src/app/dashboard/layout.tsx`
-- ⬜ Add sidebar navigation
-- ⬜ Add logout button
-- ⬜ Verify: Dashboard works
+- ✅ Create `src/app/dashboard/layout.tsx`
+- ✅ Add sidebar navigation
+- ✅ Add logout button
+- ✅ Verify: Dashboard works
 - ⬜ Commit: `git commit -m "feat: add dashboard layout"`
 
 ---
