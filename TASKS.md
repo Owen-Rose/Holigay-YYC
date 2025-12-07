@@ -122,11 +122,11 @@
 ---
 
 ### Task 2.6: Create Supabase Client Utilities
-- ⬜ Install: `npm install @supabase/ssr`
-- ⬜ Create `src/lib/supabase/client.ts`
-- ⬜ Create `src/lib/supabase/server.ts`
-- ⬜ Create `src/lib/supabase/middleware.ts`
-- ⬜ Verify: Can connect to DB
+- ✅ Install: `npm install @supabase/ssr`
+- ✅ Create `src/lib/supabase/client.ts`
+- ✅ Create `src/lib/supabase/server.ts`
+- ✅ Create `src/lib/supabase/middleware.ts`
+- ✅ Verify: Can connect to DB
 - ⬜ Commit: `git commit -m "feat: add Supabase client utilities"`
 
 ---
