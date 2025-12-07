@@ -179,7 +179,86 @@
 
 ---
 
-## Phase 4-8: See plan file for remaining tasks
+## Phase 4: Vendor Application Form (Days 7-9)
+
+### Task 4.1: Create Zod Validation Schema
+- ✅ Create `src/lib/validations/application.ts`
+- ✅ Define all form fields with validation rules
+- ✅ Add custom validators (phone, file types)
+- ✅ Export inferred TypeScript types
+- ✅ Verify: Schema validates test data correctly
+- ⬜ Commit: `git commit -m "feat: add application form validation schema"`
+
+**Files created:** `src/lib/validations/application.ts`
+
+---
+
+### Task 4.2: Build Form UI Components
+- ⬜ Create `src/components/ui/input.tsx`
+- ⬜ Create `src/components/ui/textarea.tsx`
+- ⬜ Create `src/components/ui/select.tsx`
+- ⬜ Create `src/components/ui/button.tsx`
+- ⬜ Create `src/components/ui/file-upload.tsx`
+- ⬜ Create `src/components/forms/vendor-application-form.tsx`
+- ⬜ Verify: Form renders all fields correctly
+- ⬜ Commit: `git commit -m "feat: add vendor application form UI"`
+
+**Files created:** `src/components/ui/*`, `src/components/forms/vendor-application-form.tsx`
+
+---
+
+### Task 4.3: Create File Upload Handler
+- ⬜ Create `src/lib/actions/upload.ts`
+- ⬜ Implement `uploadFile` action (uploads to Supabase Storage)
+- ⬜ Add file type validation (images, PDFs)
+- ⬜ Add file size limit (10MB)
+- ⬜ Return storage path on success
+- ⬜ Verify: Test file upload manually
+- ⬜ Commit: `git commit -m "feat: add file upload handler"`
+
+**Files created:** `src/lib/actions/upload.ts`
+
+---
+
+### Task 4.4: Create Application Submit Action
+- ⬜ Create `src/lib/actions/applications.ts`
+- ⬜ Implement `submitApplication` action
+- ⬜ Create/find vendor record by email
+- ⬜ Create application record with event link
+- ⬜ Link uploaded attachments
+- ⬜ Verify: Submission creates records in DB
+- ⬜ Commit: `git commit -m "feat: add application submit action"`
+
+**Files created:** `src/lib/actions/applications.ts`
+
+---
+
+### Task 4.5: Build Application Page
+- ⬜ Create `src/app/(public)/apply/page.tsx`
+- ⬜ Fetch active event(s) from DB
+- ⬜ Render vendor application form
+- ⬜ Handle form submission
+- ⬜ Show success message on submit
+- ⬜ Show error messages on failure
+- ⬜ Verify: Full flow works end-to-end
+- ⬜ Commit: `git commit -m "feat: add vendor application page"`
+
+**Files created:** `src/app/(public)/apply/page.tsx`
+
+---
+
+### Task 4.6: Add Form Submission Test
+- ⬜ Create `src/test/application-form.test.tsx`
+- ⬜ Test form validation (required fields)
+- ⬜ Test form submission (mocked)
+- ⬜ Verify: `npm test` passes
+- ⬜ Commit: `git commit -m "test: add application form tests"`
+
+**Files created:** `src/test/application-form.test.tsx`
+
+---
+
+## Phase 5-8: See plan file for remaining tasks
 
 Full task list available at: `~/.claude/plans/cozy-snuggling-cray.md`
 
