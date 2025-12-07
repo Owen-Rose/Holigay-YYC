@@ -104,19 +104,19 @@
 ---
 
 ### Task 2.4: Set Up Supabase Storage
-- ⬜ Go to Supabase Dashboard > Storage
-- ⬜ Create bucket named `attachments`
-- ⬜ Set bucket to private
-- ⬜ Add storage policies
-- ⬜ Verify: Bucket visible in dashboard
+- ✅ Go to Supabase Dashboard > Storage
+- ✅ Create bucket named `attachments`
+- ✅ Set bucket to private
+- ✅ Add storage policies (public upload, authenticated download/delete)
+- ✅ Verify: Bucket visible in dashboard
 
 ---
 
 ### Task 2.5: Generate TypeScript Types
-- ⬜ Install: `npm install @supabase/supabase-js`
-- ⬜ Run: `npx supabase gen types typescript --project-id <ref> > src/types/database.ts`
-- ⬜ Add type generation script to `package.json`
-- ⬜ Verify: Types file exists
+- ✅ Install: `npm install @supabase/supabase-js`
+- ✅ Run: `npx supabase gen types typescript --project-id <ref> > src/types/database.ts`
+- ✅ Add type generation script to `package.json`
+- ✅ Verify: Types file exists
 - ⬜ Commit: `git commit -m "feat: add Supabase TypeScript types"`
 
 ---
