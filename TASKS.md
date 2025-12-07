@@ -71,27 +71,27 @@
 ## Phase 2: Database & Backend Setup (Days 3-4)
 
 ### Task 2.1: Create Supabase Project
-- ⬜ Go to [supabase.com](https://supabase.com) and create new project
-- ⬜ Wait for project to finish provisioning (~2 min)
-- ⬜ Copy Project URL and anon key from Settings > API
-- ⬜ Create `.env.local` with credentials
-- ⬜ Create `.env.example` with placeholder values
-- ⬜ Verify: Environment variables load in dev server
+- ✅ Go to [supabase.com](https://supabase.com) and create new project
+- ✅ Wait for project to finish provisioning (~2 min)
+- ✅ Copy Project URL and anon key from Settings > API
+- ✅ Create `.env.local` with credentials
+- ✅ Create `.env.example` with placeholder values
+- ✅ Verify: Environment variables configured
 - ⬜ Commit: `git commit -m "chore: add Supabase environment config"`
 
-**Files to create:** `.env.local`, `.env.example`
+**Files created:** `.env.local`, `.env.example`
 
 ---
 
 ### Task 2.2: Create Database Schema
-- ⬜ Install Supabase CLI: `npm install -D supabase`
-- ⬜ Initialize: `npx supabase init`
-- ⬜ Create `supabase/migrations/001_initial_schema.sql`
-- ⬜ Run migration in Supabase SQL Editor
-- ⬜ Verify: Tables visible in Table Editor
+- ✅ Install Supabase CLI: `npm install -D supabase`
+- ✅ Initialize: `npx supabase init`
+- ✅ Create `supabase/migrations/001_initial_schema.sql`
+- ✅ Run migration in Supabase SQL Editor
+- ✅ Verify: Tables visible in Table Editor (events, vendors, applications, attachments)
 - ⬜ Commit: `git commit -m "feat: add database schema migration"`
 
-**Files to create:** `supabase/migrations/001_initial_schema.sql`
+**Files created:** `supabase/migrations/001_initial_schema.sql`, `supabase/config.toml`
 
 ---
 
