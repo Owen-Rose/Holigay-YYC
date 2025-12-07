@@ -96,9 +96,9 @@
 ---
 
 ### Task 2.3: Configure Row Level Security
-- ⬜ Create `supabase/migrations/002_rls_policies.sql`
-- ⬜ Run migration in Supabase SQL Editor
-- ⬜ Verify: RLS enabled on all tables
+- ✅ Create `supabase/migrations/002_rls_policies.sql`
+- ✅ Run migration in Supabase SQL Editor
+- ✅ Verify: RLS enabled on all tables
 - ⬜ Commit: `git commit -m "feat: add Row Level Security policies"`
 
 ---
