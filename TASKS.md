@@ -144,10 +144,10 @@
 ---
 
 ### Task 3.2: Implement Auth Pages
-- ⬜ Create `src/app/(auth)/login/page.tsx`
-- ⬜ Create `src/app/(auth)/signup/page.tsx`
-- ⬜ Create `src/app/(auth)/layout.tsx`
-- ⬜ Verify: Pages accessible
+- ✅ Create `src/app/(auth)/login/page.tsx`
+- ✅ Create `src/app/(auth)/signup/page.tsx`
+- ✅ Create `src/app/(auth)/layout.tsx`
+- ✅ Verify: Pages accessible at /login and /signup
 - ⬜ Commit: `git commit -m "feat: add login and signup pages"`
 
 ---
