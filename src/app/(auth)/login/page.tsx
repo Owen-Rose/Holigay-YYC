@@ -1,14 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LoginForm } from '@/components/auth/login-form'
 import { signIn } from '@/lib/actions/auth'
 import type { LoginInput } from '@/lib/validations/auth'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(data: LoginInput) {
@@ -22,8 +23,9 @@ export default function LoginPage() {
         return
       }
 
-      // Redirect to dashboard on success
-      router.push('/dashboard')
+      // Redirect to the original destination or dashboard
+      const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+      router.push(redirectTo)
       router.refresh()
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
@@ -62,5 +64,31 @@ export default function LoginPage() {
         </Link>
       </div>
     </div>
+  )
+}
+
+function LoginFallback() {
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+        <p className="mt-2 text-sm text-gray-600">
+          Sign in to access your organizer dashboard
+        </p>
+      </div>
+      <div className="animate-pulse space-y-4">
+        <div className="h-10 rounded bg-gray-200" />
+        <div className="h-10 rounded bg-gray-200" />
+        <div className="h-10 rounded bg-gray-200" />
+      </div>
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginContent />
+    </Suspense>
   )
 }

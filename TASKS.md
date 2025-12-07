@@ -161,10 +161,12 @@
 ---
 
 ### Task 3.4: Add Auth Middleware
-- ⬜ Create `src/middleware.ts`
-- ⬜ Configure protected routes
-- ⬜ Verify: Redirects work
+- ✅ Create `src/middleware.ts`
+- ✅ Configure protected routes (/dashboard requires auth, /login|/signup redirect if already logged in)
+- ✅ Verify: Redirects work (dashboard → /login?redirectTo=/dashboard when unauthenticated)
 - ⬜ Commit: `git commit -m "feat: add auth middleware"`
+
+**Files created:** `src/middleware.ts`, `src/app/dashboard/page.tsx` (placeholder)
 
 ---
 
