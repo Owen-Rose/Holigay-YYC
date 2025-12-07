@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LoginForm } from '@/components/auth/login-form'
+import { signIn } from '@/lib/actions/auth'
 import type { LoginInput } from '@/lib/validations/auth'
 
 export default function LoginPage() {
@@ -14,22 +15,16 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      // TODO: Replace with actual auth action from Task 3.3
-      // For now, simulate a brief delay and redirect
-      console.log('Login attempt:', data.email)
+      const result = await signIn(data)
 
-      // Placeholder: In Task 3.3, this will call the signIn server action
-      // const result = await signIn(data)
-      // if (result.error) {
-      //   setError(result.error)
-      //   return
-      // }
-
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      if (result.error) {
+        setError(result.error)
+        return
+      }
 
       // Redirect to dashboard on success
       router.push('/dashboard')
+      router.refresh()
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
       console.error('Login error:', err)

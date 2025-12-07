@@ -1,36 +1,29 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { SignupForm } from '@/components/auth/signup-form'
+import { signUp } from '@/lib/actions/auth'
 import type { SignupInput } from '@/lib/validations/auth'
 
 export default function SignupPage() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   async function handleSubmit(data: SignupInput) {
     setError(null)
+    setSuccess(false)
 
     try {
-      // TODO: Replace with actual auth action from Task 3.3
-      // For now, simulate a brief delay and redirect
-      console.log('Signup attempt:', data.email)
+      const result = await signUp(data)
 
-      // Placeholder: In Task 3.3, this will call the signUp server action
-      // const result = await signUp(data)
-      // if (result.error) {
-      //   setError(result.error)
-      //   return
-      // }
+      if (result.error) {
+        setError(result.error)
+        return
+      }
 
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 500))
-
-      // Redirect to login page with success message
-      // In Task 3.3, might redirect to email verification or directly to dashboard
-      router.push('/login')
+      // Show success message - user may need to verify email
+      setSuccess(true)
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
       console.error('Signup error:', err)
@@ -54,8 +47,22 @@ export default function SignupPage() {
         </div>
       )}
 
+      {/* Success Message */}
+      {success && (
+        <div className="rounded-md bg-green-50 p-4">
+          <p className="text-sm text-green-700">
+            Account created successfully! Please check your email to verify your
+            account, then{' '}
+            <Link href="/login" className="font-medium underline">
+              sign in
+            </Link>
+            .
+          </p>
+        </div>
+      )}
+
       {/* Signup Form */}
-      <SignupForm onSubmit={handleSubmit} />
+      {!success && <SignupForm onSubmit={handleSubmit} />}
 
       {/* Links */}
       <div className="text-center text-sm">

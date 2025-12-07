@@ -148,14 +148,14 @@
 - ✅ Create `src/app/(auth)/signup/page.tsx`
 - ✅ Create `src/app/(auth)/layout.tsx`
 - ✅ Verify: Pages accessible at /login and /signup
-- ⬜ Commit: `git commit -m "feat: add login and signup pages"`
+- ✅ Commit: `git commit -m "feat: add login and signup pages"`
 
 ---
 
 ### Task 3.3: Create Auth Server Actions
-- ⬜ Create `src/lib/actions/auth.ts`
-- ⬜ Implement signIn, signUp, signOut
-- ⬜ Verify: Auth works
+- ✅ Create `src/lib/actions/auth.ts`
+- ✅ Implement signIn, signUp, signOut
+- ✅ Verify: Auth works (TypeScript ✓, ESLint ✓, Build ✓, Pages accessible ✓)
 - ⬜ Commit: `git commit -m "feat: add auth server actions"`
 
 ---
