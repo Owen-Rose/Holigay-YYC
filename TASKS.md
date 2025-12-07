@@ -187,20 +187,21 @@
 - ✅ Add custom validators (phone, file types)
 - ✅ Export inferred TypeScript types
 - ✅ Verify: Schema validates test data correctly
-- ⬜ Commit: `git commit -m "feat: add application form validation schema"`
+- ✅ Commit: `git commit -m "feat: add application form validation schema"`
 
 **Files created:** `src/lib/validations/application.ts`
 
 ---
 
 ### Task 4.2: Build Form UI Components
-- ⬜ Create `src/components/ui/input.tsx`
-- ⬜ Create `src/components/ui/textarea.tsx`
-- ⬜ Create `src/components/ui/select.tsx`
-- ⬜ Create `src/components/ui/button.tsx`
-- ⬜ Create `src/components/ui/file-upload.tsx`
-- ⬜ Create `src/components/forms/vendor-application-form.tsx`
-- ⬜ Verify: Form renders all fields correctly
+- ✅ Create `src/components/ui/input.tsx`
+- ✅ Create `src/components/ui/textarea.tsx`
+- ✅ Create `src/components/ui/select.tsx`
+- ✅ Create `src/components/ui/button.tsx`
+- ✅ Create `src/components/ui/file-upload.tsx`
+- ✅ Create `src/components/ui/checkbox.tsx` (bonus: needed for product categories)
+- ✅ Create `src/components/forms/vendor-application-form.tsx`
+- ✅ Verify: Form renders all fields correctly (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
 - ⬜ Commit: `git commit -m "feat: add vendor application form UI"`
 
 **Files created:** `src/components/ui/*`, `src/components/forms/vendor-application-form.tsx`
