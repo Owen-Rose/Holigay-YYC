@@ -134,11 +134,11 @@
 ## Phase 3: Authentication (Days 5-6)
 
 ### Task 3.1: Create Auth UI Components
-- ⬜ Install: `npm install react-hook-form zod @hookform/resolvers`
-- ⬜ Create `src/lib/validations/auth.ts`
-- ⬜ Create `src/components/auth/login-form.tsx`
-- ⬜ Create `src/components/auth/signup-form.tsx`
-- ⬜ Verify: Components render
+- ✅ Install: `npm install react-hook-form zod @hookform/resolvers`
+- ✅ Create `src/lib/validations/auth.ts`
+- ✅ Create `src/components/auth/login-form.tsx`
+- ✅ Create `src/components/auth/signup-form.tsx`
+- ✅ Verify: Components render
 - ⬜ Commit: `git commit -m "feat: add auth form components"`
 
 ---
