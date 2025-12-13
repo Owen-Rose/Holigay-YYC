@@ -222,29 +222,29 @@
 ---
 
 ### Task 4.4: Create Application Submit Action
-- ⬜ Create `src/lib/actions/applications.ts`
-- ⬜ Implement `submitApplication` action
-- ⬜ Create/find vendor record by email
-- ⬜ Create application record with event link
-- ⬜ Link uploaded attachments
-- ⬜ Verify: Submission creates records in DB
-- ⬜ Commit: `git commit -m "feat: add application submit action"`
+- ✅ Create `src/lib/actions/applications.ts`
+- ✅ Implement `submitApplication` action
+- ✅ Create/find vendor record by email
+- ✅ Create application record with event link
+- ✅ Link uploaded attachments
+- ✅ Verify: Submission creates records in DB
+- ✅ Commit: `git commit -m "feat: add application submit action"`
 
 **Files created:** `src/lib/actions/applications.ts`
 
 ---
 
 ### Task 4.5: Build Application Page
-- ⬜ Create `src/app/(public)/apply/page.tsx`
-- ⬜ Fetch active event(s) from DB
-- ⬜ Render vendor application form
-- ⬜ Handle form submission
-- ⬜ Show success message on submit
-- ⬜ Show error messages on failure
-- ⬜ Verify: Full flow works end-to-end
+- ✅ Create `src/app/(public)/apply/page.tsx`
+- ✅ Fetch active event(s) from DB
+- ✅ Render vendor application form
+- ✅ Handle form submission (with file uploads)
+- ✅ Show success message on submit
+- ✅ Show error messages on failure
+- ✅ Verify: TypeScript ✓, ESLint ✓, Build ✓, Tests ✓
 - ⬜ Commit: `git commit -m "feat: add vendor application page"`
 
-**Files created:** `src/app/(public)/apply/page.tsx`
+**Files created:** `src/app/(public)/layout.tsx`, `src/app/(public)/apply/page.tsx`, `src/app/(public)/apply/client.tsx`
 
 ---
 
