@@ -349,14 +349,14 @@
 ---
 
 ### Task 5.8: Add CSV Export
-- ⬜ Create `src/lib/actions/export.ts`
-- ⬜ Implement `exportApplicationsCSV` action
-- ⬜ Include relevant columns
-- ⬜ Add export button to applications page
-- ⬜ Verify: CSV downloads with correct data
+- ✅ Create `src/lib/actions/export.ts`
+- ✅ Implement `exportApplicationsCSV` action
+- ✅ Include relevant columns
+- ✅ Add export button to applications page
+- ✅ Verify: CSV downloads with correct data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
 - ⬜ Commit: `git commit -m "feat: add CSV export functionality"`
 
-**Files created:** `src/lib/actions/export.ts`
+**Files created:** `src/lib/actions/export.ts`, `src/components/dashboard/export-button.tsx`
 
 ---
 

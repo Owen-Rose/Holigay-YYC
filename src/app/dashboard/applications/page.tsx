@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { getApplications, type ApplicationFilters } from '@/lib/actions/applications'
 import { ApplicationsTable } from '@/components/dashboard/applications-table'
 import { ApplicationsFilter } from '@/components/dashboard/applications-filter'
+import { ExportButton } from '@/components/dashboard/export-button'
 
 // =============================================================================
 // Types
@@ -19,13 +20,22 @@ interface ApplicationsPageProps {
 // Page Header Component
 // =============================================================================
 
-function PageHeader() {
+interface PageHeaderProps {
+  filters?: ApplicationFilters
+}
+
+function PageHeader({ filters }: PageHeaderProps) {
   return (
-    <div className="mb-8">
-      <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
-      <p className="mt-1 text-sm text-gray-600">
-        View and manage all vendor applications for your events.
-      </p>
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Applications</h1>
+        <p className="mt-1 text-sm text-gray-600">
+          View and manage all vendor applications for your events.
+        </p>
+      </div>
+      <div className="flex-shrink-0">
+        <ExportButton filters={filters} />
+      </div>
     </div>
   )
 }
@@ -203,7 +213,7 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
   if (!result.success || !result.data) {
     return (
       <div>
-        <PageHeader />
+        <PageHeader filters={filters} />
         <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
           <p className="text-sm text-red-600">
             {result.error || 'Failed to load applications. Please try again.'}
@@ -223,7 +233,7 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
 
   return (
     <div>
-      <PageHeader />
+      <PageHeader filters={filters} />
 
       {/* Search and Filter Controls */}
       <Suspense fallback={<FilterSkeleton />}>
