@@ -281,7 +281,7 @@
 - ✅ Include vendor info in response
 - ✅ Add pagination support
 - ✅ Verify: Data fetches correctly
-- ⬜ Commit: `git commit -m "feat: add get applications action"`
+- ✅ Commit: `git commit -m "feat: add get applications action"`
 
 **Files created:** None (extends existing file)
 
@@ -293,7 +293,7 @@
 - ✅ Add recent applications preview (last 5)
 - ✅ Add quick action links
 - ✅ Verify: Stats display correctly (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ⬜ Commit: `git commit -m "feat: add dashboard home with stats"`
+- ✅ Commit: `git commit -m "feat: add dashboard home with stats"`
 
 **Files created:** None (updates existing file)
 
