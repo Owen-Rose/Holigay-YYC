@@ -5,6 +5,10 @@ import {
   applicationSubmitSchema,
   type ApplicationSubmitInput,
 } from '@/lib/validations/application'
+import {
+  APPLICATION_STATUSES,
+  type ApplicationStatus,
+} from '@/lib/constants/application-status'
 
 // =============================================================================
 // Types
@@ -525,6 +529,171 @@ export async function getApplications(
 }
 
 /**
+ * Full application details with vendor, event, and attachments
+ */
+export type ApplicationDetail = {
+  id: string
+  event_id: string
+  vendor_id: string
+  status: string
+  submitted_at: string
+  updated_at: string
+  booth_preference: string | null
+  product_categories: string[] | null
+  special_requirements: string | null
+  organizer_notes: string | null
+  vendor: {
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+    phone: string | null
+    website: string | null
+    description: string | null
+    created_at: string
+    updated_at: string
+  }
+  event: {
+    id: string
+    name: string
+    event_date: string
+    location: string
+    description: string | null
+    application_deadline: string | null
+    max_vendors: number | null
+    status: string
+  }
+  attachments: {
+    id: string
+    file_name: string
+    file_path: string
+    file_type: string
+    file_size: number | null
+    uploaded_at: string
+  }[]
+}
+
+/**
+ * Response type for single application fetch
+ */
+export type GetApplicationByIdResponse = {
+  success: boolean
+  error: string | null
+  data: ApplicationDetail | null
+}
+
+/**
+ * Fetches a single application by ID with full details
+ *
+ * Includes vendor information, event details, and all attachments
+ *
+ * @param id - The application UUID
+ * @returns GetApplicationByIdResponse with full application details or error
+ */
+export async function getApplicationById(
+  id: string
+): Promise<GetApplicationByIdResponse> {
+  const supabase = await createClient()
+
+  // Fetch the application with vendor and event data
+  const { data: application, error: appError } = await supabase
+    .from('applications')
+    .select(
+      `
+      id,
+      event_id,
+      vendor_id,
+      status,
+      submitted_at,
+      updated_at,
+      booth_preference,
+      product_categories,
+      special_requirements,
+      organizer_notes,
+      vendor:vendors (
+        id,
+        business_name,
+        contact_name,
+        email,
+        phone,
+        website,
+        description,
+        created_at,
+        updated_at
+      ),
+      event:events (
+        id,
+        name,
+        event_date,
+        location,
+        description,
+        application_deadline,
+        max_vendors,
+        status
+      )
+    `
+    )
+    .eq('id', id)
+    .single()
+
+  if (appError) {
+    if (appError.code === 'PGRST116') {
+      return {
+        success: false,
+        error: 'Application not found',
+        data: null,
+      }
+    }
+    console.error('Error fetching application:', appError)
+    return {
+      success: false,
+      error: 'Failed to fetch application',
+      data: null,
+    }
+  }
+
+  if (!application || !application.vendor || !application.event) {
+    return {
+      success: false,
+      error: 'Application data is incomplete',
+      data: null,
+    }
+  }
+
+  // Fetch attachments for this application
+  const { data: attachments, error: attachError } = await supabase
+    .from('attachments')
+    .select('id, file_name, file_path, file_type, file_size, uploaded_at')
+    .eq('application_id', id)
+    .order('uploaded_at', { ascending: true })
+
+  if (attachError) {
+    console.error('Error fetching attachments:', attachError)
+    // Don't fail the whole request if attachments fail
+  }
+
+  return {
+    success: true,
+    error: null,
+    data: {
+      id: application.id,
+      event_id: application.event_id,
+      vendor_id: application.vendor_id,
+      status: application.status,
+      submitted_at: application.submitted_at,
+      updated_at: application.updated_at,
+      booth_preference: application.booth_preference,
+      product_categories: application.product_categories,
+      special_requirements: application.special_requirements,
+      organizer_notes: application.organizer_notes,
+      vendor: application.vendor as ApplicationDetail['vendor'],
+      event: application.event as ApplicationDetail['event'],
+      attachments: attachments || [],
+    },
+  }
+}
+
+/**
  * Fetches application counts grouped by status
  *
  * Useful for dashboard summary cards
@@ -576,4 +745,90 @@ export async function getApplicationCounts(eventId?: string): Promise<{
   }
 
   return counts
+}
+
+/**
+ * Response type for update operations
+ */
+export type UpdateApplicationResponse = {
+  success: boolean
+  error: string | null
+}
+
+/**
+ * Updates the status of an application
+ *
+ * @param id - The application UUID
+ * @param status - The new status
+ * @returns UpdateApplicationResponse indicating success or failure
+ */
+export async function updateApplicationStatus(
+  id: string,
+  status: ApplicationStatus
+): Promise<UpdateApplicationResponse> {
+  // Validate status
+  if (!APPLICATION_STATUSES.includes(status)) {
+    return {
+      success: false,
+      error: 'Invalid status value',
+    }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('applications')
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating application status:', error)
+    return {
+      success: false,
+      error: 'Failed to update application status',
+    }
+  }
+
+  return {
+    success: true,
+    error: null,
+  }
+}
+
+/**
+ * Updates the organizer notes for an application
+ *
+ * @param id - The application UUID
+ * @param notes - The new notes content
+ * @returns UpdateApplicationResponse indicating success or failure
+ */
+export async function updateApplicationNotes(
+  id: string,
+  notes: string
+): Promise<UpdateApplicationResponse> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('applications')
+    .update({
+      organizer_notes: notes || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating application notes:', error)
+    return {
+      success: false,
+      error: 'Failed to update notes',
+    }
+  }
+
+  return {
+    success: true,
+    error: null,
+  }
 }

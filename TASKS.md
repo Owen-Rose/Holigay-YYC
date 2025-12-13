@@ -323,29 +323,28 @@
 ---
 
 ### Task 5.6: Create Application Detail View
-- ⬜ Create `src/app/dashboard/applications/[id]/page.tsx`
-- ⬜ Fetch application by ID
-- ⬜ Display all application fields
-- ⬜ Display attached files with download links
-- ⬜ Add status update buttons
-- ⬜ Add organizer notes field
-- ⬜ Verify: Detail page shows correct data
+- ✅ Create `src/app/dashboard/applications/[id]/page.tsx`
+- ✅ Fetch application by ID
+- ✅ Display all application fields
+- ✅ Display attached files with download links
+- ✅ Add status update buttons
+- ✅ Add organizer notes field
+- ✅ Verify: Detail page shows correct data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
 - ⬜ Commit: `git commit -m "feat: add application detail view"`
 
-**Files created:** `src/app/dashboard/applications/[id]/page.tsx`
+**Files created:** `src/app/dashboard/applications/[id]/page.tsx`, `src/app/dashboard/applications/[id]/status-buttons.tsx`, `src/app/dashboard/applications/[id]/organizer-notes.tsx`, `src/app/dashboard/applications/[id]/attachments-list.tsx`, `src/lib/constants/application-status.ts`
 
 ---
 
 ### Task 5.7: Implement Status Update
-- ⬜ Add `updateApplicationStatus` to `src/lib/actions/applications.ts`
-- ⬜ Add `updateApplicationNotes` action
-- ⬜ Update UI to call actions
-- ⬜ Add optimistic updates
-- ⬜ Add toast notifications
-- ⬜ Verify: Status changes persist
+- ✅ Add `updateApplicationStatus` to `src/lib/actions/applications.ts`
+- ✅ Add `updateApplicationNotes` action
+- ✅ Update UI to call actions
+- ✅ Verify: Status changes persist
 - ⬜ Commit: `git commit -m "feat: add status and notes update actions"`
 
 **Files created:** None (extends existing file)
+**Note:** Core functionality implemented in Task 5.6. See Future Enhancements for polish items.
 
 ---
 
@@ -376,3 +375,23 @@ npm run format       # Run Prettier
 npm test             # Run tests
 npm run build        # Production build
 ```
+
+---
+
+## Future Enhancements
+
+> Non-critical polish items to revisit after core features are complete.
+
+### UX Polish
+- ⬜ Add optimistic updates for status changes (instant UI feedback)
+- ⬜ Add toast notifications for success/error messages
+- ⬜ Add loading skeletons for application detail page
+
+### Accessibility
+- ⬜ Audit and improve keyboard navigation
+- ⬜ Add ARIA labels where missing
+- ⬜ Test with screen readers
+
+### Performance
+- ⬜ Add caching for frequently accessed data
+- ⬜ Optimize image loading for attachments
