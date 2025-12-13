@@ -202,18 +202,18 @@
 - ✅ Create `src/components/ui/checkbox.tsx` (bonus: needed for product categories)
 - ✅ Create `src/components/forms/vendor-application-form.tsx`
 - ✅ Verify: Form renders all fields correctly (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ⬜ Commit: `git commit -m "feat: add vendor application form UI"`
+- ✅ Commit: `git commit -m "feat: add vendor application form UI"`
 
 **Files created:** `src/components/ui/*`, `src/components/forms/vendor-application-form.tsx`
 
 ---
 
 ### Task 4.3: Create File Upload Handler
-- ⬜ Create `src/lib/actions/upload.ts`
-- ⬜ Implement `uploadFile` action (uploads to Supabase Storage)
-- ⬜ Add file type validation (images, PDFs)
-- ⬜ Add file size limit (10MB)
-- ⬜ Return storage path on success
+- ✅ Create `src/lib/actions/upload.ts`
+- ✅ Implement `uploadFile` action (uploads to Supabase Storage)
+- ✅ Add file type validation (images, PDFs)
+- ✅ Add file size limit (10MB)
+- ✅ Return storage path on success
 - ⬜ Verify: Test file upload manually
 - ⬜ Commit: `git commit -m "feat: add file upload handler"`
 
