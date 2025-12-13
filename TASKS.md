@@ -214,8 +214,8 @@
 - ✅ Add file type validation (images, PDFs)
 - ✅ Add file size limit (10MB)
 - ✅ Return storage path on success
-- ⬜ Verify: Test file upload manually
-- ⬜ Commit: `git commit -m "feat: add file upload handler"`
+- ✅ Verify: Test file upload manually
+- ✅ Commit: `git commit -m "feat: add file upload handler"`
 
 **Files created:** `src/lib/actions/upload.ts`
 
