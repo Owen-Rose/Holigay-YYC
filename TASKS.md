@@ -242,7 +242,7 @@
 - ✅ Show success message on submit
 - ✅ Show error messages on failure
 - ✅ Verify: TypeScript ✓, ESLint ✓, Build ✓, Tests ✓
-- ⬜ Commit: `git commit -m "feat: add vendor application page"`
+- ✅ Commit: `git commit -m "feat: add vendor application page"`
 
 **Files created:** `src/app/(public)/layout.tsx`, `src/app/(public)/apply/page.tsx`, `src/app/(public)/apply/client.tsx`
 
@@ -255,13 +255,113 @@
 - ✅ Test form rendering (all sections, fields, options)
 - ✅ Test loading state during submission
 - ✅ Verify: `npm test` passes (16 tests)
-- ⬜ Commit: `git commit -m "test: add application form tests"`
+- ✅ Commit: `git commit -m "test: add application form tests"`
 
 **Files created:** `src/test/application-form.test.tsx`
 
 ---
 
-## Phase 5-8: See plan file for remaining tasks
+## Phase 5: Organizer Dashboard (Days 10-13)
+
+### Task 5.1: Create Applications List Component
+- ✅ Create `src/components/dashboard/applications-table.tsx`
+- ✅ Add table columns: Business, Contact, Status, Date, Actions
+- ✅ Add loading skeleton state
+- ✅ Make responsive (card view on mobile)
+- ✅ Verify: Component renders with mock data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
+- ⬜ Commit: `git commit -m "feat: add applications table component"`
+
+**Files created:** `src/components/dashboard/applications-table.tsx`
+
+---
+
+### Task 5.2: Fetch Applications Server Action
+- ⬜ Add `getApplications` to `src/lib/actions/applications.ts`
+- ⬜ Accept filter parameters (status, search)
+- ⬜ Include vendor info in response
+- ⬜ Add pagination support
+- ⬜ Verify: Data fetches correctly
+- ⬜ Commit: `git commit -m "feat: add get applications action"`
+
+**Files created:** None (extends existing file)
+
+---
+
+### Task 5.3: Build Dashboard Home Page
+- ⬜ Update `src/app/dashboard/page.tsx`
+- ⬜ Add summary cards (Pending, Approved, Total)
+- ⬜ Add recent applications preview (last 5)
+- ⬜ Add quick action links
+- ⬜ Verify: Stats display correctly
+- ⬜ Commit: `git commit -m "feat: add dashboard home with stats"`
+
+**Files created:** None (updates existing file)
+
+---
+
+### Task 5.4: Build Applications List Page
+- ⬜ Create `src/app/dashboard/applications/page.tsx`
+- ⬜ Fetch applications server-side
+- ⬜ Render applications table
+- ⬜ Verify: All applications display
+- ⬜ Commit: `git commit -m "feat: add applications list page"`
+
+**Files created:** `src/app/dashboard/applications/page.tsx`
+
+---
+
+### Task 5.5: Add Search & Filter
+- ⬜ Create `src/components/dashboard/applications-filter.tsx`
+- ⬜ Add search input (business name, email)
+- ⬜ Add status filter dropdown
+- ⬜ Use URL search params for state
+- ⬜ Verify: Filters update table results
+- ⬜ Commit: `git commit -m "feat: add application search and filters"`
+
+**Files created:** `src/components/dashboard/applications-filter.tsx`
+
+---
+
+### Task 5.6: Create Application Detail View
+- ⬜ Create `src/app/dashboard/applications/[id]/page.tsx`
+- ⬜ Fetch application by ID
+- ⬜ Display all application fields
+- ⬜ Display attached files with download links
+- ⬜ Add status update buttons
+- ⬜ Add organizer notes field
+- ⬜ Verify: Detail page shows correct data
+- ⬜ Commit: `git commit -m "feat: add application detail view"`
+
+**Files created:** `src/app/dashboard/applications/[id]/page.tsx`
+
+---
+
+### Task 5.7: Implement Status Update
+- ⬜ Add `updateApplicationStatus` to `src/lib/actions/applications.ts`
+- ⬜ Add `updateApplicationNotes` action
+- ⬜ Update UI to call actions
+- ⬜ Add optimistic updates
+- ⬜ Add toast notifications
+- ⬜ Verify: Status changes persist
+- ⬜ Commit: `git commit -m "feat: add status and notes update actions"`
+
+**Files created:** None (extends existing file)
+
+---
+
+### Task 5.8: Add CSV Export
+- ⬜ Create `src/lib/actions/export.ts`
+- ⬜ Implement `exportApplicationsCSV` action
+- ⬜ Include relevant columns
+- ⬜ Add export button to applications page
+- ⬜ Verify: CSV downloads with correct data
+- ⬜ Commit: `git commit -m "feat: add CSV export functionality"`
+
+**Files created:** `src/lib/actions/export.ts`
+
+---
+
+## Phase 6-8: See plan file for remaining tasks
 
 Full task list available at: `~/.claude/plans/cozy-snuggling-cray.md`
 

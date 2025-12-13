@@ -103,4 +103,4 @@ import { createServerClient } from '@/lib/supabase/server'
 
 ## Current Development Phase
 
-Currently in Phase 4: Building the vendor application form. See `TASKS.md` for detailed task tracking.
+Currently in Phase 5: Building the organizer dashboard. See `TASKS.md` for detailed task tracking.
