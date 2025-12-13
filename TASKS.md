@@ -300,22 +300,22 @@
 ---
 
 ### Task 5.4: Build Applications List Page
-- ⬜ Create `src/app/dashboard/applications/page.tsx`
-- ⬜ Fetch applications server-side
-- ⬜ Render applications table
-- ⬜ Verify: All applications display
-- ⬜ Commit: `git commit -m "feat: add applications list page"`
+- ✅ Create `src/app/dashboard/applications/page.tsx`
+- ✅ Fetch applications server-side
+- ✅ Render applications table
+- ✅ Verify: All applications display
+- ✅ Commit: `git commit -m "feat: add applications list page"`
 
 **Files created:** `src/app/dashboard/applications/page.tsx`
 
 ---
 
 ### Task 5.5: Add Search & Filter
-- ⬜ Create `src/components/dashboard/applications-filter.tsx`
-- ⬜ Add search input (business name, email)
-- ⬜ Add status filter dropdown
-- ⬜ Use URL search params for state
-- ⬜ Verify: Filters update table results
+- ✅ Create `src/components/dashboard/applications-filter.tsx`
+- ✅ Add search input (business name, email)
+- ✅ Add status filter dropdown
+- ✅ Use URL search params for state
+- ✅ Verify: Filters update table results (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
 - ⬜ Commit: `git commit -m "feat: add application search and filters"`
 
 **Files created:** `src/components/dashboard/applications-filter.tsx`

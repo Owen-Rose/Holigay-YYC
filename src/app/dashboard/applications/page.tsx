@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import { getApplications, type ApplicationFilters } from '@/lib/actions/applications'
 import { ApplicationsTable } from '@/components/dashboard/applications-table'
+import { ApplicationsFilter } from '@/components/dashboard/applications-filter'
 
 // =============================================================================
 // Types
@@ -24,6 +26,27 @@ function PageHeader() {
       <p className="mt-1 text-sm text-gray-600">
         View and manage all vendor applications for your events.
       </p>
+    </div>
+  )
+}
+
+// =============================================================================
+// Filter Skeleton Component
+// =============================================================================
+
+function FilterSkeleton() {
+  return (
+    <div className="mb-6 animate-pulse">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <div className="mb-1 h-5 w-16 rounded bg-gray-200" />
+          <div className="h-10 w-full rounded-md bg-gray-200" />
+        </div>
+        <div className="w-full sm:w-48">
+          <div className="mb-1 h-5 w-12 rounded bg-gray-200" />
+          <div className="h-10 w-full rounded-md bg-gray-200" />
+        </div>
+      </div>
     </div>
   )
 }
@@ -201,6 +224,11 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
   return (
     <div>
       <PageHeader />
+
+      {/* Search and Filter Controls */}
+      <Suspense fallback={<FilterSkeleton />}>
+        <ApplicationsFilter />
+      </Suspense>
 
       {/* Applications Table */}
       <ApplicationsTable applications={applications} />
