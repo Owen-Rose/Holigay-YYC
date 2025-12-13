@@ -276,11 +276,11 @@
 ---
 
 ### Task 5.2: Fetch Applications Server Action
-- ⬜ Add `getApplications` to `src/lib/actions/applications.ts`
-- ⬜ Accept filter parameters (status, search)
-- ⬜ Include vendor info in response
-- ⬜ Add pagination support
-- ⬜ Verify: Data fetches correctly
+- ✅ Add `getApplications` to `src/lib/actions/applications.ts`
+- ✅ Accept filter parameters (status, search)
+- ✅ Include vendor info in response
+- ✅ Add pagination support
+- ✅ Verify: Data fetches correctly
 - ⬜ Commit: `git commit -m "feat: add get applications action"`
 
 **Files created:** None (extends existing file)
