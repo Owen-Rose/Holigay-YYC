@@ -4,6 +4,8 @@ import {
   getApplications,
   type ApplicationWithVendor,
 } from '@/lib/actions/applications'
+import { Card } from '@/components/ui/card'
+import { StatusBadge } from '@/components/ui/badge'
 
 // =============================================================================
 // Stat Card Components
@@ -22,7 +24,7 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon, href, trend }: StatCardProps) {
   const content = (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md">
+    <Card variant="interactive">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-600">{title}</p>
@@ -38,7 +40,7 @@ function StatCard({ title, value, icon, href, trend }: StatCardProps) {
           {icon}
         </div>
       </div>
-    </div>
+    </Card>
   )
 
   if (href) {
@@ -55,40 +57,6 @@ function StatCard({ title, value, icon, href, trend }: StatCardProps) {
 // =============================================================================
 // Recent Applications Component
 // =============================================================================
-
-const statusConfig: Record<string, { label: string; className: string }> = {
-  pending: {
-    label: 'Pending',
-    className: 'bg-yellow-100 text-yellow-800',
-  },
-  approved: {
-    label: 'Approved',
-    className: 'bg-green-100 text-green-800',
-  },
-  rejected: {
-    label: 'Rejected',
-    className: 'bg-red-100 text-red-800',
-  },
-  waitlisted: {
-    label: 'Waitlisted',
-    className: 'bg-blue-100 text-blue-800',
-  },
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config = statusConfig[status] || {
-    label: status,
-    className: 'bg-gray-100 text-gray-800',
-  }
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${config.className}`}
-    >
-      {config.label}
-    </span>
-  )
-}
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString)

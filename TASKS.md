@@ -417,21 +417,21 @@
 - ✅ Add CTA button to apply
 - ✅ Add event details/dates
 - ✅ Verify: Looks good on desktop and mobile
-- ⬜ Commit: `git commit -m "feat: add landing page design"`
+- ✅ Commit: `git commit -m "feat: add landing page design"`
 
 **Files created:** `src/app/(public)/page.tsx`
 
 ---
 
 ### Task 7.2: Add Shared UI Components
-- ⬜ Create `src/components/ui/card.tsx`
-- ⬜ Create `src/components/ui/badge.tsx`
-- ⬜ Create `src/components/ui/spinner.tsx`
-- ⬜ Update existing components with variants
-- ⬜ Verify: Consistent styling across app
+- ✅ Create `src/components/ui/card.tsx`
+- ✅ Create `src/components/ui/badge.tsx`
+- ✅ Create `src/components/ui/spinner.tsx`
+- ✅ Update existing components with variants
+- ✅ Verify: Consistent styling across app (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
 - ⬜ Commit: `git commit -m "feat: add shared UI components"`
 
-**Files created:** `src/components/ui/*`
+**Files created:** `src/components/ui/card.tsx`, `src/components/ui/badge.tsx`, `src/components/ui/spinner.tsx`
 
 ---
 

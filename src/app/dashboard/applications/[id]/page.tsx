@@ -7,6 +7,8 @@ import {
 import { StatusUpdateButtons } from './status-buttons'
 import { OrganizerNotes } from './organizer-notes'
 import { AttachmentsList } from './attachments-list'
+import { Card, CardTitle } from '@/components/ui/card'
+import { StatusBadge } from '@/components/ui/badge'
 
 // =============================================================================
 // Types
@@ -42,44 +44,6 @@ function formatDateTime(dateString: string): string {
 }
 
 // =============================================================================
-// Status Badge Component
-// =============================================================================
-
-const statusConfig: Record<string, { label: string; className: string }> = {
-  pending: {
-    label: 'Pending Review',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  },
-  approved: {
-    label: 'Approved',
-    className: 'bg-green-100 text-green-800 border-green-200',
-  },
-  rejected: {
-    label: 'Rejected',
-    className: 'bg-red-100 text-red-800 border-red-200',
-  },
-  waitlisted: {
-    label: 'Waitlisted',
-    className: 'bg-blue-100 text-blue-800 border-blue-200',
-  },
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const config = statusConfig[status] || {
-    label: status,
-    className: 'bg-gray-100 text-gray-800 border-gray-200',
-  }
-
-  return (
-    <span
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${config.className}`}
-    >
-      {config.label}
-    </span>
-  )
-}
-
-// =============================================================================
 // Info Section Component
 // =============================================================================
 
@@ -91,10 +55,10 @@ function InfoSection({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">{title}</h2>
+    <Card>
+      <CardTitle className="mb-4 font-semibold">{title}</CardTitle>
       {children}
-    </div>
+    </Card>
   )
 }
 
