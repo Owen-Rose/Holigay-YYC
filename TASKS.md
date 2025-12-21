@@ -1,4 +1,4 @@
-# Holigay Vendor Market - Task Tracker
+# PR4 - Task Tracker
 
 > Check off tasks as you complete them. Mark with the appropriate status symbol.
 
@@ -316,7 +316,7 @@
 - ✅ Add status filter dropdown
 - ✅ Use URL search params for state
 - ✅ Verify: Filters update table results (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ⬜ Commit: `git commit -m "feat: add application search and filters"`
+- ✅ Commit: `git commit -m "feat: add application search and filters"`
 
 **Files created:** `src/components/dashboard/applications-filter.tsx`
 
@@ -330,7 +330,7 @@
 - ✅ Add status update buttons
 - ✅ Add organizer notes field
 - ✅ Verify: Detail page shows correct data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ⬜ Commit: `git commit -m "feat: add application detail view"`
+- ✅ Commit: `git commit -m "feat: add application detail view"`
 
 **Files created:** `src/app/dashboard/applications/[id]/page.tsx`, `src/app/dashboard/applications/[id]/status-buttons.tsx`, `src/app/dashboard/applications/[id]/organizer-notes.tsx`, `src/app/dashboard/applications/[id]/attachments-list.tsx`, `src/lib/constants/application-status.ts`
 
@@ -341,7 +341,7 @@
 - ✅ Add `updateApplicationNotes` action
 - ✅ Update UI to call actions
 - ✅ Verify: Status changes persist
-- ⬜ Commit: `git commit -m "feat: add status and notes update actions"`
+- ✅ Commit: `git commit -m "feat: add status and notes update actions"`
 
 **Files created:** None (extends existing file)
 **Note:** Core functionality implemented in Task 5.6. See Future Enhancements for polish items.
@@ -354,15 +354,186 @@
 - ✅ Include relevant columns
 - ✅ Add export button to applications page
 - ✅ Verify: CSV downloads with correct data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ⬜ Commit: `git commit -m "feat: add CSV export functionality"`
+- ✅ Commit: `git commit -m "feat: add CSV export functionality"`
 
 **Files created:** `src/lib/actions/export.ts`, `src/components/dashboard/export-button.tsx`
 
 ---
 
-## Phase 6-8: See plan file for remaining tasks
+## Phase 6: Email Notifications (Days 14-15)
 
-Full task list available at: `~/.claude/plans/cozy-snuggling-cray.md`
+### Task 6.1: Set Up Resend
+- ✅ Create account at [resend.com](https://resend.com)
+- ✅ Get API key
+- ✅ Add `RESEND_API_KEY` to `.env.local`
+- ✅ Install: `npm install resend`
+- ✅ Create `src/lib/email/client.ts`
+- ✅ Test sending a simple email
+- ✅ Commit: `git commit -m "feat: add Resend email client"`
+
+**Files created:** `src/lib/email/client.ts`
+
+---
+
+### Task 6.2: Create Email Templates
+- ✅ Create `src/lib/email/templates/application-received.tsx`
+- ✅ Create `src/lib/email/templates/status-update.tsx`
+- ✅ Style with inline CSS (email-safe)
+- ✅ Verify: Templates render correctly
+- ⬜ Commit: `git commit -m "feat: add email templates"`
+
+**Files created:** `src/lib/email/templates/*`
+
+---
+
+### Task 6.3: Send Confirmation on Submit
+- ⬜ Update `submitApplication` action
+- ⬜ Send confirmation email after DB insert
+- ⬜ Handle email failures gracefully (log, don't block)
+- ⬜ Verify: Email received after submission
+- ⬜ Commit: `git commit -m "feat: send confirmation email on submit"`
+
+**Files created:** None (updates existing file)
+
+---
+
+### Task 6.4: Send Notification on Status Change
+- ⬜ Update `updateApplicationStatus` action
+- ⬜ Send email on approve/reject
+- ⬜ Use different templates per status
+- ⬜ Verify: Email received on status change
+- ⬜ Commit: `git commit -m "feat: send email on status change"`
+
+**Files created:** None (updates existing file)
+
+---
+
+## Phase 7: Landing Page & Polish (Days 16-17)
+
+### Task 7.1: Design Landing Page
+- ⬜ Update `src/app/(public)/page.tsx`
+- ⬜ Add hero section with event info
+- ⬜ Add benefits section for vendors
+- ⬜ Add CTA button to apply
+- ⬜ Add event details/dates
+- ⬜ Verify: Looks good on desktop and mobile
+- ⬜ Commit: `git commit -m "feat: add landing page design"`
+
+**Files created:** None (updates existing file)
+
+---
+
+### Task 7.2: Add Shared UI Components
+- ⬜ Create `src/components/ui/card.tsx`
+- ⬜ Create `src/components/ui/badge.tsx`
+- ⬜ Create `src/components/ui/spinner.tsx`
+- ⬜ Update existing components with variants
+- ⬜ Verify: Consistent styling across app
+- ⬜ Commit: `git commit -m "feat: add shared UI components"`
+
+**Files created:** `src/components/ui/*`
+
+---
+
+### Task 7.3: Responsive Layout Check
+- ⬜ Test all pages at 320px width (mobile)
+- ⬜ Test all pages at 768px width (tablet)
+- ⬜ Test all pages at 1280px+ width (desktop)
+- ⬜ Fix any overflow issues
+- ⬜ Ensure buttons are touch-friendly (min 44px)
+- ⬜ Commit: `git commit -m "fix: responsive layout improvements"`
+
+**Files created:** Various (style updates)
+
+---
+
+### Task 7.4: Add Loading & Error States
+- ⬜ Create `src/app/loading.tsx` (global loading)
+- ⬜ Create `src/app/error.tsx` (global error boundary)
+- ⬜ Create `src/app/not-found.tsx` (404 page)
+- ⬜ Add loading states to async components
+- ⬜ Verify: Errors display nicely, loading shows skeleton
+- ⬜ Commit: `git commit -m "feat: add loading and error states"`
+
+**Files created:** `src/app/loading.tsx`, `error.tsx`, `not-found.tsx`
+
+---
+
+## Phase 8: Deployment & Documentation (Days 18-19)
+
+### Task 8.1: Prepare for Production
+- ⬜ Run `npm run build` and fix any errors
+- ⬜ Check all env vars are documented in `.env.example`
+- ⬜ Remove any `console.log` statements
+- ⬜ Optimize images (if any)
+- ⬜ Verify: Build succeeds with no warnings
+- ⬜ Commit: `git commit -m "chore: prepare for production"`
+
+**Files created:** None
+
+---
+
+### Task 8.2: Deploy to Vercel
+- ⬜ Go to [vercel.com](https://vercel.com) and import GitHub repo
+- ⬜ Add environment variables in Vercel dashboard
+- ⬜ Deploy
+- ⬜ Verify: Live URL is accessible
+- ⬜ Verify: All features work on production
+
+**Files created:** None (Vercel dashboard)
+
+---
+
+### Task 8.3: Configure Supabase for Production
+- ⬜ Add Vercel URL to Supabase > Auth > URL Configuration
+- ⬜ Add Vercel URL to allowed origins in Storage policies
+- ⬜ (Optional) Consider separate prod Supabase project
+- ⬜ Verify: Auth and storage work on production
+
+**Files created:** None (Supabase dashboard)
+
+---
+
+### Task 8.4: Write README
+- ⬜ Create comprehensive `README.md`
+- ⬜ Include: Project overview, features list
+- ⬜ Include: Prerequisites (Node, npm, etc.)
+- ⬜ Include: Local setup steps (goal: one command)
+- ⬜ Include: Environment variables table
+- ⬜ Include: Deployment instructions
+- ⬜ Include: Maintenance notes
+- ⬜ Commit: `git commit -m "docs: add comprehensive README"`
+
+**Files created:** `README.md`
+
+---
+
+### Task 8.5: Create Seed Data Script
+- ⬜ Create `scripts/seed.ts`
+- ⬜ Add sample event
+- ⬜ Add sample applications (various statuses)
+- ⬜ Add script to `package.json`
+- ⬜ Verify: `npm run seed` populates data
+- ⬜ Commit: `git commit -m "feat: add database seed script"`
+
+**Files created:** `scripts/seed.ts`
+
+---
+
+### Task 8.6: Final Testing & QA
+- ⬜ Test: Vendor can submit application
+- ⬜ Test: Files upload successfully
+- ⬜ Test: Confirmation email received
+- ⬜ Test: Organizer can log in
+- ⬜ Test: Dashboard shows applications
+- ⬜ Test: Filter and search work
+- ⬜ Test: Status update works
+- ⬜ Test: Status change email received
+- ⬜ Test: CSV export downloads correctly
+- ⬜ Test: Mobile experience is usable
+- ⬜ Document any bugs for future fix
+
+**Files created:** None
 
 ---
 
@@ -395,3 +566,19 @@ npm run build        # Production build
 ### Performance
 - ⬜ Add caching for frequently accessed data
 - ⬜ Optimize image loading for attachments
+
+---
+
+## Progress Summary
+
+| Phase | Status | Tasks |
+|-------|--------|-------|
+| 1. Project Foundation | ✅ Complete | 5/5 |
+| 2. Database & Backend Setup | ✅ Complete | 6/6 |
+| 3. Authentication | ✅ Complete | 5/5 |
+| 4. Vendor Application Form | ✅ Complete | 6/6 |
+| 5. Organizer Dashboard | ✅ Complete | 8/8 |
+| 6. Email Notifications | ⬜ Not Started | 0/4 |
+| 7. Landing Page & Polish | ⬜ Not Started | 0/4 |
+| 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
+| **Total** | **In Progress** | **30/44** |
