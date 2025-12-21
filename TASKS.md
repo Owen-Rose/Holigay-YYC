@@ -402,7 +402,7 @@
 - ✅ Send email on approve/reject
 - ✅ Use different templates per status
 - ⬜ Verify: Email received on status change
-- ⬜ Commit: `git commit -m "feat: send email on status change"`
+- ✅ Commit: `git commit -m "feat: send email on status change"`
 
 **Files created:** None (updates existing file)
 
@@ -411,15 +411,15 @@
 ## Phase 7: Landing Page & Polish (Days 16-17)
 
 ### Task 7.1: Design Landing Page
-- ⬜ Update `src/app/(public)/page.tsx`
-- ⬜ Add hero section with event info
-- ⬜ Add benefits section for vendors
-- ⬜ Add CTA button to apply
-- ⬜ Add event details/dates
-- ⬜ Verify: Looks good on desktop and mobile
+- ✅ Update `src/app/(public)/page.tsx`
+- ✅ Add hero section with event info
+- ✅ Add benefits section for vendors
+- ✅ Add CTA button to apply
+- ✅ Add event details/dates
+- ✅ Verify: Looks good on desktop and mobile
 - ⬜ Commit: `git commit -m "feat: add landing page design"`
 
-**Files created:** None (updates existing file)
+**Files created:** `src/app/(public)/page.tsx`
 
 ---
 
