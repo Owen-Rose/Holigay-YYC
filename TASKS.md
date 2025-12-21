@@ -391,16 +391,16 @@
 - ✅ Send confirmation email after DB insert
 - ✅ Handle email failures gracefully (log, don't block)
 - ⬜ Verify: Email received after submission
-- ⬜ Commit: `git commit -m "feat: send confirmation email on submit"`
+- ✅ Commit: `git commit -m "feat: send confirmation email on submit"`
 
 **Files created:** None (updates existing file)
 
 ---
 
 ### Task 6.4: Send Notification on Status Change
-- ⬜ Update `updateApplicationStatus` action
-- ⬜ Send email on approve/reject
-- ⬜ Use different templates per status
+- ✅ Update `updateApplicationStatus` action
+- ✅ Send email on approve/reject
+- ✅ Use different templates per status
 - ⬜ Verify: Email received on status change
 - ⬜ Commit: `git commit -m "feat: send email on status change"`
 

@@ -10,7 +10,7 @@ import {
   type ApplicationStatus,
 } from '@/lib/constants/application-status'
 import { sendEmail } from '@/lib/email/client'
-import { applicationReceivedEmail } from '@/lib/email/templates'
+import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates'
 
 // =============================================================================
 // Types
@@ -808,7 +808,13 @@ export type UpdateApplicationResponse = {
 }
 
 /**
- * Updates the status of an application
+ * Updates the status of an application and sends a notification email
+ *
+ * This action:
+ * 1. Validates the new status
+ * 2. Fetches application details (needed for the email)
+ * 3. Updates the status in the database
+ * 4. Sends a notification email for approved/rejected/waitlisted statuses
  *
  * @param id - The application UUID
  * @param status - The new status
@@ -828,7 +834,50 @@ export async function updateApplicationStatus(
 
   const supabase = await createClient()
 
-  const { error } = await supabase
+  // -------------------------------------------------------------------------
+  // Step 1: Fetch application details for the email (before updating)
+  // -------------------------------------------------------------------------
+  const { data: application, error: fetchError } = await supabase
+    .from('applications')
+    .select(
+      `
+      id,
+      status,
+      organizer_notes,
+      vendor:vendors (
+        contact_name,
+        business_name,
+        email
+      ),
+      event:events (
+        name,
+        event_date
+      )
+    `
+    )
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !application) {
+    console.error('Error fetching application for status update:', fetchError)
+    return {
+      success: false,
+      error: 'Application not found',
+    }
+  }
+
+  // Skip update if status hasn't changed
+  if (application.status === status) {
+    return {
+      success: true,
+      error: null,
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Step 2: Update the application status
+  // -------------------------------------------------------------------------
+  const { error: updateError } = await supabase
     .from('applications')
     .update({
       status,
@@ -836,11 +885,68 @@ export async function updateApplicationStatus(
     })
     .eq('id', id)
 
-  if (error) {
-    console.error('Error updating application status:', error)
+  if (updateError) {
+    console.error('Error updating application status:', updateError)
     return {
       success: false,
       error: 'Failed to update application status',
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Step 3: Send notification email (non-blocking)
+  // -------------------------------------------------------------------------
+  // Only send emails for status changes that the vendor should know about
+  // (approved, rejected, waitlisted - not pending since that's the initial state)
+  if (status !== 'pending' && application.vendor && application.event) {
+    try {
+      const vendor = application.vendor as {
+        contact_name: string
+        business_name: string
+        email: string
+      }
+      const event = application.event as {
+        name: string
+        event_date: string
+      }
+
+      // Format the event date for display
+      const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+
+      // Generate the email content
+      const emailContent = statusUpdateEmail({
+        vendorName: vendor.contact_name,
+        businessName: vendor.business_name,
+        eventName: event.name,
+        eventDate,
+        status,
+        organizerNotes: application.organizer_notes,
+      })
+
+      // Send the notification email
+      const emailResult = await sendEmail({
+        to: vendor.email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+      })
+
+      if (!emailResult.success) {
+        console.error('[Email] Failed to send status update email:', emailResult.error)
+      } else {
+        console.log(
+          `[Email] Status update email sent to ${vendor.email}:`,
+          emailResult.messageId
+        )
+      }
+    } catch (emailError) {
+      // Log but don't fail the status update - email is non-critical
+      console.error('[Email] Unexpected error sending status update email:', emailError)
     }
   }
 
