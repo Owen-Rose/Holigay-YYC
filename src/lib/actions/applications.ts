@@ -9,6 +9,8 @@ import {
   APPLICATION_STATUSES,
   type ApplicationStatus,
 } from '@/lib/constants/application-status'
+import { sendEmail } from '@/lib/email/client'
+import { applicationReceivedEmail } from '@/lib/email/templates'
 
 // =============================================================================
 // Types
@@ -280,6 +282,56 @@ export async function submitApplication(
       // Note: We don't fail the whole submission if attachments fail
       // The application is already created, so we just log the error
     }
+  }
+
+  // -------------------------------------------------------------------------
+  // Step 5: Send confirmation email (non-blocking)
+  // -------------------------------------------------------------------------
+  try {
+    // Fetch event details for the email
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .select('name, event_date')
+      .eq('id', eventId)
+      .single()
+
+    if (eventError || !event) {
+      console.error('[Email] Failed to fetch event for confirmation email:', eventError)
+    } else {
+      // Format the event date for display
+      const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+
+      // Generate the email content
+      const emailContent = applicationReceivedEmail({
+        vendorName: contactName,
+        businessName,
+        eventName: event.name,
+        eventDate,
+        applicationId,
+      })
+
+      // Send the confirmation email
+      const emailResult = await sendEmail({
+        to: email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+      })
+
+      if (!emailResult.success) {
+        console.error('[Email] Failed to send confirmation email:', emailResult.error)
+      } else {
+        console.log('[Email] Confirmation email sent:', emailResult.messageId)
+      }
+    }
+  } catch (emailError) {
+    // Log but don't fail the submission - email is non-critical
+    console.error('[Email] Unexpected error sending confirmation email:', emailError)
   }
 
   // -------------------------------------------------------------------------

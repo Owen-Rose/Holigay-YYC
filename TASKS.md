@@ -387,9 +387,9 @@
 ---
 
 ### Task 6.3: Send Confirmation on Submit
-- ⬜ Update `submitApplication` action
-- ⬜ Send confirmation email after DB insert
-- ⬜ Handle email failures gracefully (log, don't block)
+- ✅ Update `submitApplication` action
+- ✅ Send confirmation email after DB insert
+- ✅ Handle email failures gracefully (log, don't block)
 - ⬜ Verify: Email received after submission
 - ⬜ Commit: `git commit -m "feat: send confirmation email on submit"`
 
