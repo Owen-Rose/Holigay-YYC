@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signOut } from '@/lib/actions/auth'
 
 // Navigation items for the sidebar
@@ -21,6 +21,21 @@ export default function DashboardLayout({
   const router = useRouter()
   const pathname = usePathname()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Close sidebar when route changes (mobile)
+  useEffect(() => {
+    setIsSidebarOpen(false)
+  }, [pathname])
+
+  // Close sidebar when pressing Escape
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') setIsSidebarOpen(false)
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [])
 
   async function handleLogout() {
     setIsLoggingOut(true)
@@ -39,11 +54,45 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-gray-100">
+      {/* Mobile Header */}
+      <header className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 lg:hidden">
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          aria-label="Open navigation menu"
+        >
+          <MenuIcon className="h-6 w-6" />
+        </button>
+        <h1 className="text-lg font-bold text-gray-900">Holigay Market</h1>
+        {/* Spacer for centering */}
+        <div className="w-11" />
+      </header>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-gray-900/50 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-10 flex w-64 flex-col bg-white shadow-lg">
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-white shadow-lg transition-transform duration-200 ease-in-out lg:translate-x-0 lg:z-10 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         {/* Logo/Brand */}
-        <div className="flex h-16 items-center justify-center border-b border-gray-200">
+        <div className="flex h-14 items-center justify-between border-b border-gray-200 px-4 lg:h-16 lg:justify-center lg:px-0">
           <h1 className="text-xl font-bold text-gray-900">Holigay Market</h1>
+          <button
+            onClick={() => setIsSidebarOpen(false)}
+            className="flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 lg:hidden"
+            aria-label="Close navigation menu"
+          >
+            <CloseIcon className="h-6 w-6" />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -54,7 +103,7 @@ export default function DashboardLayout({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-blue-50 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
@@ -74,7 +123,7 @@ export default function DashboardLayout({
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <LogoutIcon className="h-5 w-5 text-gray-400" />
             {isLoggingOut ? 'Signing out...' : 'Sign Out'}
@@ -83,8 +132,48 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64 flex-1 p-8">{children}</main>
+      <main className="flex-1 pt-14 lg:ml-64 lg:pt-0">
+        <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+      </main>
     </div>
+  )
+}
+
+// Menu icon for mobile header
+function MenuIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+      />
+    </svg>
+  )
+}
+
+// Close icon for mobile sidebar
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6 18 18 6M6 6l12 12"
+      />
+    </svg>
   )
 }
 

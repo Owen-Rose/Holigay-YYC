@@ -166,7 +166,7 @@ function DesktopTable({ applications }: { applications: ApplicationWithVendor[] 
               <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                 <Link
                   href={`/dashboard/applications/${application.id}`}
-                  className="font-medium text-blue-600 hover:text-blue-900"
+                  className="inline-flex min-h-[44px] items-center justify-center rounded-md px-3 py-2 font-medium text-blue-600 hover:bg-blue-50 hover:text-blue-900"
                 >
                   View
                 </Link>

@@ -32,7 +32,7 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
           type="email"
           autoComplete="email"
           {...register('email')}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="you@example.com"
         />
         {errors.email && (
@@ -53,7 +53,7 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
           type="password"
           autoComplete="new-password"
           {...register('password')}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="Enter your password"
         />
         {errors.password && (
@@ -74,7 +74,7 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
           type="password"
           autoComplete="new-password"
           {...register('confirmPassword')}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="Confirm your password"
         />
         {errors.confirmPassword && (
@@ -88,7 +88,7 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-md bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="min-h-[44px] w-full rounded-md bg-blue-600 px-4 py-2.5 text-white font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? 'Creating account...' : 'Create Account'}
       </button>

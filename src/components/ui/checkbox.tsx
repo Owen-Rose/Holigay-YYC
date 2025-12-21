@@ -12,36 +12,32 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
     const checkboxId = id ?? generatedId
 
     return (
-      <div className="flex items-start">
-        <div className="flex h-5 items-center">
-          <input
-            type="checkbox"
-            id={checkboxId}
-            className={cn(
-              'h-4 w-4 rounded border-gray-300',
-              'text-blue-600 focus:ring-blue-500 focus:ring-offset-0',
-              'disabled:cursor-not-allowed disabled:opacity-50',
-              className
-            )}
-            ref={ref}
-            {...props}
-          />
-        </div>
+      <label
+        htmlFor={checkboxId}
+        className={cn(
+          'flex min-h-[44px] cursor-pointer items-center rounded-md px-2 py-2 -mx-2 hover:bg-gray-50',
+          props.disabled && 'cursor-not-allowed opacity-50 hover:bg-transparent'
+        )}
+      >
+        <input
+          type="checkbox"
+          id={checkboxId}
+          className={cn(
+            'h-5 w-5 shrink-0 rounded border-gray-300',
+            'text-blue-600 focus:ring-blue-500 focus:ring-offset-0',
+            'disabled:cursor-not-allowed disabled:opacity-50',
+            className
+          )}
+          ref={ref}
+          {...props}
+        />
         <div className="ml-3 text-sm">
-          <label
-            htmlFor={checkboxId}
-            className={cn(
-              'font-medium text-gray-700',
-              props.disabled && 'cursor-not-allowed opacity-50'
-            )}
-          >
-            {label}
-          </label>
+          <span className="font-medium text-gray-700">{label}</span>
           {description && (
             <p className="text-gray-500">{description}</p>
           )}
         </div>
-      </div>
+      </label>
     )
   }
 )

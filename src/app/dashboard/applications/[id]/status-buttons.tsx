@@ -98,7 +98,7 @@ export function StatusUpdateButtons({
               onClick={() => handleStatusChange(status)}
               disabled={isPending}
               className={cn(
-                'rounded-md border px-4 py-2 text-sm font-medium transition-colors',
+                'min-h-[44px] rounded-md border px-4 py-2.5 text-sm font-medium transition-colors',
                 'disabled:cursor-not-allowed disabled:opacity-50',
                 config.className,
                 !isPending && config.hoverClassName
