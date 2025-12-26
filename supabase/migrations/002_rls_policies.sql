@@ -89,6 +89,12 @@ CREATE POLICY "Authenticated users can delete vendors"
   TO authenticated
   USING (true);
 
+CREATE POLICY "Authenticated users can create vendors"
+  ON vendors
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
 -- ============================================
 -- Applications Policies
 -- Public can create applications (submit forms)
@@ -130,6 +136,12 @@ CREATE POLICY "Authenticated users can delete applications"
   TO authenticated
   USING (true);
 
+CREATE POLICY "Authenticated users can create applications"
+  ON applications
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
 -- ============================================
 -- Attachments Policies
 -- Public can create attachments (with applications)
@@ -162,3 +174,30 @@ CREATE POLICY "Authenticated users can delete attachments"
   FOR DELETE
   TO authenticated
   USING (true);
+
+CREATE POLICY "Authenticated users can create attachments"
+  ON attachments
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
+-- ============================================
+-- Storage Policies (Manual Setup Required)
+-- ============================================
+-- Note: Supabase Storage policies must be configured via the dashboard
+-- or using the storage schema directly. For the 'attachments' bucket:
+--
+-- 1. Create bucket named 'attachments' (private, not public)
+--
+-- 2. Add these policies in Supabase Dashboard > Storage > Policies:
+--
+--    INSERT (uploads):
+--      - Allow anon: bucket_id = 'attachments'
+--      - Allow authenticated: bucket_id = 'attachments'
+--
+--    SELECT (downloads):
+--      - Allow anon: bucket_id = 'attachments'
+--      - Allow authenticated: bucket_id = 'attachments'
+--
+--    DELETE:
+--      - Allow authenticated: bucket_id = 'attachments'
