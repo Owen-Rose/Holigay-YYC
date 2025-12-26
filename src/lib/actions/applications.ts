@@ -358,7 +358,7 @@ export async function getActiveEvents() {
   const { data: events, error } = await supabase
     .from('events')
     .select('id, name, event_date, location, description, application_deadline')
-    .eq('status', 'accepting_applications')
+    .eq('status', 'active')
     .gte('application_deadline', new Date().toISOString())
     .order('event_date', { ascending: true })
 
