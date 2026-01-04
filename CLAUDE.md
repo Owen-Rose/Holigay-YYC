@@ -9,15 +9,16 @@ Holigay Vendor Market is a vendor application platform for marketplace events. V
 ## Development Commands
 
 ```bash
-npm run dev              # Start development server (localhost:3000)
-npm run build            # Production build
-npm run lint             # Run ESLint
-npm run lint:fix         # Fix ESLint issues
-npm run format           # Format with Prettier
-npm test                 # Run tests once
-npm run test:watch       # Run tests in watch mode
-npm run test:coverage    # Generate coverage report
-npm run db:types         # Regenerate Supabase types from remote schema
+npm run dev                          # Start development server (localhost:3000)
+npm run build                        # Production build
+npm run lint                         # Run ESLint
+npm run lint:fix                     # Fix ESLint issues
+npm run format                       # Format with Prettier
+npm test                             # Run tests once
+npm run test:watch                   # Run tests in watch mode
+npm test -- src/test/specific.test.tsx  # Run a single test file
+npm run test:coverage                # Generate coverage report
+npm run db:types                     # Regenerate Supabase types from remote schema
 ```
 
 ## Architecture
@@ -26,22 +27,35 @@ npm run db:types         # Regenerate Supabase types from remote schema
 - **Framework**: Next.js 16 with App Router, React 19, TypeScript
 - **Database**: Supabase (PostgreSQL) with Row Level Security
 - **Auth**: Supabase Auth (email/password) with cookie-based sessions
+- **Email**: Resend for transactional emails
 - **Forms**: React Hook Form + Zod validation
 - **Styling**: Tailwind CSS v4
 - **Testing**: Vitest + React Testing Library
 
+### Route Structure
+```
+src/app/
+├── (public)/           # Public pages (landing, apply form) - no auth required
+├── (auth)/             # Auth pages (login, signup) - redirect to dashboard if logged in
+├── dashboard/          # Protected organizer routes - redirect to login if not authenticated
+│   ├── applications/   # Application management
+│   │   └── [id]/       # Single application detail view
+│   └── page.tsx        # Dashboard home with stats
+└── page.tsx            # Root redirect
+```
+
 ### Key Directories
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   ├── (auth)/            # Auth pages (login, signup) - redirect if logged in
-│   └── dashboard/         # Protected routes - require auth
 ├── components/
 │   ├── auth/              # Login/signup form components
+│   ├── dashboard/         # Dashboard-specific components (table, filters, export)
 │   ├── forms/             # Form components (vendor application)
-│   └── ui/                # Reusable UI components
+│   └── ui/                # Reusable UI primitives (button, input, card, etc.)
 ├── lib/
-│   ├── actions/           # Server actions (auth.ts, applications.ts)
+│   ├── actions/           # Server actions (auth, applications, upload, export)
+│   ├── constants/         # Shared constants (application-status.ts)
+│   ├── email/             # Resend client and email templates
 │   ├── supabase/          # Supabase clients (client.ts, server.ts, middleware.ts)
 │   └── validations/       # Zod schemas (auth.ts, application.ts)
 └── types/
@@ -52,7 +66,7 @@ src/
 Four main tables with RLS enabled:
 - `events` - Marketplace events with dates, location, status
 - `vendors` - Business info (name, contact, description)
-- `applications` - Vendor applications linking vendors to events
+- `applications` - Vendor applications linking vendors to events (status: pending/approved/rejected/waitlisted)
 - `attachments` - File uploads for applications (stored in Supabase Storage)
 
 ### Authentication Flow
@@ -62,28 +76,34 @@ Four main tables with RLS enabled:
 4. Server actions in `src/lib/actions/auth.ts` handle signIn, signUp, signOut
 
 ### Server Actions Pattern
-All server actions use this pattern:
+All server actions use this pattern with typed responses:
 ```typescript
 'use server'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
+
+type ActionResponse = {
+  success: boolean
+  error: string | null
+  data: SomeType | null
+}
 
 export async function actionName(data: ValidatedInput): Promise<ActionResponse> {
-  const supabase = await createServerClient()
+  const supabase = await createClient()
   // Validate input with Zod schema first
   // Perform database operation
   // Return typed response
 }
 ```
 
+### Supabase Clients
+- `client.ts` - Browser client (`createClient()`) for client components
+- `server.ts` - Server client (`createClient()`) for server actions and RSC - uses cookies
+- `middleware.ts` - Inline client creation in Next.js middleware for session refresh
+
 ### Form Validation
 Zod schemas in `src/lib/validations/` define validation rules and infer TypeScript types:
 - `auth.ts` - Login/signup validation
-- `application.ts` - Vendor application with file upload validation (max 10MB, images/PDFs)
-
-### Supabase Clients
-- `client.ts` - Browser client for client components
-- `server.ts` - Server client for server actions and RSC
-- `middleware.ts` - Helper for Next.js middleware session refresh
+- `application.ts` - Vendor application with file upload validation (max 10MB, images/PDFs, max 5 files)
 
 ## Environment Variables
 
@@ -91,6 +111,7 @@ Required in `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+RESEND_API_KEY=re_...
 ```
 
 ## Path Alias
@@ -98,9 +119,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 Use `@/` prefix for imports from `src/`:
 ```typescript
 import { cn } from '@/lib/utils'
-import { createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 ```
 
 ## Current Development Phase
 
-Currently in Phase 5: Building the organizer dashboard. See `TASKS.md` for detailed task tracking.
+Currently in Phase 7 (complete), Phase 8 (Deployment) pending. See `TASKS.md` for detailed task tracking.

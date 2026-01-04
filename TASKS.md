@@ -581,4 +581,475 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| **Total** | **In Progress** | **38/44** |
+| 9. RBAC Implementation | ⬜ Not Started | 0/27 |
+| **Total** | **In Progress** | **38/71** |
+
+---
+
+## Phase 9: RBAC Implementation
+
+> Role-Based Access Control with three roles: `vendor`, `organizer`, `admin`
+>
+> **Current State:** Any authenticated user has full organizer access
+> **End State:** Role-based access with vendor portal, protected dashboard, and admin management
+>
+> **Approach:** Build infrastructure first (no behavior change), then gradually enforce
+
+---
+
+### Stage 9A: Database Foundation (No Behavior Change)
+
+---
+
+#### Task 9.1: Create Role Constants
+
+Create a shared constants file for roles to ensure consistency across the codebase.
+
+- ✅ Create `src/lib/constants/roles.ts` with role definitions
+- ✅ Export `ROLES` array: `['vendor', 'organizer', 'admin']`
+- ✅ Export `Role` type
+- ✅ Export `ROLE_HIERARCHY` for permission comparison
+- ✅ Export `hasMinimumRole()` helper function
+- ✅ Verify: `npm run lint` passes
+- ⬜ Commit: `git commit -m "feat(rbac): add role constants"`
+
+**Files created:** `src/lib/constants/roles.ts`
+
+---
+
+#### Task 9.2: Create User Roles Migration
+
+Create the database migration for the `user_roles` table. Do NOT run it yet.
+
+- ⬜ Create `supabase/migrations/003_user_roles.sql`
+- ⬜ Define `user_roles` table with columns: `id`, `user_id`, `role`, `created_at`, `updated_at`
+- ⬜ Add foreign key to `auth.users(id)` with `ON DELETE CASCADE`
+- ⬜ Add check constraint: `role IN ('vendor', 'organizer', 'admin')`
+- ⬜ Add unique constraint on `user_id`
+- ⬜ Add indexes on `user_id` and `role`
+- ⬜ Add `update_updated_at` trigger
+- ⬜ Create `get_user_role(user_id)` SQL function (returns role or 'vendor' default)
+- ⬜ Create `user_has_role(user_id, required_role)` SQL function (checks hierarchy)
+- ⬜ Verify: SQL syntax valid (check in Supabase SQL editor without running)
+- ⬜ Commit: `git commit -m "feat(rbac): add user_roles migration (not yet applied)"`
+
+**Files created:** `supabase/migrations/003_user_roles.sql`
+
+---
+
+#### Task 9.3: Create User Roles RLS Policies
+
+Create RLS policies for the `user_roles` table. Separate migration for clarity.
+
+- ⬜ Create `supabase/migrations/004_user_roles_rls.sql`
+- ⬜ Enable RLS on `user_roles` table
+- ⬜ Add policy: Users can SELECT their own role
+- ⬜ Add policy: Admins can SELECT all roles
+- ⬜ Add policy: Admins can UPDATE any role
+- ⬜ Add policy: Authenticated users can INSERT their own role (for signup)
+- ⬜ Verify: SQL syntax valid
+- ⬜ Commit: `git commit -m "feat(rbac): add user_roles RLS policies (not yet applied)"`
+
+**Files created:** `supabase/migrations/004_user_roles_rls.sql`
+
+---
+
+#### Task 9.4: Run User Roles Migrations
+
+Apply the migrations to the database.
+
+- ⬜ Open Supabase Dashboard > SQL Editor
+- ⬜ Run `003_user_roles.sql` migration
+- ⬜ Verify: `user_roles` table exists in Table Editor
+- ⬜ Verify: `get_user_role` function exists (Database > Functions)
+- ⬜ Verify: `user_has_role` function exists
+- ⬜ Run `004_user_roles_rls.sql` migration
+- ⬜ Verify: RLS enabled on `user_roles` (Table Editor > Policies)
+- ⬜ Commit: `git commit -m "chore(rbac): mark migrations as applied"`
+
+**Files modified:** None (database changes only)
+
+---
+
+#### Task 9.5: Seed Initial User Roles
+
+Assign roles to existing users: you (admin) + 2 organizers.
+
+- ⬜ Get user IDs from Supabase Dashboard > Authentication > Users
+- ⬜ Create `supabase/seed/001_initial_roles.sql` with INSERT statements
+- ⬜ Run seed SQL in Supabase SQL Editor
+- ⬜ Verify: `SELECT * FROM user_roles` returns 3 rows with correct roles
+- ⬜ Commit: `git commit -m "chore(rbac): add initial roles seed script"`
+
+**Files created:** `supabase/seed/001_initial_roles.sql`
+
+---
+
+#### Task 9.6: Regenerate TypeScript Types
+
+Update auto-generated Supabase types to include the new table.
+
+- ⬜ Run: `npm run db:types`
+- ⬜ Verify: `src/types/database.ts` contains `user_roles` table type
+- ⬜ Verify: `npm run build` succeeds
+- ⬜ Commit: `git commit -m "chore(rbac): regenerate database types"`
+
+**Files modified:** `src/types/database.ts`
+
+---
+
+### Stage 9B: Application Layer (No Behavior Change)
+
+---
+
+#### Task 9.7: Create Role Fetching Server Action
+
+Create a server action to fetch the current user's role.
+
+- ⬜ Create `src/lib/actions/roles.ts`
+- ⬜ Implement `getCurrentUserRole()` function
+- ⬜ Return `{ success, error, data: { role, userId } }`
+- ⬜ Return `'vendor'` as default if no role found
+- ⬜ Verify: `npm run lint` passes
+- ⬜ Commit: `git commit -m "feat(rbac): add getCurrentUserRole action"`
+
+**Files created:** `src/lib/actions/roles.ts`
+
+---
+
+#### Task 9.8: Create Role Requirement Helper
+
+Create a helper function to require a minimum role in server actions.
+
+- ⬜ Add `requireRole(minimumRole)` function to `src/lib/actions/roles.ts`
+- ⬜ Uses `hasMinimumRole()` to check hierarchy
+- ⬜ Returns `{ success: false, error }` if unauthorized
+- ⬜ Returns `{ success: true, data: { role, userId } }` if authorized
+- ⬜ Verify: `npm run lint` passes
+- ⬜ Commit: `git commit -m "feat(rbac): add requireRole helper"`
+
+**Files modified:** `src/lib/actions/roles.ts`
+
+---
+
+#### Task 9.9: Create Role Context Provider
+
+Create a React context to share role info across client components.
+
+- ⬜ Create `src/lib/context/role-context.tsx`
+- ⬜ Create `RoleProvider` component that fetches role on mount
+- ⬜ Export `useRole()` hook returning `{ role, isLoading, error, refetch }`
+- ⬜ Verify: `npm run lint` passes
+- ⬜ Commit: `git commit -m "feat(rbac): add RoleProvider context"`
+
+**Files created:** `src/lib/context/role-context.tsx`
+
+---
+
+#### Task 9.10: Add Role Badge to Dashboard
+
+Add a visual indicator showing the current user's role. No access control yet.
+
+- ⬜ Create `src/components/dashboard/role-badge.tsx`
+- ⬜ Display role with color coding (admin=purple, organizer=blue, vendor=gray)
+- ⬜ Wrap dashboard layout with `RoleProvider`
+- ⬜ Add `RoleBadge` to dashboard header/sidebar
+- ⬜ Verify: Badge displays your admin role correctly
+- ⬜ Verify: `npm run build` succeeds
+- ⬜ Commit: `git commit -m "feat(rbac): display user role in dashboard"`
+
+**Files created:** `src/components/dashboard/role-badge.tsx`
+**Files modified:** `src/app/dashboard/layout.tsx`
+
+---
+
+### Stage 9C: Enforce Role Checks (Gradual Behavior Change)
+
+---
+
+#### Task 9.11: Protect Export Action (Low Risk Test)
+
+Start with a non-critical action to test the pattern.
+
+- ⬜ Open `src/lib/actions/export.ts`
+- ⬜ Import `requireRole` from `@/lib/actions/roles`
+- ⬜ Add `const auth = await requireRole('organizer')` at start of `exportApplicationsCSV`
+- ⬜ Return early with error if `!auth.success`
+- ⬜ Verify: Export still works for your admin account
+- ⬜ Commit: `git commit -m "feat(rbac): protect export action with role check"`
+
+**Files modified:** `src/lib/actions/export.ts`
+
+---
+
+#### Task 9.12: Protect Application Status Actions
+
+Only organizers can approve/reject applications.
+
+- ⬜ Open `src/lib/actions/applications.ts`
+- ⬜ Add `requireRole('organizer')` to `updateApplicationStatus()`
+- ⬜ Add `requireRole('organizer')` to `updateApplicationNotes()`
+- ⬜ Verify: Status updates still work for organizers
+- ⬜ Commit: `git commit -m "feat(rbac): protect status update actions"`
+
+**Files modified:** `src/lib/actions/applications.ts`
+
+---
+
+#### Task 9.13: Protect Application Listing Actions
+
+Only organizers can view the full applications list.
+
+- ⬜ Open `src/lib/actions/applications.ts`
+- ⬜ Add `requireRole('organizer')` to `getApplications()`
+- ⬜ Add `requireRole('organizer')` to `getApplicationById()`
+- ⬜ Add `requireRole('organizer')` to `getApplicationCounts()`
+- ⬜ Note: Keep `getActiveEvents()` public (for vendor form)
+- ⬜ Verify: Dashboard still loads for organizers
+- ⬜ Commit: `git commit -m "feat(rbac): protect application listing actions"`
+
+**Files modified:** `src/lib/actions/applications.ts`
+
+---
+
+#### Task 9.14: Create Unauthorized Page
+
+Create a friendly page for users who lack permission.
+
+- ⬜ Create `src/app/unauthorized/page.tsx`
+- ⬜ Show message: "You don't have permission to access this page"
+- ⬜ Add link to appropriate destination (home or vendor portal)
+- ⬜ Style consistently with rest of app
+- ⬜ Verify: Page renders at `/unauthorized`
+- ⬜ Commit: `git commit -m "feat(rbac): add unauthorized page"`
+
+**Files created:** `src/app/unauthorized/page.tsx`
+
+---
+
+#### Task 9.15: Add Middleware Role Check for Dashboard
+
+Protect dashboard routes at the middleware level.
+
+- ⬜ Open `src/middleware.ts`
+- ⬜ After auth check for `/dashboard/*`, fetch user role from database
+- ⬜ If role is not `organizer` or `admin`, redirect to `/unauthorized`
+- ⬜ Verify: Organizers can access dashboard
+- ⬜ Verify: Vendors get redirected to `/unauthorized`
+- ⬜ Commit: `git commit -m "feat(rbac): add middleware role check for dashboard"`
+
+**Files modified:** `src/middleware.ts`
+
+---
+
+### Stage 9D: Vendor Portal Foundation
+
+---
+
+#### Task 9.16: Create Vendor Portal Layout
+
+Create the basic vendor portal structure.
+
+- ⬜ Create `src/app/(vendor)/layout.tsx` with vendor-specific styling
+- ⬜ Add simple sidebar with: Home, My Applications, Profile links
+- ⬜ Add logout button
+- ⬜ Wrap with `RoleProvider`
+- ⬜ Verify: Layout renders correctly
+- ⬜ Commit: `git commit -m "feat(rbac): add vendor portal layout"`
+
+**Files created:** `src/app/(vendor)/layout.tsx`
+
+---
+
+#### Task 9.17: Create Vendor Portal Home Page
+
+Create the vendor dashboard home page.
+
+- ⬜ Create `src/app/(vendor)/vendor/page.tsx`
+- ⬜ Show welcome message with vendor name
+- ⬜ Show summary of their applications (count by status)
+- ⬜ Add quick link to apply for new events
+- ⬜ Verify: Page renders at `/vendor`
+- ⬜ Commit: `git commit -m "feat(rbac): add vendor portal home page"`
+
+**Files created:** `src/app/(vendor)/vendor/page.tsx`
+
+---
+
+#### Task 9.18: Protect Vendor Routes in Middleware
+
+Add vendor route protection (require authentication, any role).
+
+- ⬜ Open `src/middleware.ts`
+- ⬜ Add `/vendor` to protected routes (require auth)
+- ⬜ Any authenticated user can access vendor portal
+- ⬜ Verify: Unauthenticated users redirected to login
+- ⬜ Verify: Authenticated users can access `/vendor`
+- ⬜ Commit: `git commit -m "feat(rbac): add middleware protection for vendor portal"`
+
+**Files modified:** `src/middleware.ts`
+
+---
+
+#### Task 9.19: Add Role-Based Redirect After Login
+
+Redirect users to appropriate portal based on role.
+
+- ⬜ Open `src/lib/actions/auth.ts`
+- ⬜ After successful `signIn`, fetch user role
+- ⬜ Return redirect URL: `/dashboard` for organizer/admin, `/vendor` for vendor
+- ⬜ Update `src/components/auth/login-form.tsx` to use returned redirect
+- ⬜ Verify: Organizers land on dashboard after login
+- ⬜ Verify: Vendors land on vendor portal after login
+- ⬜ Commit: `git commit -m "feat(rbac): add role-based redirect after login"`
+
+**Files modified:** `src/lib/actions/auth.ts`, `src/components/auth/login-form.tsx`
+
+---
+
+#### Task 9.20: Assign Vendor Role on Signup
+
+New signups automatically get vendor role.
+
+- ⬜ Open `src/lib/actions/auth.ts`
+- ⬜ After successful `signUp`, insert row into `user_roles` with `role='vendor'`
+- ⬜ Handle insert failure gracefully (log, don't block signup)
+- ⬜ Verify: New signup creates role in database
+- ⬜ Verify: New user redirected to vendor portal
+- ⬜ Commit: `git commit -m "feat(rbac): assign vendor role on signup"`
+
+**Files modified:** `src/lib/actions/auth.ts`
+
+---
+
+### Stage 9E: Admin Role Management
+
+---
+
+#### Task 9.21: Create Get Users Action
+
+Create action for admins to view all users.
+
+- ⬜ Create `src/lib/actions/admin.ts`
+- ⬜ Implement `getUsers()` with `requireRole('admin')`
+- ⬜ Return list of users with their roles (from auth.users + user_roles)
+- ⬜ Verify: Action returns user list
+- ⬜ Commit: `git commit -m "feat(rbac): add getUsers admin action"`
+
+**Files created:** `src/lib/actions/admin.ts`
+
+---
+
+#### Task 9.22: Create Update Role Action
+
+Create action for admins to change user roles.
+
+- ⬜ Add `updateUserRole(userId, newRole)` to `src/lib/actions/admin.ts`
+- ⬜ Add `requireRole('admin')` check
+- ⬜ Prevent admin from demoting themselves
+- ⬜ Update or insert role in `user_roles` table
+- ⬜ Verify: Role updates work
+- ⬜ Commit: `git commit -m "feat(rbac): add updateUserRole admin action"`
+
+**Files modified:** `src/lib/actions/admin.ts`
+
+---
+
+#### Task 9.23: Create Admin Users Page
+
+Create UI for managing user roles.
+
+- ⬜ Create `src/app/dashboard/admin/page.tsx`
+- ⬜ Fetch and display user list with roles
+- ⬜ Create `src/components/admin/user-role-select.tsx` dropdown
+- ⬜ Add confirmation before role change
+- ⬜ Show success/error feedback
+- ⬜ Verify: Can promote vendor to organizer
+- ⬜ Commit: `git commit -m "feat(rbac): add admin users management page"`
+
+**Files created:** `src/app/dashboard/admin/page.tsx`, `src/components/admin/user-role-select.tsx`
+
+---
+
+#### Task 9.24: Add Admin Link to Navigation
+
+Show admin link only to admins.
+
+- ⬜ Open `src/app/dashboard/layout.tsx`
+- ⬜ Use `useRole()` to get current role
+- ⬜ Conditionally render "Admin" nav link if role is 'admin'
+- ⬜ Verify: Link visible for admins only
+- ⬜ Verify: Organizers don't see admin link
+- ⬜ Commit: `git commit -m "feat(rbac): add admin link to dashboard nav"`
+
+**Files modified:** `src/app/dashboard/layout.tsx`
+
+---
+
+### Stage 9F: Final Validation & Cleanup
+
+---
+
+#### Task 9.25: Update RLS for Role-Based Access
+
+Add defense-in-depth with role checks in RLS policies.
+
+- ⬜ Create `supabase/migrations/005_rbac_rls_updates.sql`
+- ⬜ Update events: only `organizer`/`admin` can INSERT/UPDATE/DELETE
+- ⬜ Update applications: organizers can UPDATE, public can still INSERT
+- ⬜ Keep existing public read policies for active events
+- ⬜ Run migration in Supabase
+- ⬜ Verify: Policies work correctly
+- ⬜ Commit: `git commit -m "feat(rbac): update RLS policies for role-based access"`
+
+**Files created:** `supabase/migrations/005_rbac_rls_updates.sql`
+
+---
+
+#### Task 9.26: Manual End-to-End Testing
+
+Test all role scenarios manually.
+
+- ⬜ Test as Admin: Access dashboard, admin page, change roles
+- ⬜ Test as Organizer: Access dashboard, cannot access admin page
+- ⬜ Test as Vendor: Access vendor portal, cannot access dashboard
+- ⬜ Test unauthenticated: Only public pages accessible
+- ⬜ Test new signup: Gets vendor role, lands on vendor portal
+- ⬜ Test login redirect: Each role goes to correct portal
+- ⬜ Document any issues found
+
+**Files created:** None (manual testing)
+
+---
+
+#### Task 9.27: Update Documentation
+
+Update CLAUDE.md with RBAC information.
+
+- ⬜ Add RBAC section to CLAUDE.md
+- ⬜ Document role types: vendor, organizer, admin
+- ⬜ Document role hierarchy and `hasMinimumRole()`
+- ⬜ Document `requireRole()` usage pattern for new actions
+- ⬜ Document admin role management location
+- ⬜ Commit: `git commit -m "docs: add RBAC documentation to CLAUDE.md"`
+
+**Files modified:** `CLAUDE.md`
+
+---
+
+### Phase 9 Rollback Procedures
+
+If issues arise, these commands can undo each stage:
+
+**Stage 9A Rollback (Database):**
+```sql
+DROP FUNCTION IF EXISTS user_has_role(UUID, TEXT);
+DROP FUNCTION IF EXISTS get_user_role(UUID);
+DROP TABLE IF EXISTS user_roles;
+```
+
+**Stage 9C Rollback (Action Checks):**
+Remove `requireRole()` calls from server actions. Actions revert to permissive.
+
+**Stage 9E Rollback (Admin UI):**
+Delete `src/app/dashboard/admin/` and `src/components/admin/`. Remove nav link.
