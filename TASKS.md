@@ -641,12 +641,12 @@ Create the database migration for the `user_roles` table. Do NOT run it yet.
 
 Create RLS policies for the `user_roles` table. Separate migration for clarity.
 
-- ⬜ Create `supabase/migrations/004_user_roles_rls.sql`
-- ⬜ Enable RLS on `user_roles` table
-- ⬜ Add policy: Users can SELECT their own role
-- ⬜ Add policy: Admins can SELECT all roles
-- ⬜ Add policy: Admins can UPDATE any role
-- ⬜ Add policy: Authenticated users can INSERT their own role (for signup)
+- ✅ Create `supabase/migrations/004_user_roles_rls.sql`
+- ✅ Enable RLS on `user_roles` table
+- ✅ Add policy: Users can SELECT their own role
+- ✅ Add policy: Admins can SELECT all roles
+- ✅ Add policy: Admins can UPDATE any role
+- ✅ Add policy: Authenticated users can INSERT their own role (for signup)
 - ⬜ Verify: SQL syntax valid
 - ⬜ Commit: `git commit -m "feat(rbac): add user_roles RLS policies (not yet applied)"`
 
