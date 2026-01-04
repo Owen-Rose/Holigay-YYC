@@ -621,15 +621,15 @@ Create a shared constants file for roles to ensure consistency across the codeba
 
 Create the database migration for the `user_roles` table. Do NOT run it yet.
 
-- ⬜ Create `supabase/migrations/003_user_roles.sql`
-- ⬜ Define `user_roles` table with columns: `id`, `user_id`, `role`, `created_at`, `updated_at`
-- ⬜ Add foreign key to `auth.users(id)` with `ON DELETE CASCADE`
-- ⬜ Add check constraint: `role IN ('vendor', 'organizer', 'admin')`
-- ⬜ Add unique constraint on `user_id`
-- ⬜ Add indexes on `user_id` and `role`
-- ⬜ Add `update_updated_at` trigger
-- ⬜ Create `get_user_role(user_id)` SQL function (returns role or 'vendor' default)
-- ⬜ Create `user_has_role(user_id, required_role)` SQL function (checks hierarchy)
+- ✅ Create `supabase/migrations/003_user_roles.sql`
+- ✅ Define `user_roles` table with columns: `id`, `user_id`, `role`, `created_at`, `updated_at`
+- ✅ Add foreign key to `auth.users(id)` with `ON DELETE CASCADE`
+- ✅ Add check constraint: `role IN ('vendor', 'organizer', 'admin')`
+- ✅ Add unique constraint on `user_id`
+- ✅ Add indexes on `user_id` and `role`
+- ✅ Add `update_updated_at` trigger
+- ✅ Create `get_user_role(user_id)` SQL function (returns role or 'vendor' default)
+- ✅ Create `user_has_role(user_id, required_role)` SQL function (checks hierarchy)
 - ⬜ Verify: SQL syntax valid (check in Supabase SQL editor without running)
 - ⬜ Commit: `git commit -m "feat(rbac): add user_roles migration (not yet applied)"`
 
