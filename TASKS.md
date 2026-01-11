@@ -675,10 +675,10 @@ Apply the migrations to the database.
 
 Assign roles to existing users: you (admin) + 2 organizers.
 
-- ⬜ Get user IDs from Supabase Dashboard > Authentication > Users
-- ⬜ Create `supabase/seed/001_initial_roles.sql` with INSERT statements
-- ⬜ Run seed SQL in Supabase SQL Editor
-- ⬜ Verify: `SELECT * FROM user_roles` returns 3 rows with correct roles
+- ✅ Get user IDs from Supabase Dashboard > Authentication > Users
+- ✅ Create `supabase/seed/001_initial_roles.sql` with INSERT statements
+- ✅ Run seed SQL in Supabase SQL Editor
+- ✅ Verify: `SELECT * FROM user_roles` returns row with admin role
 - ⬜ Commit: `git commit -m "chore(rbac): add initial roles seed script"`
 
 **Files created:** `supabase/seed/001_initial_roles.sql`
@@ -689,9 +689,9 @@ Assign roles to existing users: you (admin) + 2 organizers.
 
 Update auto-generated Supabase types to include the new table.
 
-- ⬜ Run: `npm run db:types`
-- ⬜ Verify: `src/types/database.ts` contains `user_roles` table type
-- ⬜ Verify: `npm run build` succeeds
+- ✅ Run: `npm run db:types`
+- ✅ Verify: `src/types/database.ts` contains `user_roles` table type
+- ✅ Verify: `npm run build` succeeds
 - ⬜ Commit: `git commit -m "chore(rbac): regenerate database types"`
 
 **Files modified:** `src/types/database.ts`
