@@ -771,10 +771,10 @@ Add a visual indicator showing the current user's role. No access control yet.
 
 Start with a non-critical action to test the pattern.
 
-- ⬜ Open `src/lib/actions/export.ts`
-- ⬜ Import `requireRole` from `@/lib/actions/roles`
-- ⬜ Add `const auth = await requireRole('organizer')` at start of `exportApplicationsCSV`
-- ⬜ Return early with error if `!auth.success`
+- ✅ Open `src/lib/actions/export.ts`
+- ✅ Import `requireRole` from `@/lib/actions/roles`
+- ✅ Add `const auth = await requireRole('organizer')` at start of `exportApplicationsCSV`
+- ✅ Return early with error if `!auth.success`
 - ⬜ Verify: Export still works for your admin account
 - ⬜ Commit: `git commit -m "feat(rbac): protect export action with role check"`
 

@@ -8,6 +8,7 @@ import {
 import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
 import { sendEmail } from '@/lib/email/client';
 import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
+import { requireRole } from '@/lib/actions/roles';
 
 // =============================================================================
 // Types
@@ -817,6 +818,15 @@ export async function updateApplicationStatus(
   id: string,
   status: ApplicationStatus
 ): Promise<UpdateApplicationResponse> {
+  // Require organizer role or higher to update application status
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return {
+      success: false,
+      error: auth.error,
+    };
+  }
+
   // Validate status
   if (!APPLICATION_STATUSES.includes(status)) {
     return {
@@ -957,6 +967,15 @@ export async function updateApplicationNotes(
   id: string,
   notes: string
 ): Promise<UpdateApplicationResponse> {
+  // Require organizer role or higher to update application notes
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return {
+      success: false,
+      error: auth.error,
+    };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase
