@@ -658,13 +658,13 @@ Create RLS policies for the `user_roles` table. Separate migration for clarity.
 
 Apply the migrations to the database.
 
-- ⬜ Open Supabase Dashboard > SQL Editor
-- ⬜ Run `003_user_roles.sql` migration
-- ⬜ Verify: `user_roles` table exists in Table Editor
-- ⬜ Verify: `get_user_role` function exists (Database > Functions)
-- ⬜ Verify: `user_has_role` function exists
-- ⬜ Run `004_user_roles_rls.sql` migration
-- ⬜ Verify: RLS enabled on `user_roles` (Table Editor > Policies)
+- ✅ Open Supabase Dashboard > SQL Editor
+- ✅ Run `003_user_roles.sql` migration
+- ✅ Verify: `user_roles` table exists in Table Editor
+- ✅ Verify: `get_user_role` function exists (Database > Functions)
+- ✅ Verify: `user_has_role` function exists
+- ✅ Run `004_user_roles_rls.sql` migration
+- ✅ Verify: RLS enabled on `user_roles` (Table Editor > Policies)
 - ⬜ Commit: `git commit -m "chore(rbac): mark migrations as applied"`
 
 **Files modified:** None (database changes only)
