@@ -1,5 +1,5 @@
-import { wrapEmailTemplate } from '../client'
-import type { ApplicationStatus } from '@/lib/constants/application-status'
+import { wrapEmailTemplate } from '../client';
+import type { ApplicationStatus } from '@/lib/constants/application-status';
 
 // =============================================================================
 // Types
@@ -10,27 +10,27 @@ import type { ApplicationStatus } from '@/lib/constants/application-status'
  */
 export type StatusUpdateEmailData = {
   /** Vendor's contact name */
-  vendorName: string
+  vendorName: string;
   /** Vendor's business name */
-  businessName: string
+  businessName: string;
   /** Name of the event */
-  eventName: string
+  eventName: string;
   /** Date of the event (formatted string) */
-  eventDate: string
+  eventDate: string;
   /** The new application status */
-  status: ApplicationStatus
+  status: ApplicationStatus;
   /** Optional notes from the organizer */
-  organizerNotes?: string | null
-}
+  organizerNotes?: string | null;
+};
 
 /**
  * Generated email content with HTML and plain text versions
  */
 export type EmailContent = {
-  subject: string
-  html: string
-  text: string
-}
+  subject: string;
+  html: string;
+  text: string;
+};
 
 // =============================================================================
 // Status-specific content configuration
@@ -38,20 +38,20 @@ export type EmailContent = {
 
 type StatusConfig = {
   /** Email subject line */
-  subject: string
+  subject: string;
   /** Main heading in the email */
-  heading: string
+  heading: string;
   /** Primary message paragraph */
-  message: string
+  message: string;
   /** Background color for status badge */
-  badgeColor: string
+  badgeColor: string;
   /** Text color for status badge */
-  badgeTextColor: string
+  badgeTextColor: string;
   /** Display label for the status */
-  statusLabel: string
+  statusLabel: string;
   /** Additional content shown after the main message */
-  additionalContent?: string
-}
+  additionalContent?: string;
+};
 
 /**
  * Configuration for each application status
@@ -59,9 +59,9 @@ type StatusConfig = {
 const STATUS_CONFIG: Record<ApplicationStatus, StatusConfig> = {
   approved: {
     subject: 'Congratulations! Your Application Has Been Approved',
-    heading: 'Great News! You\'re In!',
+    heading: "Great News! You're In!",
     message:
-      'We\'re thrilled to let you know that your vendor application has been approved. We can\'t wait to have you at the market!',
+      "We're thrilled to let you know that your vendor application has been approved. We can't wait to have you at the market!",
     badgeColor: '#dcfce7',
     badgeTextColor: '#166534',
     statusLabel: 'Approved',
@@ -87,7 +87,7 @@ const STATUS_CONFIG: Record<ApplicationStatus, StatusConfig> = {
     subject: 'Application Update: Not Selected This Time',
     heading: 'Thank You for Applying',
     message:
-      'After careful consideration, we regret to inform you that we\'re unable to offer you a vendor spot at this time. We received many wonderful applications and had to make difficult decisions.',
+      "After careful consideration, we regret to inform you that we're unable to offer you a vendor spot at this time. We received many wonderful applications and had to make difficult decisions.",
     badgeColor: '#fee2e2',
     badgeTextColor: '#991b1b',
     statusLabel: 'Not Selected',
@@ -100,8 +100,8 @@ const STATUS_CONFIG: Record<ApplicationStatus, StatusConfig> = {
     `,
   },
   waitlisted: {
-    subject: 'Application Update: You\'re on the Waitlist',
-    heading: 'You\'re on Our Waitlist',
+    subject: "Application Update: You're on the Waitlist",
+    heading: "You're on Our Waitlist",
     message:
       'Thank you for your patience! Your application has been placed on our waitlist. This means we loved your application but have reached our vendor capacity for this event.',
     badgeColor: '#fef3c7',
@@ -126,12 +126,12 @@ const STATUS_CONFIG: Record<ApplicationStatus, StatusConfig> = {
     subject: 'Application Received: Under Review',
     heading: 'Your Application is Under Review',
     message:
-      'Your application is currently being reviewed by our team. We\'ll notify you once a decision has been made.',
+      "Your application is currently being reviewed by our team. We'll notify you once a decision has been made.",
     badgeColor: '#fef3c7',
     badgeTextColor: '#92400e',
     statusLabel: 'Pending Review',
   },
-}
+};
 
 // =============================================================================
 // Template
@@ -166,10 +166,10 @@ const STATUS_CONFIG: Record<ApplicationStatus, StatusConfig> = {
  * ```
  */
 export function statusUpdateEmail(data: StatusUpdateEmailData): EmailContent {
-  const { vendorName, businessName, eventName, eventDate, status, organizerNotes } = data
+  const { vendorName, businessName, eventName, eventDate, status, organizerNotes } = data;
 
-  const config = STATUS_CONFIG[status]
-  const subject = `${config.subject} - ${eventName}`
+  const config = STATUS_CONFIG[status];
+  const subject = `${config.subject} - ${eventName}`;
 
   // Build the inner content
   const content = `
@@ -256,16 +256,16 @@ export function statusUpdateEmail(data: StatusUpdateEmailData): EmailContent {
       Best regards,<br>
       <strong>The Holigay Vendor Market Team</strong>
     </p>
-  `
+  `;
 
   const html = wrapEmailTemplate(content, {
     previewText: `${config.heading} - ${eventName}`,
-  })
+  });
 
   // Build plain text version
-  const text = buildPlainText(data, config)
+  const text = buildPlainText(data, config);
 
-  return { subject, html, text }
+  return { subject, html, text };
 }
 
 // =============================================================================
@@ -275,13 +275,10 @@ export function statusUpdateEmail(data: StatusUpdateEmailData): EmailContent {
 /**
  * Builds the plain text version of the status update email
  */
-function buildPlainText(
-  data: StatusUpdateEmailData,
-  config: StatusConfig
-): string {
-  const { vendorName, businessName, eventName, eventDate, status, organizerNotes } = data
+function buildPlainText(data: StatusUpdateEmailData, config: StatusConfig): string {
+  const { vendorName, businessName, eventName, eventDate, status, organizerNotes } = data;
 
-  let additionalText = ''
+  let additionalText = '';
 
   if (status === 'approved') {
     additionalText = `
@@ -291,7 +288,7 @@ NEXT STEPS
 2. Watch for a follow-up email with booth assignment and setup instructions.
 3. Prepare your products and display materials.
 4. If you have any questions, reply to this email.
-`
+`;
   } else if (status === 'waitlisted') {
     additionalText = `
 WHAT THIS MEANS
@@ -299,13 +296,13 @@ WHAT THIS MEANS
 - If a spot opens up, we'll contact you immediately.
 - Waitlist positions are filled on a first-come, first-served basis.
 - We'll notify you either way before the event date.
-`
+`;
   } else if (status === 'rejected') {
     additionalText = `
 Please don't be discouraged — we encourage you to apply for future events.
 Each market has different needs and themes, and we'd love to see your
 application again.
-`
+`;
   }
 
   const notesSection = organizerNotes
@@ -314,7 +311,7 @@ NOTE FROM THE ORGANIZER
 -----------------------
 ${organizerNotes}
 `
-    : ''
+    : '';
 
   return `
 ${config.heading}
@@ -334,7 +331,7 @@ If you have any questions, please don't hesitate to reply to this email.
 
 Best regards,
 The Holigay Vendor Market Team
-  `.trim()
+  `.trim();
 }
 
 /**
@@ -347,6 +344,6 @@ function escapeHtml(text: string): string {
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#39;',
-  }
-  return text.replace(/[&<>"']/g, (char) => escapeMap[char] || char)
+  };
+  return text.replace(/[&<>"']/g, (char) => escapeMap[char] || char);
 }

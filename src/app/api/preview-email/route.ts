@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
-import {
-  applicationReceivedEmail,
-  statusUpdateEmail,
-} from '@/lib/email/templates'
-import type { ApplicationStatus } from '@/lib/constants/application-status'
+import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
+import type { ApplicationStatus } from '@/lib/constants/application-status';
 
 /**
  * Development-only email template preview endpoint
@@ -26,34 +23,35 @@ const SAMPLE_DATA = {
   eventName: 'Winter Holiday Market 2025',
   eventDate: 'Saturday, December 20, 2025',
   applicationId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-}
+};
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Security: Development-only
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
 
-  const searchParams = request.nextUrl.searchParams
-  const template = searchParams.get('template')
-  const status = (searchParams.get('status') as ApplicationStatus) || 'approved'
-  const notes = searchParams.get('notes')
+  const searchParams = request.nextUrl.searchParams;
+  const template = searchParams.get('template');
+  const status = (searchParams.get('status') as ApplicationStatus) || 'approved';
+  const notes = searchParams.get('notes');
 
   // Generate the appropriate template
-  let emailContent: { subject: string; html: string; text: string }
+  let emailContent: { subject: string; html: string; text: string };
 
   switch (template) {
     case 'application-received':
-      emailContent = applicationReceivedEmail(SAMPLE_DATA)
-      break
+      emailContent = applicationReceivedEmail(SAMPLE_DATA);
+      break;
 
     case 'status-update':
       emailContent = statusUpdateEmail({
         ...SAMPLE_DATA,
         status,
-        organizerNotes: notes || 'Looking forward to seeing your beautiful jewelry collection at the market!',
-      })
-      break
+        organizerNotes:
+          notes || 'Looking forward to seeing your beautiful jewelry collection at the market!',
+      });
+      break;
 
     default:
       // Return an index of available templates
@@ -100,11 +98,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         {
           headers: { 'Content-Type': 'text/html' },
         }
-      )
+      );
   }
 
   // Return the HTML email for browser preview
   return new NextResponse(emailContent.html, {
     headers: { 'Content-Type': 'text/html' },
-  })
+  });
 }

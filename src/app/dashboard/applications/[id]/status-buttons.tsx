@@ -1,21 +1,18 @@
-'use client'
+'use client';
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { updateApplicationStatus } from '@/lib/actions/applications'
-import {
-  APPLICATION_STATUSES,
-  type ApplicationStatus,
-} from '@/lib/constants/application-status'
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { updateApplicationStatus } from '@/lib/actions/applications';
+import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface StatusUpdateButtonsProps {
-  applicationId: string
-  currentStatus: string
+  applicationId: string;
+  currentStatus: string;
 }
 
 // =============================================================================
@@ -46,52 +43,45 @@ const statusButtonConfig: Record<
     className: 'bg-blue-100 text-blue-800 border-blue-300',
     hoverClassName: 'hover:bg-blue-200',
   },
-}
+};
 
 // =============================================================================
 // Component
 // =============================================================================
 
-export function StatusUpdateButtons({
-  applicationId,
-  currentStatus,
-}: StatusUpdateButtonsProps) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
+export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpdateButtonsProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   async function handleStatusChange(newStatus: ApplicationStatus) {
-    if (newStatus === currentStatus) return
+    if (newStatus === currentStatus) return;
 
-    setError(null)
+    setError(null);
 
     startTransition(async () => {
-      const result = await updateApplicationStatus(applicationId, newStatus)
+      const result = await updateApplicationStatus(applicationId, newStatus);
 
       if (!result.success) {
-        setError(result.error || 'Failed to update status')
-        return
+        setError(result.error || 'Failed to update status');
+        return;
       }
 
       // Refresh the page to show updated status
-      router.refresh()
-    })
+      router.refresh();
+    });
   }
 
   // Available status transitions - show all statuses except current
-  const availableStatuses = APPLICATION_STATUSES.filter(
-    (status) => status !== currentStatus
-  )
+  const availableStatuses = APPLICATION_STATUSES.filter((status) => status !== currentStatus);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-medium text-gray-700">
-        Update Application Status
-      </h3>
+      <h3 className="mb-3 text-sm font-medium text-gray-700">Update Application Status</h3>
 
       <div className="flex flex-wrap gap-2">
         {availableStatuses.map((status) => {
-          const config = statusButtonConfig[status]
+          const config = statusButtonConfig[status];
           return (
             <button
               key={status}
@@ -106,7 +96,7 @@ export function StatusUpdateButtons({
             >
               {isPending ? 'Updating...' : config.label}
             </button>
-          )
+          );
         })}
       </div>
 
@@ -116,5 +106,5 @@ export function StatusUpdateButtons({
         </p>
       )}
     </div>
-  )
+  );
 }

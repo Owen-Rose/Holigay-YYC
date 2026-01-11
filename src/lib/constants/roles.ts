@@ -6,10 +6,10 @@
  */
 
 // Available roles in the system
-export const ROLES = ['vendor', 'organizer', 'admin'] as const
+export const ROLES = ['vendor', 'organizer', 'admin'] as const;
 
 // TypeScript type derived from the ROLES array
-export type Role = (typeof ROLES)[number]
+export type Role = (typeof ROLES)[number];
 
 // Role hierarchy for permission comparison
 // Higher number = more permissions
@@ -17,7 +17,7 @@ export const ROLE_HIERARCHY: Record<Role, number> = {
   vendor: 0,
   organizer: 1,
   admin: 2,
-}
+};
 
 /**
  * Check if a user's role meets the minimum required role level.
@@ -32,5 +32,5 @@ export const ROLE_HIERARCHY: Record<Role, number> = {
  * hasMinimumRole('organizer', 'organizer') // true - exact match
  */
 export function hasMinimumRole(userRole: Role, requiredRole: Role): boolean {
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole]
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
 }

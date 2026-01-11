@@ -736,10 +736,10 @@ Create a helper function to require a minimum role in server actions.
 
 Create a React context to share role info across client components.
 
-- ⬜ Create `src/lib/context/role-context.tsx`
-- ⬜ Create `RoleProvider` component that fetches role on mount
-- ⬜ Export `useRole()` hook returning `{ role, isLoading, error, refetch }`
-- ⬜ Verify: `npm run lint` passes
+- ✅ Create `src/lib/context/role-context.tsx`
+- ✅ Create `RoleProvider` component that fetches role on mount
+- ✅ Export `useRole()` hook returning `{ role, isLoading, error, refetch }`
+- ✅ Verify: `npm run lint` passes
 - ⬜ Commit: `git commit -m "feat(rbac): add RoleProvider context"`
 
 **Files created:** `src/lib/context/role-context.tsx`
@@ -750,12 +750,12 @@ Create a React context to share role info across client components.
 
 Add a visual indicator showing the current user's role. No access control yet.
 
-- ⬜ Create `src/components/dashboard/role-badge.tsx`
-- ⬜ Display role with color coding (admin=purple, organizer=blue, vendor=gray)
-- ⬜ Wrap dashboard layout with `RoleProvider`
-- ⬜ Add `RoleBadge` to dashboard header/sidebar
+- ✅ Create `src/components/dashboard/role-badge.tsx`
+- ✅ Display role with color coding (admin=purple, organizer=blue, vendor=gray)
+- ✅ Wrap dashboard layout with `RoleProvider`
+- ✅ Add `RoleBadge` to dashboard header/sidebar
 - ⬜ Verify: Badge displays your admin role correctly
-- ⬜ Verify: `npm run build` succeeds
+- ✅ Verify: `npm run build` succeeds
 - ⬜ Commit: `git commit -m "feat(rbac): display user role in dashboard"`
 
 **Files created:** `src/components/dashboard/role-badge.tsx`

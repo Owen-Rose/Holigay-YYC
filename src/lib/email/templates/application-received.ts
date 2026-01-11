@@ -1,4 +1,4 @@
-import { wrapEmailTemplate } from '../client'
+import { wrapEmailTemplate } from '../client';
 
 // =============================================================================
 // Types
@@ -9,25 +9,25 @@ import { wrapEmailTemplate } from '../client'
  */
 export type ApplicationReceivedEmailData = {
   /** Vendor's contact name */
-  vendorName: string
+  vendorName: string;
   /** Vendor's business name */
-  businessName: string
+  businessName: string;
   /** Name of the event applied to */
-  eventName: string
+  eventName: string;
   /** Date of the event (formatted string) */
-  eventDate: string
+  eventDate: string;
   /** Application ID for reference */
-  applicationId: string
-}
+  applicationId: string;
+};
 
 /**
  * Generated email content with HTML and plain text versions
  */
 export type EmailContent = {
-  subject: string
-  html: string
-  text: string
-}
+  subject: string;
+  html: string;
+  text: string;
+};
 
 // =============================================================================
 // Template
@@ -60,12 +60,10 @@ export type EmailContent = {
  * })
  * ```
  */
-export function applicationReceivedEmail(
-  data: ApplicationReceivedEmailData
-): EmailContent {
-  const { vendorName, businessName, eventName, eventDate, applicationId } = data
+export function applicationReceivedEmail(data: ApplicationReceivedEmailData): EmailContent {
+  const { vendorName, businessName, eventName, eventDate, applicationId } = data;
 
-  const subject = `Application Received: ${eventName}`
+  const subject = `Application Received: ${eventName}`;
 
   // Build the inner content (will be wrapped by the template)
   const content = `
@@ -153,11 +151,11 @@ export function applicationReceivedEmail(
       Best regards,<br>
       <strong>The Holigay Vendor Market Team</strong>
     </p>
-  `
+  `;
 
   const html = wrapEmailTemplate(content, {
     previewText: `We've received your application for ${eventName}`,
-  })
+  });
 
   const text = `
 Thank You for Your Application!
@@ -183,9 +181,9 @@ If you have any questions in the meantime, please don't hesitate to reach out by
 
 Best regards,
 The Holigay Vendor Market Team
-  `.trim()
+  `.trim();
 
-  return { subject, html, text }
+  return { subject, html, text };
 }
 
 // =============================================================================
@@ -202,6 +200,6 @@ function escapeHtml(text: string): string {
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#39;',
-  }
-  return text.replace(/[&<>"']/g, (char) => escapeMap[char] || char)
+  };
+  return text.replace(/[&<>"']/g, (char) => escapeMap[char] || char);
 }

@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import {
   sendEmail,
   wrapEmailTemplate,
   isEmailConfigured,
   getDefaultFromEmail,
-} from '@/lib/email/client'
+} from '@/lib/email/client';
 
 // =============================================================================
 // Configuration
@@ -35,27 +35,24 @@ import {
  * We use .min(1) to ensure the string is not empty.
  */
 const querySchema = z.object({
-  to: z
-    .string()
-    .min(1, 'Email address is required')
-    .email('Please provide a valid email address'),
-})
+  to: z.string().min(1, 'Email address is required').email('Please provide a valid email address'),
+});
 
 // =============================================================================
 // Types
 // =============================================================================
 
 type TestEmailResponse = {
-  success: boolean
-  message?: string
-  messageId?: string | null
-  error?: string
+  success: boolean;
+  message?: string;
+  messageId?: string | null;
+  error?: string;
   details?: {
-    emailConfigured: boolean
-    fromAddress: string
-    timestamp: string
-  }
-}
+    emailConfigured: boolean;
+    fromAddress: string;
+    timestamp: string;
+  };
+};
 
 // =============================================================================
 // Route Handler
@@ -81,22 +78,19 @@ export async function GET(request: NextRequest): Promise<NextResponse<TestEmailR
   // Security: Development-only guard
   // -------------------------------------------------------------------------
   if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json(
-      { success: false, error: 'Not found' },
-      { status: 404 }
-    )
+    return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
   }
 
   // -------------------------------------------------------------------------
   // Parse and validate query parameters
   // -------------------------------------------------------------------------
-  const searchParams = request.nextUrl.searchParams
-  const toParam = searchParams.get('to')
+  const searchParams = request.nextUrl.searchParams;
+  const toParam = searchParams.get('to');
 
-  const parseResult = querySchema.safeParse({ to: toParam })
+  const parseResult = querySchema.safeParse({ to: toParam });
 
   if (!parseResult.success) {
-    const errorMessage = parseResult.error.issues[0]?.message || 'Invalid email address'
+    const errorMessage = parseResult.error.issues[0]?.message || 'Invalid email address';
     return NextResponse.json(
       {
         success: false,
@@ -108,16 +102,16 @@ export async function GET(request: NextRequest): Promise<NextResponse<TestEmailR
         },
       },
       { status: 400 }
-    )
+    );
   }
 
-  const { to } = parseResult.data
+  const { to } = parseResult.data;
 
   // -------------------------------------------------------------------------
   // Build test email content
   // -------------------------------------------------------------------------
-  const timestamp = new Date().toISOString()
-  const configured = isEmailConfigured()
+  const timestamp = new Date().toISOString();
+  const configured = isEmailConfigured();
 
   const emailContent = `
     <h2>Email Test Successful!</h2>
@@ -167,11 +161,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<TestEmailR
         /api/test-email
       </code>
     </p>
-  `
+  `;
 
   const html = wrapEmailTemplate(emailContent, {
     previewText: 'Test email from Holigay Vendor Market - Your email is working!',
-  })
+  });
 
   // -------------------------------------------------------------------------
   // Send the test email
@@ -195,7 +189,7 @@ Details:
 
 This test email was triggered from the development API endpoint: /api/test-email
     `.trim(),
-  })
+  });
 
   // -------------------------------------------------------------------------
   // Return response
@@ -212,7 +206,7 @@ This test email was triggered from the development API endpoint: /api/test-email
         },
       },
       { status: 500 }
-    )
+    );
   }
 
   return NextResponse.json({
@@ -226,5 +220,5 @@ This test email was triggered from the development API endpoint: /api/test-email
       fromAddress: getDefaultFromEmail(),
       timestamp,
     },
-  })
+  });
 }

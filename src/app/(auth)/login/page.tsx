@@ -1,35 +1,35 @@
-'use client'
+'use client';
 
-import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { LoginForm } from '@/components/auth/login-form'
-import { signIn } from '@/lib/actions/auth'
-import type { LoginInput } from '@/lib/validations/auth'
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { LoginForm } from '@/components/auth/login-form';
+import { signIn } from '@/lib/actions/auth';
+import type { LoginInput } from '@/lib/validations/auth';
 
 function LoginContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(data: LoginInput) {
-    setError(null)
+    setError(null);
 
     try {
-      const result = await signIn(data)
+      const result = await signIn(data);
 
       if (result.error) {
-        setError(result.error)
-        return
+        setError(result.error);
+        return;
       }
 
       // Redirect to the original destination or dashboard
-      const redirectTo = searchParams.get('redirectTo') || '/dashboard'
-      router.push(redirectTo)
-      router.refresh()
+      const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+      router.push(redirectTo);
+      router.refresh();
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
-      console.error('Login error:', err)
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Login error:', err);
     }
   }
 
@@ -38,9 +38,7 @@ function LoginContent() {
       {/* Page Header */}
       <div className="text-center">
         <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Sign in to access your organizer dashboard
-        </p>
+        <p className="mt-2 text-sm text-gray-600">Sign in to access your organizer dashboard</p>
       </div>
 
       {/* Error Message */}
@@ -56,15 +54,12 @@ function LoginContent() {
       {/* Links */}
       <div className="text-center text-sm">
         <span className="text-gray-600">Don&apos;t have an account? </span>
-        <Link
-          href="/signup"
-          className="font-medium text-blue-600 hover:text-blue-500"
-        >
+        <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
           Sign up
         </Link>
       </div>
     </div>
-  )
+  );
 }
 
 function LoginFallback() {
@@ -72,9 +67,7 @@ function LoginFallback() {
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Sign in to access your organizer dashboard
-        </p>
+        <p className="mt-2 text-sm text-gray-600">Sign in to access your organizer dashboard</p>
       </div>
       <div className="animate-pulse space-y-4">
         <div className="h-10 rounded bg-gray-200" />
@@ -82,7 +75,7 @@ function LoginFallback() {
         <div className="h-10 rounded bg-gray-200" />
       </div>
     </div>
-  )
+  );
 }
 
 export default function LoginPage() {
@@ -90,5 +83,5 @@ export default function LoginPage() {
     <Suspense fallback={<LoginFallback />}>
       <LoginContent />
     </Suspense>
-  )
+  );
 }

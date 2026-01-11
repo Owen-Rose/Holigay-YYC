@@ -1,37 +1,37 @@
-'use server'
+'use server';
 
-import { createClient } from '@/lib/supabase/server'
-import { hasMinimumRole, type Role } from '@/lib/constants/roles'
+import { createClient } from '@/lib/supabase/server';
+import { hasMinimumRole, type Role } from '@/lib/constants/roles';
 
 // Response type for role actions
 export type RoleResponse = {
-  success: boolean
-  error: string | null
+  success: boolean;
+  error: string | null;
   data: {
-    role: Role
-    userId: string
-  } | null
-}
+    role: Role;
+    userId: string;
+  } | null;
+};
 
 /**
  * Get the current authenticated user's role.
  * Returns 'vendor' as default if no role is assigned.
  */
 export async function getCurrentUserRole(): Promise<RoleResponse> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Get current authenticated user
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     return {
       success: false,
       error: 'Not authenticated',
       data: null,
-    }
+    };
   }
 
   // Fetch role from user_roles table
@@ -39,7 +39,7 @@ export async function getCurrentUserRole(): Promise<RoleResponse> {
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
-    .single()
+    .single();
 
   if (roleError && roleError.code !== 'PGRST116') {
     // PGRST116 = no rows found, which is ok (default to vendor)
@@ -48,11 +48,11 @@ export async function getCurrentUserRole(): Promise<RoleResponse> {
       success: false,
       error: 'Failed to fetch user role',
       data: null,
-    }
+    };
   }
 
   // Return role, defaulting to 'vendor' if not found
-  const role = (roleData?.role as Role) || 'vendor'
+  const role = (roleData?.role as Role) || 'vendor';
 
   return {
     success: true,
@@ -61,7 +61,7 @@ export async function getCurrentUserRole(): Promise<RoleResponse> {
       role,
       userId: user.id,
     },
-  }
+  };
 }
 
 /**
@@ -83,22 +83,22 @@ export async function getCurrentUserRole(): Promise<RoleResponse> {
  */
 export async function requireRole(minimumRole: Role): Promise<RoleResponse> {
   // Get current user's role
-  const result = await getCurrentUserRole()
+  const result = await getCurrentUserRole();
 
   // Pass through auth errors
   if (!result.success) {
-    return result
+    return result;
   }
 
   // Check if user's role meets minimum requirement
-  const { role, userId } = result.data!
+  const { role, userId } = result.data!;
 
   if (!hasMinimumRole(role, minimumRole)) {
     return {
       success: false,
       error: `Requires ${minimumRole} role or higher`,
       data: null,
-    }
+    };
   }
 
   // User is authorized
@@ -109,5 +109,5 @@ export async function requireRole(minimumRole: Role): Promise<RoleResponse> {
       role,
       userId,
     },
-  }
+  };
 }

@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { exportApplicationsCSV } from '@/lib/actions/export'
-import type { ApplicationFilters } from '@/lib/actions/applications'
+import { useState } from 'react';
+import { exportApplicationsCSV } from '@/lib/actions/export';
+import type { ApplicationFilters } from '@/lib/actions/applications';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface ExportButtonProps {
-  filters?: ApplicationFilters
+  filters?: ApplicationFilters;
 }
 
 // =============================================================================
@@ -22,40 +22,40 @@ interface ExportButtonProps {
  * Calls the server action to generate CSV, then triggers a browser download
  */
 export function ExportButton({ filters = {} }: ExportButtonProps) {
-  const [isExporting, setIsExporting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isExporting, setIsExporting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleExport() {
-    setIsExporting(true)
-    setError(null)
+    setIsExporting(true);
+    setError(null);
 
     try {
-      const result = await exportApplicationsCSV(filters)
+      const result = await exportApplicationsCSV(filters);
 
       if (!result.success || !result.data) {
-        setError(result.error || 'Failed to export applications')
-        return
+        setError(result.error || 'Failed to export applications');
+        return;
       }
 
       // Create a Blob from the CSV content
-      const blob = new Blob([result.data.csv], { type: 'text/csv;charset=utf-8;' })
+      const blob = new Blob([result.data.csv], { type: 'text/csv;charset=utf-8;' });
 
       // Create a download link and trigger it
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = result.data.filename
-      document.body.appendChild(link)
-      link.click()
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = result.data.filename;
+      document.body.appendChild(link);
+      link.click();
 
       // Cleanup
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Export error:', err)
-      setError('An unexpected error occurred')
+      console.error('Export error:', err);
+      setError('An unexpected error occurred');
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
   }
 
@@ -64,7 +64,7 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Export applications to CSV"
       >
         {isExporting ? (
@@ -123,5 +123,5 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
         </span>
       )}
     </div>
-  )
+  );
 }

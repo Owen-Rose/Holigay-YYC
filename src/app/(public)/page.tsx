@@ -1,15 +1,15 @@
-import Link from 'next/link'
-import { getActiveEvents } from '@/lib/actions/applications'
+import Link from 'next/link';
+import { getActiveEvents } from '@/lib/actions/applications';
 
 export const metadata = {
   title: 'Holigay Vendor Market | Apply to Join Our Events',
   description:
     'Join the Holigay Vendor Market! Showcase your products at our vibrant marketplace events. Apply now to connect with customers and grow your business.',
-}
+};
 
 export default async function LandingPage() {
   // Fetch active events to display on the landing page
-  const events = await getActiveEvents()
+  const events = await getActiveEvents();
 
   return (
     <div className="space-y-16 pb-16">
@@ -20,14 +20,13 @@ export default async function LandingPage() {
           <span className="block text-blue-600">Holigay Vendor Market</span>
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
-          Connect with enthusiastic shoppers, grow your customer base, and be
-          part of a vibrant community marketplace. We&apos;re looking for
-          talented vendors like you!
+          Connect with enthusiastic shoppers, grow your customer base, and be part of a vibrant
+          community marketplace. We&apos;re looking for talented vendors like you!
         </p>
         <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/apply"
-            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="inline-flex items-center justify-center rounded-md bg-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
           >
             Apply Now
           </Link>
@@ -46,21 +45,14 @@ export default async function LandingPage() {
           <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
             Why Vendors Love Our Markets
           </h2>
-          <p className="mt-2 text-gray-600">
-            Join a supportive community and grow your business
-          </p>
+          <p className="mt-2 text-gray-600">Join a supportive community and grow your business</p>
         </div>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* Benefit 1: High Foot Traffic */}
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -69,24 +61,17 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              High Foot Traffic
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">High Foot Traffic</h3>
             <p className="mt-2 text-gray-600">
-              Our events attract hundreds of eager shoppers looking for unique
-              products and local finds.
+              Our events attract hundreds of eager shoppers looking for unique products and local
+              finds.
             </p>
           </div>
 
           {/* Benefit 2: Community Support */}
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -95,24 +80,17 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Supportive Community
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">Supportive Community</h3>
             <p className="mt-2 text-gray-600">
-              Join a welcoming network of vendors who collaborate, share tips,
-              and support each other&apos;s success.
+              Join a welcoming network of vendors who collaborate, share tips, and support each
+              other&apos;s success.
             </p>
           </div>
 
           {/* Benefit 3: Easy Setup */}
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -121,24 +99,16 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Hassle-Free Setup
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">Hassle-Free Setup</h3>
             <p className="mt-2 text-gray-600">
-              We provide tables, chairs, and support. Just bring your products
-              and creativity!
+              We provide tables, chairs, and support. Just bring your products and creativity!
             </p>
           </div>
 
           {/* Benefit 4: Marketing Support */}
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 text-orange-600">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -147,24 +117,17 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Marketing Exposure
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">Marketing Exposure</h3>
             <p className="mt-2 text-gray-600">
-              Get featured in our promotions, social media, and email campaigns
-              to reach new customers.
+              Get featured in our promotions, social media, and email campaigns to reach new
+              customers.
             </p>
           </div>
 
           {/* Benefit 5: Affordable Rates */}
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-100 text-teal-600">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -173,24 +136,17 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Affordable Booth Rates
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">Affordable Booth Rates</h3>
             <p className="mt-2 text-gray-600">
-              Competitive pricing designed with small businesses in mind. Great
-              value for the exposure you&apos;ll receive.
+              Competitive pricing designed with small businesses in mind. Great value for the
+              exposure you&apos;ll receive.
             </p>
           </div>
 
           {/* Benefit 6: Prime Location */}
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-100 text-pink-600">
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -205,12 +161,10 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Prime Locations
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900">Prime Locations</h3>
             <p className="mt-2 text-gray-600">
-              Our venues are easily accessible with ample parking and high
-              visibility in the community.
+              Our venues are easily accessible with ample parking and high visibility in the
+              community.
             </p>
           </div>
         </div>
@@ -219,12 +173,8 @@ export default async function LandingPage() {
       {/* Upcoming Events Section */}
       <section id="events" className="scroll-mt-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-            Upcoming Events
-          </h2>
-          <p className="mt-2 text-gray-600">
-            Apply now to secure your spot at our next market
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 sm:text-3xl">Upcoming Events</h2>
+          <p className="mt-2 text-gray-600">Apply now to secure your spot at our next market</p>
         </div>
 
         <div className="mt-10">
@@ -237,12 +187,7 @@ export default async function LandingPage() {
           ) : (
             <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400">
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -251,9 +196,7 @@ export default async function LandingPage() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                No Upcoming Events
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900">No Upcoming Events</h3>
               <p className="mt-2 text-gray-600">
                 Check back soon! We&apos;re planning exciting new markets.
               </p>
@@ -264,12 +207,10 @@ export default async function LandingPage() {
 
       {/* Final CTA Section */}
       <section className="rounded-xl bg-blue-600 p-8 text-center text-white sm:p-12">
-        <h2 className="text-2xl font-bold sm:text-3xl">
-          Ready to Grow Your Business?
-        </h2>
+        <h2 className="text-2xl font-bold sm:text-3xl">Ready to Grow Your Business?</h2>
         <p className="mx-auto mt-4 max-w-xl text-blue-100">
-          Join our community of successful vendors and connect with customers
-          who appreciate quality, local products.
+          Join our community of successful vendors and connect with customers who appreciate
+          quality, local products.
         </p>
         <Link
           href="/apply"
@@ -279,18 +220,18 @@ export default async function LandingPage() {
         </Link>
       </section>
     </div>
-  )
+  );
 }
 
 // Helper component for event cards
 type Event = {
-  id: string
-  name: string
-  event_date: string
-  location: string
-  description: string | null
-  application_deadline: string | null
-}
+  id: string;
+  name: string;
+  event_date: string;
+  location: string;
+  description: string | null;
+  application_deadline: string | null;
+};
 
 function EventCard({ event }: { event: Event }) {
   // Format the event date
@@ -299,7 +240,7 @@ function EventCard({ event }: { event: Event }) {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  })
+  });
 
   // Format the application deadline if present
   const deadline = event.application_deadline
@@ -308,7 +249,7 @@ function EventCard({ event }: { event: Event }) {
         day: 'numeric',
         year: 'numeric',
       })
-    : null
+    : null;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm sm:flex-row">
@@ -319,12 +260,8 @@ function EventCard({ event }: { event: Event }) {
             month: 'short',
           })}
         </span>
-        <span className="text-3xl font-bold">
-          {new Date(event.event_date).getDate()}
-        </span>
-        <span className="text-sm">
-          {new Date(event.event_date).getFullYear()}
-        </span>
+        <span className="text-3xl font-bold">{new Date(event.event_date).getDate()}</span>
+        <span className="text-sm">{new Date(event.event_date).getFullYear()}</span>
       </div>
 
       {/* Event details */}
@@ -333,12 +270,7 @@ function EventCard({ event }: { event: Event }) {
           <h3 className="text-xl font-semibold text-gray-900">{event.name}</h3>
           <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-600">
             <span className="flex items-center gap-1">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -349,12 +281,7 @@ function EventCard({ event }: { event: Event }) {
               {eventDate}
             </span>
             <span className="flex items-center gap-1">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -371,16 +298,13 @@ function EventCard({ event }: { event: Event }) {
               {event.location}
             </span>
           </div>
-          {event.description && (
-            <p className="mt-3 text-gray-600">{event.description}</p>
-          )}
+          {event.description && <p className="mt-3 text-gray-600">{event.description}</p>}
         </div>
 
         <div className="mt-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           {deadline && (
             <span className="text-sm text-gray-500">
-              Apply by{' '}
-              <span className="font-medium text-gray-700">{deadline}</span>
+              Apply by <span className="font-medium text-gray-700">{deadline}</span>
             </span>
           )}
           <Link
@@ -392,5 +316,5 @@ function EventCard({ event }: { event: Event }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

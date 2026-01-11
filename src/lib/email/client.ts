@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+import { Resend } from 'resend';
 
 // =============================================================================
 // Configuration
@@ -13,7 +13,7 @@ import { Resend } from 'resend'
  * @see https://resend.com/docs/dashboard/domains/introduction
  */
 const DEFAULT_FROM_EMAIL =
-  process.env.EMAIL_FROM_ADDRESS || 'Holigay Vendor Market <onboarding@resend.dev>'
+  process.env.EMAIL_FROM_ADDRESS || 'Holigay Vendor Market <onboarding@resend.dev>';
 
 /**
  * Initialize Resend client
@@ -21,22 +21,20 @@ const DEFAULT_FROM_EMAIL =
  * The client is lazily initialized to avoid errors when the API key is not set.
  * In development without an API key, email operations will be logged but not sent.
  */
-let resendClient: Resend | null = null
+let resendClient: Resend | null = null;
 
 function getResendClient(): Resend | null {
-  if (resendClient) return resendClient
+  if (resendClient) return resendClient;
 
-  const apiKey = process.env.RESEND_API_KEY
+  const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
-    console.warn(
-      '[Email] RESEND_API_KEY is not set. Emails will be logged but not sent.'
-    )
-    return null
+    console.warn('[Email] RESEND_API_KEY is not set. Emails will be logged but not sent.');
+    return null;
   }
 
-  resendClient = new Resend(apiKey)
-  return resendClient
+  resendClient = new Resend(apiKey);
+  return resendClient;
 }
 
 // =============================================================================
@@ -48,44 +46,44 @@ function getResendClient(): Resend | null {
  */
 export type EmailOptions = {
   /** Recipient email address(es) */
-  to: string | string[]
+  to: string | string[];
   /** Email subject line */
-  subject: string
+  subject: string;
   /** HTML content of the email */
-  html: string
+  html: string;
   /** Plain text fallback (optional, recommended for accessibility) */
-  text?: string
+  text?: string;
   /** Sender email address (defaults to configured from address) */
-  from?: string
+  from?: string;
   /** Reply-to address (optional) */
-  replyTo?: string
+  replyTo?: string;
   /** CC recipients (optional) */
-  cc?: string | string[]
+  cc?: string | string[];
   /** BCC recipients (optional) */
-  bcc?: string | string[]
-}
+  bcc?: string | string[];
+};
 
 /**
  * Result of an email send operation
  */
 export type EmailResult = {
   /** Whether the email was sent successfully */
-  success: boolean
+  success: boolean;
   /** Resend message ID if successful */
-  messageId: string | null
+  messageId: string | null;
   /** Error message if failed */
-  error: string | null
-}
+  error: string | null;
+};
 
 /**
  * Email log entry for development mode
  */
 type EmailLogEntry = {
-  timestamp: string
-  to: string | string[]
-  subject: string
-  from: string
-}
+  timestamp: string;
+  to: string | string[];
+  subject: string;
+  from: string;
+};
 
 // =============================================================================
 // Core Email Functions
@@ -119,9 +117,9 @@ type EmailLogEntry = {
  * ```
  */
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
-  const { to, subject, html, text, from = DEFAULT_FROM_EMAIL, replyTo, cc, bcc } = options
+  const { to, subject, html, text, from = DEFAULT_FROM_EMAIL, replyTo, cc, bcc } = options;
 
-  const resend = getResendClient()
+  const resend = getResendClient();
 
   // Development fallback: log email instead of sending
   if (!resend) {
@@ -130,16 +128,16 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
       to,
       subject,
       from,
-    }
+    };
 
-    console.log('[Email] Would send email (no API key configured):')
-    console.log(JSON.stringify(logEntry, null, 2))
+    console.log('[Email] Would send email (no API key configured):');
+    console.log(JSON.stringify(logEntry, null, 2));
 
     return {
       success: true,
       messageId: `dev-${Date.now()}`,
       error: null,
-    }
+    };
   }
 
   try {
@@ -152,31 +150,31 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
       replyTo,
       cc: cc ? (Array.isArray(cc) ? cc : [cc]) : undefined,
       bcc: bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined,
-    })
+    });
 
     if (error) {
-      console.error('[Email] Resend API error:', error)
+      console.error('[Email] Resend API error:', error);
       return {
         success: false,
         messageId: null,
         error: error.message || 'Failed to send email',
-      }
+      };
     }
 
     return {
       success: true,
       messageId: data?.id || null,
       error: null,
-    }
+    };
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-    console.error('[Email] Unexpected error:', err)
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+    console.error('[Email] Unexpected error:', err);
 
     return {
       success: false,
       messageId: null,
       error: errorMessage,
-    }
+    };
   }
 }
 
@@ -193,7 +191,7 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
  * @returns true if RESEND_API_KEY is configured
  */
 export function isEmailConfigured(): boolean {
-  return !!process.env.RESEND_API_KEY
+  return !!process.env.RESEND_API_KEY;
 }
 
 /**
@@ -202,7 +200,7 @@ export function isEmailConfigured(): boolean {
  * @returns The configured from email address
  */
 export function getDefaultFromEmail(): string {
-  return DEFAULT_FROM_EMAIL
+  return DEFAULT_FROM_EMAIL;
 }
 
 // =============================================================================
@@ -233,10 +231,10 @@ export function wrapEmailTemplate(
   content: string,
   options: {
     /** Preview text shown in email clients */
-    previewText?: string
+    previewText?: string;
   } = {}
 ): string {
-  const { previewText } = options
+  const { previewText } = options;
 
   return `
 <!DOCTYPE html>
@@ -395,7 +393,7 @@ export function wrapEmailTemplate(
   </table>
 </body>
 </html>
-`.trim()
+`.trim();
 }
 
 /**
@@ -408,22 +406,24 @@ export function wrapEmailTemplate(
  * @returns Plain text version of the content
  */
 export function htmlToPlainText(html: string): string {
-  return html
-    // Remove style and script tags and their contents
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    // Replace common block elements with newlines
-    .replace(/<\/?(div|p|br|h[1-6]|li|tr)[^>]*>/gi, '\n')
-    // Remove all remaining HTML tags
-    .replace(/<[^>]+>/g, '')
-    // Decode common HTML entities
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    // Clean up whitespace
-    .replace(/\n\s*\n/g, '\n\n')
-    .trim()
+  return (
+    html
+      // Remove style and script tags and their contents
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      // Replace common block elements with newlines
+      .replace(/<\/?(div|p|br|h[1-6]|li|tr)[^>]*>/gi, '\n')
+      // Remove all remaining HTML tags
+      .replace(/<[^>]+>/g, '')
+      // Decode common HTML entities
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      // Clean up whitespace
+      .replace(/\n\s*\n/g, '\n\n')
+      .trim()
+  );
 }

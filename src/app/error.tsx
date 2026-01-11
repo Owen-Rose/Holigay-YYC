@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { Button } from '@/components/ui/button'
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 // Global error boundary for unexpected errors
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
     // Log error to console in development (in production, send to error tracking service)
-    console.error('Application error:', error)
-  }, [error])
+    console.error('Application error:', error);
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
@@ -38,25 +38,18 @@ export default function Error({
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
-        <p className="mt-2 text-gray-600">
-          We encountered an unexpected error. Please try again.
-        </p>
+        <p className="mt-2 text-gray-600">We encountered an unexpected error. Please try again.</p>
 
         {/* Show error digest in development for debugging */}
-        {error.digest && (
-          <p className="mt-2 text-xs text-gray-400">Error ID: {error.digest}</p>
-        )}
+        {error.digest && <p className="mt-2 text-xs text-gray-400">Error ID: {error.digest}</p>}
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button onClick={reset}>Try again</Button>
-          <Button
-            variant="outline"
-            onClick={() => (window.location.href = '/')}
-          >
+          <Button variant="outline" onClick={() => (window.location.href = '/')}>
             Go to homepage
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }

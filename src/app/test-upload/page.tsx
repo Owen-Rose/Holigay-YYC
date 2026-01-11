@@ -1,48 +1,48 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { uploadFile, deleteFile } from '@/lib/actions/upload'
+import { useState } from 'react';
+import { uploadFile, deleteFile } from '@/lib/actions/upload';
 
 type UploadResult = {
-  success: boolean
-  error: string | null
+  success: boolean;
+  error: string | null;
   data: {
-    filePath: string
-    fileName: string
-    fileType: string
-    fileSize: number
-  } | null
-}
+    filePath: string;
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+  } | null;
+};
 
 export default function TestUploadPage() {
-  const [result, setResult] = useState<UploadResult | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [deleteStatus, setDeleteStatus] = useState<string | null>(null)
+  const [result, setResult] = useState<UploadResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setLoading(true)
-    setResult(null)
-    setDeleteStatus(null)
+    e.preventDefault();
+    setLoading(true);
+    setResult(null);
+    setDeleteStatus(null);
 
-    const formData = new FormData(e.currentTarget)
-    const uploadResult = await uploadFile(formData)
+    const formData = new FormData(e.currentTarget);
+    const uploadResult = await uploadFile(formData);
 
-    setResult(uploadResult)
-    setLoading(false)
+    setResult(uploadResult);
+    setLoading(false);
   }
 
   async function handleDelete() {
-    if (!result?.data?.filePath) return
+    if (!result?.data?.filePath) return;
 
-    setDeleteStatus('Deleting...')
-    const deleteResult = await deleteFile(result.data.filePath)
+    setDeleteStatus('Deleting...');
+    const deleteResult = await deleteFile(result.data.filePath);
 
     if (deleteResult.success) {
-      setDeleteStatus('File deleted successfully')
-      setResult(null)
+      setDeleteStatus('File deleted successfully');
+      setResult(null);
     } else {
-      setDeleteStatus(`Delete failed: ${deleteResult.error}`)
+      setDeleteStatus(`Delete failed: ${deleteResult.error}`);
     }
   }
 
@@ -89,16 +89,22 @@ export default function TestUploadPage() {
             {result.success ? 'Upload Successful' : 'Upload Failed'}
           </h3>
 
-          {result.error && (
-            <p style={{ color: '#721c24' }}>{result.error}</p>
-          )}
+          {result.error && <p style={{ color: '#721c24' }}>{result.error}</p>}
 
           {result.data && (
             <div style={{ fontSize: '0.9rem' }}>
-              <p><strong>File Path:</strong> {result.data.filePath}</p>
-              <p><strong>File Name:</strong> {result.data.fileName}</p>
-              <p><strong>File Type:</strong> {result.data.fileType}</p>
-              <p><strong>File Size:</strong> {(result.data.fileSize / 1024).toFixed(2)} KB</p>
+              <p>
+                <strong>File Path:</strong> {result.data.filePath}
+              </p>
+              <p>
+                <strong>File Name:</strong> {result.data.fileName}
+              </p>
+              <p>
+                <strong>File Type:</strong> {result.data.fileType}
+              </p>
+              <p>
+                <strong>File Size:</strong> {(result.data.fileSize / 1024).toFixed(2)} KB
+              </p>
 
               <button
                 onClick={handleDelete}
@@ -120,12 +126,24 @@ export default function TestUploadPage() {
       )}
 
       {deleteStatus && (
-        <p style={{ marginTop: '1rem', color: deleteStatus.includes('failed') ? '#dc3545' : '#28a745' }}>
+        <p
+          style={{
+            marginTop: '1rem',
+            color: deleteStatus.includes('failed') ? '#dc3545' : '#28a745',
+          }}
+        >
           {deleteStatus}
         </p>
       )}
 
-      <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
+      <div
+        style={{
+          marginTop: '2rem',
+          padding: '1rem',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '4px',
+        }}
+      >
         <h4>Test Cases to Try:</h4>
         <ul style={{ fontSize: '0.9rem', lineHeight: '1.8' }}>
           <li>Valid image (JPG, PNG, GIF, WebP) - should succeed</li>
@@ -136,5 +154,5 @@ export default function TestUploadPage() {
         </ul>
       </div>
     </div>
-  )
+  );
 }

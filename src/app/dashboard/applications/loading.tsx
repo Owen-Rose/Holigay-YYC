@@ -15,31 +15,31 @@ function FilterSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function TableRowSkeleton() {
   return (
     <tr className="animate-pulse">
-      <td className="whitespace-nowrap px-6 py-4">
+      <td className="px-6 py-4 whitespace-nowrap">
         <div className="h-4 w-32 rounded bg-gray-200" />
         <div className="mt-1 h-3 w-24 rounded bg-gray-200" />
       </td>
-      <td className="whitespace-nowrap px-6 py-4">
+      <td className="px-6 py-4 whitespace-nowrap">
         <div className="h-4 w-28 rounded bg-gray-200" />
         <div className="mt-1 h-3 w-40 rounded bg-gray-200" />
       </td>
-      <td className="whitespace-nowrap px-6 py-4">
+      <td className="px-6 py-4 whitespace-nowrap">
         <div className="h-5 w-16 rounded-full bg-gray-200" />
       </td>
-      <td className="whitespace-nowrap px-6 py-4">
+      <td className="px-6 py-4 whitespace-nowrap">
         <div className="h-4 w-20 rounded bg-gray-200" />
       </td>
-      <td className="whitespace-nowrap px-6 py-4 text-right">
+      <td className="px-6 py-4 text-right whitespace-nowrap">
         <div className="h-4 w-8 rounded bg-gray-200" />
       </td>
     </tr>
-  )
+  );
 }
 
 function TableSkeleton() {
@@ -94,7 +94,7 @@ function TableSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export default function ApplicationsLoading() {
@@ -115,5 +115,5 @@ export default function ApplicationsLoading() {
       {/* Table Skeleton */}
       <TableSkeleton />
     </div>
-  )
+  );
 }
