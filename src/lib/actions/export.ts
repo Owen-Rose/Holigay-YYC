@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { requireRole } from '@/lib/actions/roles';
 import type { ApplicationFilters } from './applications';
 
 // =============================================================================
@@ -100,6 +101,16 @@ function formatCategories(categories: string[] | null): string {
 export async function exportApplicationsCSV(
   filters: ApplicationFilters = {}
 ): Promise<ExportCSVResponse> {
+  // Require organizer role or higher to export applications
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return {
+      success: false,
+      error: auth.error,
+      data: null,
+    };
+  }
+
   const supabase = await createClient();
 
   // Build the query for fetching all applications with vendor data
