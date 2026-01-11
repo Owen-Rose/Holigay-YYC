@@ -706,11 +706,11 @@ Update auto-generated Supabase types to include the new table.
 
 Create a server action to fetch the current user's role.
 
-- ⬜ Create `src/lib/actions/roles.ts`
-- ⬜ Implement `getCurrentUserRole()` function
-- ⬜ Return `{ success, error, data: { role, userId } }`
-- ⬜ Return `'vendor'` as default if no role found
-- ⬜ Verify: `npm run lint` passes
+- ✅ Create `src/lib/actions/roles.ts`
+- ✅ Implement `getCurrentUserRole()` function
+- ✅ Return `{ success, error, data: { role, userId } }`
+- ✅ Return `'vendor'` as default if no role found
+- ✅ Verify: `npm run lint` passes
 - ⬜ Commit: `git commit -m "feat(rbac): add getCurrentUserRole action"`
 
 **Files created:** `src/lib/actions/roles.ts`
