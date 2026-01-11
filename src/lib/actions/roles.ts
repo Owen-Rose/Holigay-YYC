@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Role } from '@/lib/constants/roles'
+import { hasMinimumRole, type Role } from '@/lib/constants/roles'
 
 // Response type for role actions
 export type RoleResponse = {
@@ -60,6 +60,54 @@ export async function getCurrentUserRole(): Promise<RoleResponse> {
     data: {
       role,
       userId: user.id,
+    },
+  }
+}
+
+/**
+ * Require a minimum role level for a server action.
+ * Use at the start of protected server actions.
+ *
+ * @param minimumRole - The minimum role required (checks hierarchy)
+ * @returns RoleResponse - success with user data, or error if unauthorized
+ *
+ * @example
+ * export async function protectedAction() {
+ *   const auth = await requireRole('organizer')
+ *   if (!auth.success) {
+ *     return { success: false, error: auth.error }
+ *   }
+ *   // User is authorized, proceed with action
+ *   const { role, userId } = auth.data
+ * }
+ */
+export async function requireRole(minimumRole: Role): Promise<RoleResponse> {
+  // Get current user's role
+  const result = await getCurrentUserRole()
+
+  // Pass through auth errors
+  if (!result.success) {
+    return result
+  }
+
+  // Check if user's role meets minimum requirement
+  const { role, userId } = result.data!
+
+  if (!hasMinimumRole(role, minimumRole)) {
+    return {
+      success: false,
+      error: `Requires ${minimumRole} role or higher`,
+      data: null,
+    }
+  }
+
+  // User is authorized
+  return {
+    success: true,
+    error: null,
+    data: {
+      role,
+      userId,
     },
   }
 }

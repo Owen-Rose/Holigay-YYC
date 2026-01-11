@@ -721,11 +721,11 @@ Create a server action to fetch the current user's role.
 
 Create a helper function to require a minimum role in server actions.
 
-- ⬜ Add `requireRole(minimumRole)` function to `src/lib/actions/roles.ts`
-- ⬜ Uses `hasMinimumRole()` to check hierarchy
-- ⬜ Returns `{ success: false, error }` if unauthorized
-- ⬜ Returns `{ success: true, data: { role, userId } }` if authorized
-- ⬜ Verify: `npm run lint` passes
+- ✅ Add `requireRole(minimumRole)` function to `src/lib/actions/roles.ts`
+- ✅ Uses `hasMinimumRole()` to check hierarchy
+- ✅ Returns `{ success: false, error }` if unauthorized
+- ✅ Returns `{ success: true, data: { role, userId } }` if authorized
+- ✅ Verify: `npm run lint` passes
 - ⬜ Commit: `git commit -m "feat(rbac): add requireRole helper"`
 
 **Files modified:** `src/lib/actions/roles.ts`
