@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | ⬜ Not Started | 0/27 |
-| **Total** | **In Progress** | **38/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 13/27 |
+| **Total** | **In Progress** | **51/71** |
 
 ---
 
@@ -786,9 +786,9 @@ Start with a non-critical action to test the pattern.
 
 Only organizers can approve/reject applications.
 
-- ⬜ Open `src/lib/actions/applications.ts`
-- ⬜ Add `requireRole('organizer')` to `updateApplicationStatus()`
-- ⬜ Add `requireRole('organizer')` to `updateApplicationNotes()`
+- ✅ Open `src/lib/actions/applications.ts`
+- ✅ Add `requireRole('organizer')` to `updateApplicationStatus()`
+- ✅ Add `requireRole('organizer')` to `updateApplicationNotes()`
 - ⬜ Verify: Status updates still work for organizers
 - ⬜ Commit: `git commit -m "feat(rbac): protect status update actions"`
 
@@ -800,11 +800,11 @@ Only organizers can approve/reject applications.
 
 Only organizers can view the full applications list.
 
-- ⬜ Open `src/lib/actions/applications.ts`
-- ⬜ Add `requireRole('organizer')` to `getApplications()`
-- ⬜ Add `requireRole('organizer')` to `getApplicationById()`
-- ⬜ Add `requireRole('organizer')` to `getApplicationCounts()`
-- ⬜ Note: Keep `getActiveEvents()` public (for vendor form)
+- ✅ Open `src/lib/actions/applications.ts`
+- ✅ Add `requireRole('organizer')` to `getApplications()`
+- ✅ Add `requireRole('organizer')` to `getApplicationById()`
+- ✅ Add `requireRole('organizer')` to `getApplicationCounts()`
+- ✅ Note: Keep `getActiveEvents()` public (for vendor form)
 - ⬜ Verify: Dashboard still loads for organizers
 - ⬜ Commit: `git commit -m "feat(rbac): protect application listing actions"`
 

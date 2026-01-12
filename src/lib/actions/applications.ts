@@ -431,6 +431,16 @@ export async function getApplications(
   filters: ApplicationFilters = {},
   pagination: PaginationParams = {}
 ): Promise<GetApplicationsResponse> {
+  // Require organizer role or higher to list applications
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return {
+      success: false,
+      error: auth.error,
+      data: null,
+    };
+  }
+
   const supabase = await createClient();
 
   // Pagination defaults
@@ -639,6 +649,16 @@ export type GetApplicationByIdResponse = {
  * @returns GetApplicationByIdResponse with full application details or error
  */
 export async function getApplicationById(id: string): Promise<GetApplicationByIdResponse> {
+  // Require organizer role or higher to view application details
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return {
+      success: false,
+      error: auth.error,
+      data: null,
+    };
+  }
+
   const supabase = await createClient();
 
   // Fetch the application with vendor and event data
@@ -754,6 +774,19 @@ export async function getApplicationCounts(eventId?: string): Promise<{
   waitlisted: number;
   total: number;
 }> {
+  // Require organizer role or higher to view application counts
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    // Return zeros for unauthorized users (consistent with error handling below)
+    return {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      waitlisted: 0,
+      total: 0,
+    };
+  }
+
   const supabase = await createClient();
 
   let query = supabase.from('applications').select('status');
