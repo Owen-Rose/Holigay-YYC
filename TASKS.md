@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 21/27 |
-| **Total** | **In Progress** | **59/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 22/27 |
+| **Total** | **In Progress** | **60/71** |
 
 ---
 
@@ -949,10 +949,10 @@ Create action for admins to view all users.
 
 Create action for admins to change user roles.
 
-- ⬜ Add `updateUserRole(userId, newRole)` to `src/lib/actions/admin.ts`
-- ⬜ Add `requireRole('admin')` check
-- ⬜ Prevent admin from demoting themselves
-- ⬜ Update or insert role in `user_roles` table
+- ✅ Add `updateUserRole(userId, newRole)` to `src/lib/actions/admin.ts`
+- ✅ Add `requireRole('admin')` check
+- ✅ Prevent admin from demoting themselves
+- ✅ Update or insert role in `user_roles` table (upsert)
 - ⬜ Verify: Role updates work
 - ⬜ Commit: `git commit -m "feat(rbac): add updateUserRole admin action"`
 
