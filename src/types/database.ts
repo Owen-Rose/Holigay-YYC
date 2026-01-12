@@ -201,7 +201,16 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      users_with_roles: {
+        Row: {
+          id: string;
+          email: string;
+          created_at: string;
+          role: string;
+          role_updated_at: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       get_user_role: { Args: { p_user_id: string }; Returns: string };

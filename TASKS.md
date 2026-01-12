@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 20/27 |
-| **Total** | **In Progress** | **58/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 21/27 |
+| **Total** | **In Progress** | **59/71** |
 
 ---
 
@@ -931,13 +931,17 @@ New signups automatically get vendor role.
 
 Create action for admins to view all users.
 
-- ⬜ Create `src/lib/actions/admin.ts`
-- ⬜ Implement `getUsers()` with `requireRole('admin')`
-- ⬜ Return list of users with their roles (from auth.users + user_roles)
+- ✅ Create `src/lib/actions/admin.ts`
+- ✅ Implement `getUsers()` with `requireRole('admin')`
+- ✅ Return list of users with their roles (from auth.users + user_roles)
+- ✅ Create database migration for `users_with_roles` view
+- ✅ Add view types to `src/types/database.ts`
+- ⬜ Run migration `005_users_with_roles_view.sql` in Supabase SQL Editor
 - ⬜ Verify: Action returns user list
 - ⬜ Commit: `git commit -m "feat(rbac): add getUsers admin action"`
 
-**Files created:** `src/lib/actions/admin.ts`
+**Files created:** `src/lib/actions/admin.ts`, `supabase/migrations/005_users_with_roles_view.sql`
+**Files modified:** `src/types/database.ts`
 
 ---
 
