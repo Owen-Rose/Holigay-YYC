@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 22/27 |
-| **Total** | **In Progress** | **60/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 23/27 |
+| **Total** | **In Progress** | **61/71** |
 
 ---
 
@@ -964,11 +964,11 @@ Create action for admins to change user roles.
 
 Create UI for managing user roles.
 
-- ⬜ Create `src/app/dashboard/admin/page.tsx`
-- ⬜ Fetch and display user list with roles
-- ⬜ Create `src/components/admin/user-role-select.tsx` dropdown
-- ⬜ Add confirmation before role change
-- ⬜ Show success/error feedback
+- ✅ Create `src/app/dashboard/admin/page.tsx`
+- ✅ Fetch and display user list with roles
+- ✅ Create `src/components/admin/user-role-select.tsx` dropdown
+- ✅ Add confirmation before role change
+- ✅ Show success/error feedback (toast notification)
 - ⬜ Verify: Can promote vendor to organizer
 - ⬜ Commit: `git commit -m "feat(rbac): add admin users management page"`
 
