@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 24/27 |
-| **Total** | **In Progress** | **62/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 25/27 |
+| **Total** | **In Progress** | **63/71** |
 
 ---
 
@@ -1000,15 +1000,17 @@ Show admin link only to admins.
 
 Add defense-in-depth with role checks in RLS policies.
 
-- ⬜ Create `supabase/migrations/005_rbac_rls_updates.sql`
-- ⬜ Update events: only `organizer`/`admin` can INSERT/UPDATE/DELETE
-- ⬜ Update applications: organizers can UPDATE, public can still INSERT
-- ⬜ Keep existing public read policies for active events
-- ⬜ Run migration in Supabase
+- ✅ Create `supabase/migrations/006_rbac_rls_updates.sql` (006 since 005 already exists)
+- ✅ Update events: only `organizer`/`admin` can INSERT/UPDATE/DELETE
+- ✅ Update applications: organizers can UPDATE, public can still INSERT
+- ✅ Update vendors: organizers can UPDATE/DELETE
+- ✅ Update attachments: organizers can DELETE
+- ✅ Keep existing public read policies for active events
+- ⬜ Run migration in Supabase SQL Editor
 - ⬜ Verify: Policies work correctly
 - ⬜ Commit: `git commit -m "feat(rbac): update RLS policies for role-based access"`
 
-**Files created:** `supabase/migrations/005_rbac_rls_updates.sql`
+**Files created:** `supabase/migrations/006_rbac_rls_updates.sql`
 
 ---
 
