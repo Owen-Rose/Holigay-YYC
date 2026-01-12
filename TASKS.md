@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 14/27 |
-| **Total** | **In Progress** | **52/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 15/27 |
+| **Total** | **In Progress** | **53/71** |
 
 ---
 
@@ -831,9 +831,9 @@ Create a friendly page for users who lack permission.
 
 Protect dashboard routes at the middleware level.
 
-- ⬜ Open `src/middleware.ts`
-- ⬜ After auth check for `/dashboard/*`, fetch user role from database
-- ⬜ If role is not `organizer` or `admin`, redirect to `/unauthorized`
+- ✅ Open `src/middleware.ts`
+- ✅ After auth check for `/dashboard/*`, fetch user role from database
+- ✅ If role is not `organizer` or `admin`, redirect to `/unauthorized`
 - ⬜ Verify: Organizers can access dashboard
 - ⬜ Verify: Vendors get redirected to `/unauthorized`
 - ⬜ Commit: `git commit -m "feat(rbac): add middleware role check for dashboard"`
