@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 17/27 |
-| **Total** | **In Progress** | **55/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 18/27 |
+| **Total** | **In Progress** | **56/71** |
 
 ---
 
@@ -880,9 +880,9 @@ Create the vendor dashboard home page.
 
 Add vendor route protection (require authentication, any role).
 
-- ⬜ Open `src/middleware.ts`
-- ⬜ Add `/vendor` to protected routes (require auth)
-- ⬜ Any authenticated user can access vendor portal
+- ✅ Open `src/middleware.ts`
+- ✅ Add `/vendor` to protected routes (require auth)
+- ✅ Any authenticated user can access vendor portal
 - ⬜ Verify: Unauthenticated users redirected to login
 - ⬜ Verify: Authenticated users can access `/vendor`
 - ⬜ Commit: `git commit -m "feat(rbac): add middleware protection for vendor portal"`

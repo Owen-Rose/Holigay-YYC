@@ -6,13 +6,27 @@ import { hasMinimumRole, type Role } from '@/lib/constants/roles';
 // Route Configuration
 // =============================================================================
 
-// Routes that require authentication AND organizer/admin role
+/**
+ * Dashboard routes require:
+ * - Authentication (must be logged in)
+ * - Role check (must be 'organizer' or 'admin')
+ * Unauthorized users are redirected to /unauthorized
+ */
 const dashboardRoutes = ['/dashboard'];
 
-// Routes that require authentication only (any role)
+/**
+ * Vendor portal routes require:
+ * - Authentication (must be logged in)
+ * - No role check (any authenticated user can access)
+ * This allows vendors to manage their applications
+ */
 const vendorRoutes = ['/vendor'];
 
-// Routes that should redirect to appropriate portal if already authenticated
+/**
+ * Auth routes (login/signup):
+ * - Redirect to appropriate portal if already authenticated
+ * - Task 9.19 will add role-based redirect logic
+ */
 const authRoutes = ['/login', '/signup'];
 
 // =============================================================================
@@ -74,6 +88,7 @@ export async function middleware(request: NextRequest) {
 
   // ---------------------------------------------------------------------------
   // Auth check: Redirect unauthenticated users to login
+  // Both dashboard and vendor routes require authentication
   // ---------------------------------------------------------------------------
   if ((isDashboardRoute || isVendorRoute) && !user) {
     const redirectUrl = new URL('/login', request.url);
@@ -82,7 +97,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // ---------------------------------------------------------------------------
-  // Role check: Dashboard routes require organizer or admin role
+  // Vendor routes: Any authenticated user can access (no role check needed)
+  // This allows vendors, organizers, and admins to all use the vendor portal
+  // ---------------------------------------------------------------------------
+  // Note: isVendorRoute && user -> allowed (no additional checks)
+
+  // ---------------------------------------------------------------------------
+  // Dashboard routes: Require organizer or admin role
   // ---------------------------------------------------------------------------
   if (isDashboardRoute && user) {
     // Fetch user's role from database
