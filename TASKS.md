@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 23/27 |
-| **Total** | **In Progress** | **61/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 24/27 |
+| **Total** | **In Progress** | **62/71** |
 
 ---
 
@@ -980,9 +980,10 @@ Create UI for managing user roles.
 
 Show admin link only to admins.
 
-- ⬜ Open `src/app/dashboard/layout.tsx`
-- ⬜ Use `useRole()` to get current role
-- ⬜ Conditionally render "Admin" nav link if role is 'admin'
+- ✅ Open `src/app/dashboard/layout.tsx`
+- ✅ Use `useRole()` to get current role
+- ✅ Conditionally render "User Management" nav link if role is 'admin'
+- ✅ Add separator and purple highlight for admin section
 - ⬜ Verify: Link visible for admins only
 - ⬜ Verify: Organizers don't see admin link
 - ⬜ Commit: `git commit -m "feat(rbac): add admin link to dashboard nav"`
