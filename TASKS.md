@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 13/27 |
-| **Total** | **In Progress** | **51/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 14/27 |
+| **Total** | **In Progress** | **52/71** |
 
 ---
 
@@ -816,11 +816,11 @@ Only organizers can view the full applications list.
 
 Create a friendly page for users who lack permission.
 
-- ⬜ Create `src/app/unauthorized/page.tsx`
-- ⬜ Show message: "You don't have permission to access this page"
-- ⬜ Add link to appropriate destination (home or vendor portal)
-- ⬜ Style consistently with rest of app
-- ⬜ Verify: Page renders at `/unauthorized`
+- ✅ Create `src/app/unauthorized/page.tsx`
+- ✅ Show message: "You don't have permission to access this page"
+- ✅ Add link to appropriate destination (home or vendor portal)
+- ✅ Style consistently with rest of app
+- ✅ Verify: Page renders at `/unauthorized`
 - ⬜ Commit: `git commit -m "feat(rbac): add unauthorized page"`
 
 **Files created:** `src/app/unauthorized/page.tsx`
