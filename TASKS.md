@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 15/27 |
-| **Total** | **In Progress** | **53/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 16/27 |
+| **Total** | **In Progress** | **54/71** |
 
 ---
 
@@ -850,14 +850,14 @@ Protect dashboard routes at the middleware level.
 
 Create the basic vendor portal structure.
 
-- ⬜ Create `src/app/(vendor)/layout.tsx` with vendor-specific styling
-- ⬜ Add simple sidebar with: Home, My Applications, Profile links
-- ⬜ Add logout button
-- ⬜ Wrap with `RoleProvider`
-- ⬜ Verify: Layout renders correctly
+- ✅ Create `src/app/(vendor)/layout.tsx` with vendor-specific styling
+- ✅ Add simple sidebar with: Home, My Applications, Profile links
+- ✅ Add logout button
+- ✅ Wrap with `RoleProvider`
+- ✅ Verify: Layout renders correctly
 - ⬜ Commit: `git commit -m "feat(rbac): add vendor portal layout"`
 
-**Files created:** `src/app/(vendor)/layout.tsx`
+**Files created:** `src/app/(vendor)/layout.tsx`, `src/app/(vendor)/vendor/page.tsx` (placeholder)
 
 ---
 
