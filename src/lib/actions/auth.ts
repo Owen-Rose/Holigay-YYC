@@ -82,6 +82,9 @@ export async function signIn(data: LoginInput): Promise<SignInResponse> {
 
 /**
  * Sign up a new user with email and password
+ *
+ * After successful signup, automatically assigns the 'vendor' role to the new user.
+ * Role assignment failures are logged but don't block the signup process.
  */
 export async function signUp(data: SignupInput): Promise<AuthResponse> {
   // Validate input
@@ -95,7 +98,7 @@ export async function signUp(data: SignupInput): Promise<AuthResponse> {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
+  const { data: authData, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
   });
@@ -105,6 +108,23 @@ export async function signUp(data: SignupInput): Promise<AuthResponse> {
       error: error.message,
       success: false,
     };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Assign vendor role to new user
+  // This is non-blocking - signup succeeds even if role assignment fails
+  // ---------------------------------------------------------------------------
+  if (authData.user) {
+    const { error: roleError } = await supabase.from('user_roles').insert({
+      user_id: authData.user.id,
+      role: 'vendor',
+    });
+
+    // Log role assignment errors but don't block signup
+    // The user will still be able to use the app with default 'vendor' behavior
+    if (roleError) {
+      console.error('Failed to assign vendor role to new user:', roleError.message);
+    }
   }
 
   return {

@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 19/27 |
-| **Total** | **In Progress** | **57/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 20/27 |
+| **Total** | **In Progress** | **58/71** |
 
 ---
 
@@ -912,9 +912,9 @@ Redirect users to appropriate portal based on role.
 
 New signups automatically get vendor role.
 
-- ⬜ Open `src/lib/actions/auth.ts`
-- ⬜ After successful `signUp`, insert row into `user_roles` with `role='vendor'`
-- ⬜ Handle insert failure gracefully (log, don't block signup)
+- ✅ Open `src/lib/actions/auth.ts`
+- ✅ After successful `signUp`, insert row into `user_roles` with `role='vendor'`
+- ✅ Handle insert failure gracefully (log, don't block signup)
 - ⬜ Verify: New signup creates role in database
 - ⬜ Verify: New user redirected to vendor portal
 - ⬜ Commit: `git commit -m "feat(rbac): assign vendor role on signup"`
