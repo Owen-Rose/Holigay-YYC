@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 16/27 |
-| **Total** | **In Progress** | **54/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 17/27 |
+| **Total** | **In Progress** | **55/71** |
 
 ---
 
@@ -865,14 +865,14 @@ Create the basic vendor portal structure.
 
 Create the vendor dashboard home page.
 
-- ⬜ Create `src/app/(vendor)/vendor/page.tsx`
-- ⬜ Show welcome message with vendor name
-- ⬜ Show summary of their applications (count by status)
-- ⬜ Add quick link to apply for new events
-- ⬜ Verify: Page renders at `/vendor`
+- ✅ Create `src/app/(vendor)/vendor/page.tsx`
+- ✅ Show welcome message with vendor name
+- ✅ Show summary of their applications (count by status)
+- ✅ Add quick link to apply for new events
+- ✅ Verify: Page renders at `/vendor`
 - ⬜ Commit: `git commit -m "feat(rbac): add vendor portal home page"`
 
-**Files created:** `src/app/(vendor)/vendor/page.tsx`
+**Files created:** `src/app/(vendor)/vendor/page.tsx`, `src/lib/actions/vendor-portal.ts`
 
 ---
 
