@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { loginSchema, signupSchema } from '@/lib/validations/auth';
 import type { LoginInput, SignupInput } from '@/lib/validations/auth';
+import { hasMinimumRole, type Role } from '@/lib/constants/roles';
 
 // Response type for auth actions
 export type AuthResponse = {
@@ -10,22 +11,34 @@ export type AuthResponse = {
   success: boolean;
 };
 
+// Extended response type for signIn that includes role-based redirect
+export type SignInResponse = AuthResponse & {
+  redirectTo: string | null;
+};
+
 /**
  * Sign in a user with email and password
+ *
+ * After successful login, fetches the user's role and returns an appropriate
+ * redirect URL based on their role:
+ * - organizer/admin → /dashboard
+ * - vendor (default) → /vendor
  */
-export async function signIn(data: LoginInput): Promise<AuthResponse> {
+export async function signIn(data: LoginInput): Promise<SignInResponse> {
   // Validate input
   const parsed = loginSchema.safeParse(data);
   if (!parsed.success) {
     return {
       error: parsed.error.issues[0]?.message || 'Invalid input',
       success: false,
+      redirectTo: null,
     };
   }
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  // Attempt to sign in
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
@@ -34,12 +47,36 @@ export async function signIn(data: LoginInput): Promise<AuthResponse> {
     return {
       error: error.message,
       success: false,
+      redirectTo: null,
     };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fetch user role for redirect determination
+  // ---------------------------------------------------------------------------
+  let redirectTo = '/vendor'; // Default to vendor portal
+
+  if (authData.user) {
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', authData.user.id)
+      .single();
+
+    // If user has organizer or admin role, redirect to dashboard
+    // Default to 'vendor' if no role found (PGRST116 = no rows)
+    const userRole: Role =
+      roleError?.code === 'PGRST116' || !roleData ? 'vendor' : (roleData.role as Role);
+
+    if (hasMinimumRole(userRole, 'organizer')) {
+      redirectTo = '/dashboard';
+    }
   }
 
   return {
     error: null,
     success: true,
+    redirectTo,
   };
 }
 

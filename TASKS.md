@@ -581,8 +581,8 @@ npm run build        # Production build
 | 6. Email Notifications | ✅ Complete | 4/4 |
 | 7. Landing Page & Polish | ✅ Complete | 4/4 |
 | 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 18/27 |
-| **Total** | **In Progress** | **56/71** |
+| 9. RBAC Implementation | 🔄 In Progress | 19/27 |
+| **Total** | **In Progress** | **57/71** |
 
 ---
 
@@ -895,15 +895,16 @@ Add vendor route protection (require authentication, any role).
 
 Redirect users to appropriate portal based on role.
 
-- ⬜ Open `src/lib/actions/auth.ts`
-- ⬜ After successful `signIn`, fetch user role
-- ⬜ Return redirect URL: `/dashboard` for organizer/admin, `/vendor` for vendor
-- ⬜ Update `src/components/auth/login-form.tsx` to use returned redirect
+- ✅ Open `src/lib/actions/auth.ts`
+- ✅ After successful `signIn`, fetch user role
+- ✅ Return redirect URL: `/dashboard` for organizer/admin, `/vendor` for vendor
+- ✅ Update `src/app/(auth)/login/page.tsx` to use returned redirect
+- ✅ Update `src/middleware.ts` to use role-based redirect for auth routes
 - ⬜ Verify: Organizers land on dashboard after login
 - ⬜ Verify: Vendors land on vendor portal after login
 - ⬜ Commit: `git commit -m "feat(rbac): add role-based redirect after login"`
 
-**Files modified:** `src/lib/actions/auth.ts`, `src/components/auth/login-form.tsx`
+**Files modified:** `src/lib/actions/auth.ts`, `src/app/(auth)/login/page.tsx`, `src/middleware.ts`
 
 ---
 

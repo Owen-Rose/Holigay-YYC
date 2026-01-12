@@ -25,7 +25,7 @@ const vendorRoutes = ['/vendor'];
 /**
  * Auth routes (login/signup):
  * - Redirect to appropriate portal if already authenticated
- * - Task 9.19 will add role-based redirect logic
+ * - Uses role-based redirect (organizer/admin → dashboard, vendor → vendor portal)
  */
 const authRoutes = ['/login', '/signup'];
 
@@ -125,10 +125,22 @@ export async function middleware(request: NextRequest) {
 
   // ---------------------------------------------------------------------------
   // Auth routes: Redirect authenticated users to appropriate portal
+  // Uses role-based redirect: organizer/admin → dashboard, vendor → vendor portal
   // ---------------------------------------------------------------------------
   if (isAuthRoute && user) {
-    // For now, redirect to dashboard (Task 9.19 will add role-based redirect)
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    // Fetch user's role for redirect determination
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    // Default to 'vendor' if no role found (PGRST116 = no rows)
+    const userRole: Role = roleError?.code === 'PGRST116' || !roleData ? 'vendor' : (roleData.role as Role);
+
+    // Redirect organizers/admins to dashboard, vendors to vendor portal
+    const redirectTo = hasMinimumRole(userRole, 'organizer') ? '/dashboard' : '/vendor';
+    return NextResponse.redirect(new URL(redirectTo, request.url));
   }
 
   return supabaseResponse;

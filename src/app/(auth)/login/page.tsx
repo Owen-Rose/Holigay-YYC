@@ -23,8 +23,10 @@ function LoginContent() {
         return;
       }
 
-      // Redirect to the original destination or dashboard
-      const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+      // Priority: explicit redirectTo param > role-based redirect > fallback to /vendor
+      // This allows deep links (e.g., /login?redirectTo=/dashboard/applications/123) to work
+      const explicitRedirect = searchParams.get('redirectTo');
+      const redirectTo = explicitRedirect || result.redirectTo || '/vendor';
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
