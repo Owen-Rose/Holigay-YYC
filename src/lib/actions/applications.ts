@@ -11,6 +11,7 @@ import {
 } from '@/lib/constants/application-status'
 import { sendEmail } from '@/lib/email/client'
 import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates'
+import { isOrganizerOrAdmin } from '@/lib/auth/roles'
 
 // =============================================================================
 // Types
@@ -833,6 +834,14 @@ export async function updateApplicationStatus(
     return {
       success: false,
       error: 'Invalid status value',
+    }
+  }
+
+  // Only organizers and admins can change application status
+  if (!(await isOrganizerOrAdmin())) {
+    return {
+      success: false,
+      error: 'Unauthorized: insufficient role',
     }
   }
 

@@ -188,9 +188,9 @@
 ### Story 2.3: Update Server Actions
 
 #### Task 2.3.1: Add role check to updateApplicationStatus
-- [ ] Import role helpers
-- [ ] Check `isOrganizerOrAdmin()` before processing
-- [ ] Return error if unauthorized
+- [x] Import role helpers
+- [x] Check `isOrganizerOrAdmin()` before processing
+- [x] Return error if unauthorized
 
 **Scope:** Modify existing action
 **AC:** Vendor calling action gets error response
