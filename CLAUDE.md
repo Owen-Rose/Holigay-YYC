@@ -49,11 +49,12 @@ src/
 ```
 
 ### Database Schema
-Four main tables with RLS enabled:
+Core tables with RLS enabled:
 - `events` - Marketplace events with dates, location, status
-- `vendors` - Business info (name, contact, description)
+- `vendors` - Business info (name, contact, description) + `user_id` link
 - `applications` - Vendor applications linking vendors to events
 - `attachments` - File uploads for applications (stored in Supabase Storage)
+- `user_profiles` - Links auth.users to roles (vendor/organizer/admin)
 
 ### Authentication Flow
 1. Middleware (`src/middleware.ts`) checks auth state on every request
@@ -91,7 +92,11 @@ Required in `.env.local`:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...   # Server-only, for admin operations
+RESEND_API_KEY=re_...              # Email sending
 ```
+
+Note: `SUPABASE_SERVICE_ROLE_KEY` is only needed for Epic 4 (organizer invites).
 
 ## Path Alias
 
@@ -103,4 +108,58 @@ import { createServerClient } from '@/lib/supabase/server'
 
 ## Current Development Phase
 
-Currently in Phase 5: Building the organizer dashboard. See `TASKS.md` for detailed task tracking.
+**Phase: RBAC Implementation**
+
+Implementing role-based access control with 3 roles:
+- **Vendor**: Public signup, can view own applications and profile
+- **Organizer**: Invite-only, can manage all events and applications
+- **Admin**: Full access, can invite organizers and manage system
+
+See `TASKS.md` for detailed task tracking (Epic 1-7 backlog).
+
+### Role System (In Progress)
+
+Once RBAC migrations are applied:
+
+**Database:**
+- `user_profiles` table links `auth.users` to roles
+- `get_user_role()` SQL function for RLS policies
+- Trigger auto-creates profile on signup with `role='vendor'`
+
+**Application:**
+- `src/lib/auth/roles.ts` - Role checking utilities
+- Middleware checks role for route protection
+- Server actions validate role before mutations
+
+### Route Structure
+
+```
+/                       # Public landing
+/apply                  # Public application form
+/login, /signup         # Auth (redirect if logged in)
+/vendor-dashboard/*     # Vendor routes (vendor role)
+/dashboard/*            # Organizer routes (organizer/admin)
+/dashboard/team         # Admin only
+```
+
+### Admin Bootstrap
+
+After applying RBAC migrations, create the first admin:
+
+1. Sign up with your admin email at `/signup`
+2. Run in Supabase SQL Editor:
+```sql
+UPDATE user_profiles
+SET role = 'admin'
+WHERE id = (SELECT id FROM auth.users WHERE email = 'your-email@example.com');
+```
+
+### Task Workflow
+
+For implementing tasks from TASKS.md:
+
+1. Reference task by ID (e.g., "Complete task 1.1.1")
+2. Complete the task scope
+3. Verify acceptance criteria
+4. Run tests: `npm test && npm run build`
+5. Commit with task ID: `feat(rbac): create user_profiles table [1.1.1]`
