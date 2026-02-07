@@ -1,154 +1,106 @@
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
-import { hasMinimumRole, type Role } from '@/lib/constants/roles';
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+import type { Database } from '@/types/database'
 
-// =============================================================================
-// Route Configuration
-// =============================================================================
+type Role = Database['public']['Enums']['user_role']
 
-/**
- * Dashboard routes require:
- * - Authentication (must be logged in)
- * - Role check (must be 'organizer' or 'admin')
- * Unauthorized users are redirected to /unauthorized
- */
-const dashboardRoutes = ['/dashboard'];
+// Routes that require authentication
+const protectedRoutes = ['/dashboard', '/vendor-dashboard']
 
-/**
- * Vendor portal routes require:
- * - Authentication (must be logged in)
- * - No role check (any authenticated user can access)
- * This allows vendors to manage their applications
- */
-const vendorRoutes = ['/vendor'];
-
-/**
- * Auth routes (login/signup):
- * - Redirect to appropriate portal if already authenticated
- * - Uses role-based redirect (organizer/admin → dashboard, vendor → vendor portal)
- */
-const authRoutes = ['/login', '/signup'];
-
-// =============================================================================
-// Middleware
-// =============================================================================
+// Routes that should redirect to dashboard if already authenticated
+const authRoutes = ['/login', '/signup']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
-  });
+  })
 
-  // ---------------------------------------------------------------------------
-  // Create Supabase client with cookie handling
-  // ---------------------------------------------------------------------------
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
           supabaseResponse = NextResponse.next({
             request,
-          });
+          })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
-          );
+          )
         },
       },
     }
-  );
+  )
 
-  // ---------------------------------------------------------------------------
-  // Get current user
-  // ---------------------------------------------------------------------------
+  // Get the current user
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser()
 
-  const { pathname } = request.nextUrl;
+  const { pathname } = request.nextUrl
 
-  // ---------------------------------------------------------------------------
-  // Route matching helpers
-  // ---------------------------------------------------------------------------
-  const isDashboardRoute = dashboardRoutes.some(
+  // Check if the current path is a protected route
+  const isProtectedRoute = protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
+  )
 
-  const isVendorRoute = vendorRoutes.some(
-    (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
-
+  // Check if the current path is an auth route
   const isAuthRoute = authRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
-  );
+  )
 
-  // ---------------------------------------------------------------------------
-  // Auth check: Redirect unauthenticated users to login
-  // Both dashboard and vendor routes require authentication
-  // ---------------------------------------------------------------------------
-  if ((isDashboardRoute || isVendorRoute) && !user) {
-    const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('redirectTo', pathname);
-    return NextResponse.redirect(redirectUrl);
+  // Redirect unauthenticated users away from protected routes
+  if (isProtectedRoute && !user) {
+    const redirectUrl = new URL('/login', request.url)
+    redirectUrl.searchParams.set('redirectTo', pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  // ---------------------------------------------------------------------------
-  // Vendor routes: Any authenticated user can access (no role check needed)
-  // This allows vendors, organizers, and admins to all use the vendor portal
-  // ---------------------------------------------------------------------------
-  // Note: isVendorRoute && user -> allowed (no additional checks)
-
-  // ---------------------------------------------------------------------------
-  // Dashboard routes: Require organizer or admin role
-  // ---------------------------------------------------------------------------
-  if (isDashboardRoute && user) {
-    // Fetch user's role from database
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
+  // Fetch the user's role for role-based routing decisions
+  let role: Role = 'vendor'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
       .select('role')
-      .eq('user_id', user.id)
-      .single();
+      .eq('id', user.id)
+      .single()
 
-    // Default to 'vendor' if no role found (PGRST116 = no rows)
-    const userRole: Role = roleError?.code === 'PGRST116' || !roleData ? 'vendor' : (roleData.role as Role);
+    // Default to 'vendor' if profile doesn't exist yet (e.g. trigger hasn't fired)
+    role = profile?.role ?? 'vendor'
+  }
 
-    // Check if user has at least organizer role
-    if (!hasMinimumRole(userRole, 'organizer')) {
-      // User doesn't have permission - redirect to unauthorized page
-      return NextResponse.redirect(new URL('/unauthorized', request.url));
+  // Role-based route redirects (only for authenticated users)
+  if (user) {
+    // Vendors accessing organizer dashboard → send to vendor dashboard
+    const isOrganizerRoute =
+      pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+    if (role === 'vendor' && isOrganizerRoute) {
+      return NextResponse.redirect(new URL('/vendor-dashboard', request.url))
+    }
+
+    // Non-admins accessing /dashboard/team → send back to dashboard
+    const isTeamRoute =
+      pathname === '/dashboard/team' || pathname.startsWith('/dashboard/team/')
+    if (role !== 'admin' && isTeamRoute) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    // Redirect away from auth routes to the appropriate dashboard
+    if (isAuthRoute) {
+      const destination =
+        role === 'vendor' ? '/vendor-dashboard' : '/dashboard'
+      return NextResponse.redirect(new URL(destination, request.url))
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Auth routes: Redirect authenticated users to appropriate portal
-  // Uses role-based redirect: organizer/admin → dashboard, vendor → vendor portal
-  // ---------------------------------------------------------------------------
-  if (isAuthRoute && user) {
-    // Fetch user's role for redirect determination
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    // Default to 'vendor' if no role found (PGRST116 = no rows)
-    const userRole: Role = roleError?.code === 'PGRST116' || !roleData ? 'vendor' : (roleData.role as Role);
-
-    // Redirect organizers/admins to dashboard, vendors to vendor portal
-    const redirectTo = hasMinimumRole(userRole, 'organizer') ? '/dashboard' : '/vendor';
-    return NextResponse.redirect(new URL(redirectTo, request.url));
-  }
-
-  return supabaseResponse;
+  return supabaseResponse
 }
-
-// =============================================================================
-// Matcher Configuration
-// =============================================================================
 
 export const config = {
   matcher: [
@@ -157,8 +109,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public folder assets
+     * - public folder
      */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}

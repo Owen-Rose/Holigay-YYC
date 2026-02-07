@@ -1,14 +1,17 @@
-'use server';
+'use server'
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server'
 import {
   applicationSubmitSchema,
   type ApplicationSubmitInput,
-} from '@/lib/validations/application';
-import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
-import { sendEmail } from '@/lib/email/client';
-import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
-import { requireRole } from '@/lib/actions/roles';
+} from '@/lib/validations/application'
+import {
+  APPLICATION_STATUSES,
+  type ApplicationStatus,
+} from '@/lib/constants/application-status'
+import { sendEmail } from '@/lib/email/client'
+import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates'
+import { isOrganizerOrAdmin } from '@/lib/auth/roles'
 
 // =============================================================================
 // Types
@@ -18,74 +21,75 @@ import { requireRole } from '@/lib/actions/roles';
  * Response type for application submission
  */
 export type ApplicationResponse = {
-  success: boolean;
-  error: string | null;
+  success: boolean
+  error: string | null
   data: {
-    applicationId: string;
-    vendorId: string;
-  } | null;
-};
+    applicationId: string
+    vendorId: string
+  } | null
+}
 
 /**
  * Filter parameters for fetching applications
  */
 export type ApplicationFilters = {
-  status?: string | null;
-  search?: string | null;
-  eventId?: string | null;
-};
+  status?: string | null
+  search?: string | null
+  eventId?: string | null
+}
 
 /**
  * Pagination parameters
  */
 export type PaginationParams = {
-  page?: number;
-  pageSize?: number;
-};
+  page?: number
+  pageSize?: number
+}
 
 /**
  * Application with joined vendor data
  */
 export type ApplicationWithVendor = {
-  id: string;
-  event_id: string;
-  vendor_id: string;
-  status: string;
-  submitted_at: string;
-  updated_at: string;
-  booth_preference: string | null;
-  product_categories: string[] | null;
-  special_requirements: string | null;
-  organizer_notes: string | null;
+  id: string
+  event_id: string
+  vendor_id: string
+  status: string
+  submitted_at: string
+  updated_at: string
+  booth_preference: string | null
+  product_categories: string[] | null
+  special_requirements: string | null
+  organizer_notes: string | null
   vendor: {
-    id: string;
-    business_name: string;
-    contact_name: string;
-    email: string;
-    phone: string | null;
-    website: string | null;
-    description: string | null;
-    created_at: string;
-    updated_at: string;
-  };
-};
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+    phone: string | null
+    website: string | null
+    description: string | null
+    user_id: string | null
+    created_at: string
+    updated_at: string
+  }
+}
 
 /**
  * Response type for paginated applications list
  */
 export type GetApplicationsResponse = {
-  success: boolean;
-  error: string | null;
+  success: boolean
+  error: string | null
   data: {
-    applications: ApplicationWithVendor[];
+    applications: ApplicationWithVendor[]
     pagination: {
-      page: number;
-      pageSize: number;
-      totalCount: number;
-      totalPages: number;
-    };
-  } | null;
-};
+      page: number
+      pageSize: number
+      totalCount: number
+      totalPages: number
+    }
+  } | null
+}
 
 // =============================================================================
 // Server Actions
@@ -107,13 +111,13 @@ export async function submitApplication(
   data: ApplicationSubmitInput
 ): Promise<ApplicationResponse> {
   // Validate input
-  const parsed = applicationSubmitSchema.safeParse(data);
+  const parsed = applicationSubmitSchema.safeParse(data)
   if (!parsed.success) {
     return {
       success: false,
       error: parsed.error.issues[0]?.message || 'Invalid input',
       data: null,
-    };
+    }
   }
 
   const {
@@ -128,35 +132,35 @@ export async function submitApplication(
     productCategories,
     specialRequirements,
     attachments,
-  } = parsed.data;
+  } = parsed.data
 
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   // -------------------------------------------------------------------------
   // Step 1: Find or create vendor by email
   // -------------------------------------------------------------------------
-  let vendorId: string;
+  let vendorId: string
 
   // Check if vendor already exists with this email
   const { data: existingVendor, error: findError } = await supabase
     .from('vendors')
     .select('id')
     .eq('email', email)
-    .single();
+    .single()
 
   if (findError && findError.code !== 'PGRST116') {
     // PGRST116 = no rows found, which is expected for new vendors
-    console.error('Error finding vendor:', findError);
+    console.error('Error finding vendor:', findError)
     return {
       success: false,
       error: 'Failed to check for existing vendor',
       data: null,
-    };
+    }
   }
 
   if (existingVendor) {
     // Update existing vendor with latest info
-    vendorId = existingVendor.id;
+    vendorId = existingVendor.id
 
     const { error: updateError } = await supabase
       .from('vendors')
@@ -168,15 +172,15 @@ export async function submitApplication(
         description: description || null,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', vendorId);
+      .eq('id', vendorId)
 
     if (updateError) {
-      console.error('Error updating vendor:', updateError);
+      console.error('Error updating vendor:', updateError)
       return {
         success: false,
         error: 'Failed to update vendor information',
         data: null,
-      };
+      }
     }
   } else {
     // Create new vendor
@@ -191,18 +195,18 @@ export async function submitApplication(
         description: description || null,
       })
       .select('id')
-      .single();
+      .single()
 
     if (createError || !newVendor) {
-      console.error('Error creating vendor:', createError);
+      console.error('Error creating vendor:', createError)
       return {
         success: false,
         error: 'Failed to create vendor record',
         data: null,
-      };
+      }
     }
 
-    vendorId = newVendor.id;
+    vendorId = newVendor.id
   }
 
   // -------------------------------------------------------------------------
@@ -213,15 +217,15 @@ export async function submitApplication(
     .select('id')
     .eq('vendor_id', vendorId)
     .eq('event_id', eventId)
-    .single();
+    .single()
 
   if (checkAppError && checkAppError.code !== 'PGRST116') {
-    console.error('Error checking existing application:', checkAppError);
+    console.error('Error checking existing application:', checkAppError)
     return {
       success: false,
       error: 'Failed to check for existing application',
       data: null,
-    };
+    }
   }
 
   if (existingApplication) {
@@ -229,7 +233,7 @@ export async function submitApplication(
       success: false,
       error: 'You have already submitted an application for this event',
       data: null,
-    };
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -246,18 +250,18 @@ export async function submitApplication(
       status: 'pending',
     })
     .select('id')
-    .single();
+    .single()
 
   if (appError || !application) {
-    console.error('Error creating application:', appError);
+    console.error('Error creating application:', appError)
     return {
       success: false,
       error: 'Failed to create application',
       data: null,
-    };
+    }
   }
 
-  const applicationId = application.id;
+  const applicationId = application.id
 
   // -------------------------------------------------------------------------
   // Step 4: Link attachments to application
@@ -269,12 +273,14 @@ export async function submitApplication(
       file_path: attachment.filePath,
       file_type: attachment.fileType,
       file_size: attachment.fileSize || null,
-    }));
+    }))
 
-    const { error: attachError } = await supabase.from('attachments').insert(attachmentRecords);
+    const { error: attachError } = await supabase
+      .from('attachments')
+      .insert(attachmentRecords)
 
     if (attachError) {
-      console.error('Error linking attachments:', attachError);
+      console.error('Error linking attachments:', attachError)
       // Note: We don't fail the whole submission if attachments fail
       // The application is already created, so we just log the error
     }
@@ -289,10 +295,10 @@ export async function submitApplication(
       .from('events')
       .select('name, event_date')
       .eq('id', eventId)
-      .single();
+      .single()
 
     if (eventError || !event) {
-      console.error('[Email] Failed to fetch event for confirmation email:', eventError);
+      console.error('[Email] Failed to fetch event for confirmation email:', eventError)
     } else {
       // Format the event date for display
       const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
@@ -300,7 +306,7 @@ export async function submitApplication(
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-      });
+      })
 
       // Generate the email content
       const emailContent = applicationReceivedEmail({
@@ -309,7 +315,7 @@ export async function submitApplication(
         eventName: event.name,
         eventDate,
         applicationId,
-      });
+      })
 
       // Send the confirmation email
       const emailResult = await sendEmail({
@@ -317,17 +323,17 @@ export async function submitApplication(
         subject: emailContent.subject,
         html: emailContent.html,
         text: emailContent.text,
-      });
+      })
 
       if (!emailResult.success) {
-        console.error('[Email] Failed to send confirmation email:', emailResult.error);
+        console.error('[Email] Failed to send confirmation email:', emailResult.error)
       } else {
-        console.log('[Email] Confirmation email sent:', emailResult.messageId);
+        console.log('[Email] Confirmation email sent:', emailResult.messageId)
       }
     }
   } catch (emailError) {
     // Log but don't fail the submission - email is non-critical
-    console.error('[Email] Unexpected error sending confirmation email:', emailError);
+    console.error('[Email] Unexpected error sending confirmation email:', emailError)
   }
 
   // -------------------------------------------------------------------------
@@ -340,7 +346,7 @@ export async function submitApplication(
       applicationId,
       vendorId,
     },
-  };
+  }
 }
 
 /**
@@ -349,21 +355,21 @@ export async function submitApplication(
  * @returns List of events with status 'accepting_applications' or before deadline
  */
 export async function getActiveEvents() {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   const { data: events, error } = await supabase
     .from('events')
     .select('id, name, event_date, location, description, application_deadline')
     .eq('status', 'active')
     .gte('application_deadline', new Date().toISOString())
-    .order('event_date', { ascending: true });
+    .order('event_date', { ascending: true })
 
   if (error) {
-    console.error('Error fetching active events:', error);
-    return [];
+    console.error('Error fetching active events:', error)
+    return []
   }
 
-  return events || [];
+  return events || []
 }
 
 /**
@@ -373,17 +379,17 @@ export async function getActiveEvents() {
  * @returns List of applications with event details
  */
 export async function getVendorApplications(email: string) {
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   // First find the vendor
   const { data: vendor, error: vendorError } = await supabase
     .from('vendors')
     .select('id')
     .eq('email', email)
-    .single();
+    .single()
 
   if (vendorError || !vendor) {
-    return [];
+    return []
   }
 
   // Then get their applications with event info
@@ -405,14 +411,14 @@ export async function getVendorApplications(email: string) {
     `
     )
     .eq('vendor_id', vendor.id)
-    .order('submitted_at', { ascending: false });
+    .order('submitted_at', { ascending: false })
 
   if (appError) {
-    console.error('Error fetching applications:', appError);
-    return [];
+    console.error('Error fetching applications:', appError)
+    return []
   }
 
-  return applications || [];
+  return applications || []
 }
 
 /**
@@ -431,22 +437,12 @@ export async function getApplications(
   filters: ApplicationFilters = {},
   pagination: PaginationParams = {}
 ): Promise<GetApplicationsResponse> {
-  // Require organizer role or higher to list applications
-  const auth = await requireRole('organizer');
-  if (!auth.success) {
-    return {
-      success: false,
-      error: auth.error,
-      data: null,
-    };
-  }
-
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   // Pagination defaults
-  const page = pagination.page ?? 1;
-  const pageSize = pagination.pageSize ?? 10;
-  const offset = (page - 1) * pageSize;
+  const page = pagination.page ?? 1
+  const pageSize = pagination.pageSize ?? 10
+  const offset = (page - 1) * pageSize
 
   // Build the base query for fetching applications with vendor data
   let query = supabase.from('applications').select(
@@ -469,28 +465,29 @@ export async function getApplications(
         phone,
         website,
         description,
+        user_id,
         created_at,
         updated_at
       )
     `,
     { count: 'exact' }
-  );
+  )
 
   // Apply status filter
   if (filters.status) {
-    query = query.eq('status', filters.status);
+    query = query.eq('status', filters.status)
   }
 
   // Apply event filter
   if (filters.eventId) {
-    query = query.eq('event_id', filters.eventId);
+    query = query.eq('event_id', filters.eventId)
   }
 
   // Apply search filter (searches across vendor business_name, contact_name, email)
   // Note: Supabase doesn't support OR across joined tables in a single query easily,
   // so we'll need to get vendor IDs first if searching
   if (filters.search) {
-    const searchTerm = `%${filters.search}%`;
+    const searchTerm = `%${filters.search}%`
 
     // First, find matching vendor IDs
     const { data: matchingVendors, error: vendorSearchError } = await supabase
@@ -498,19 +495,19 @@ export async function getApplications(
       .select('id')
       .or(
         `business_name.ilike.${searchTerm},contact_name.ilike.${searchTerm},email.ilike.${searchTerm}`
-      );
+      )
 
     if (vendorSearchError) {
-      console.error('Error searching vendors:', vendorSearchError);
+      console.error('Error searching vendors:', vendorSearchError)
       return {
         success: false,
         error: 'Failed to search applications',
         data: null,
-      };
+      }
     }
 
     // Filter applications by matching vendor IDs
-    const vendorIds = matchingVendors?.map((v) => v.id) || [];
+    const vendorIds = matchingVendors?.map((v) => v.id) || []
     if (vendorIds.length === 0) {
       // No matching vendors, return empty result
       return {
@@ -525,28 +522,28 @@ export async function getApplications(
             totalPages: 0,
           },
         },
-      };
+      }
     }
 
-    query = query.in('vendor_id', vendorIds);
+    query = query.in('vendor_id', vendorIds)
   }
 
   // Apply ordering (newest first)
-  query = query.order('submitted_at', { ascending: false });
+  query = query.order('submitted_at', { ascending: false })
 
   // Apply pagination
-  query = query.range(offset, offset + pageSize - 1);
+  query = query.range(offset, offset + pageSize - 1)
 
   // Execute the query
-  const { data: applications, error, count } = await query;
+  const { data: applications, error, count } = await query
 
   if (error) {
-    console.error('Error fetching applications:', error);
+    console.error('Error fetching applications:', error)
     return {
       success: false,
       error: 'Failed to fetch applications',
       data: null,
-    };
+    }
   }
 
   // Transform the data to match our expected type
@@ -566,10 +563,10 @@ export async function getApplications(
       organizer_notes: app.organizer_notes,
       // Supabase returns the joined table as an object (not array) when the FK is unique per row
       vendor: app.vendor as ApplicationWithVendor['vendor'],
-    }));
+    }))
 
-  const totalCount = count ?? 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const totalCount = count ?? 0
+  const totalPages = Math.ceil(totalCount / pageSize)
 
   return {
     success: true,
@@ -583,62 +580,63 @@ export async function getApplications(
         totalPages,
       },
     },
-  };
+  }
 }
 
 /**
  * Full application details with vendor, event, and attachments
  */
 export type ApplicationDetail = {
-  id: string;
-  event_id: string;
-  vendor_id: string;
-  status: string;
-  submitted_at: string;
-  updated_at: string;
-  booth_preference: string | null;
-  product_categories: string[] | null;
-  special_requirements: string | null;
-  organizer_notes: string | null;
+  id: string
+  event_id: string
+  vendor_id: string
+  status: string
+  submitted_at: string
+  updated_at: string
+  booth_preference: string | null
+  product_categories: string[] | null
+  special_requirements: string | null
+  organizer_notes: string | null
   vendor: {
-    id: string;
-    business_name: string;
-    contact_name: string;
-    email: string;
-    phone: string | null;
-    website: string | null;
-    description: string | null;
-    created_at: string;
-    updated_at: string;
-  };
+    id: string
+    business_name: string
+    contact_name: string
+    email: string
+    phone: string | null
+    website: string | null
+    description: string | null
+    user_id: string | null
+    created_at: string
+    updated_at: string
+  }
   event: {
-    id: string;
-    name: string;
-    event_date: string;
-    location: string;
-    description: string | null;
-    application_deadline: string | null;
-    max_vendors: number | null;
-    status: string;
-  };
+    id: string
+    name: string
+    event_date: string
+    location: string
+    description: string | null
+    application_deadline: string | null
+    max_vendors: number | null
+    status: string
+  }
   attachments: {
-    id: string;
-    file_name: string;
-    file_path: string;
-    file_type: string;
-    file_size: number | null;
-    uploaded_at: string;
-  }[];
-};
+    id: string
+    file_name: string
+    file_path: string
+    file_type: string
+    file_size: number | null
+    uploaded_at: string
+  }[]
+}
 
 /**
  * Response type for single application fetch
  */
 export type GetApplicationByIdResponse = {
-  success: boolean;
-  error: string | null;
-  data: ApplicationDetail | null;
-};
+  success: boolean
+  error: string | null
+  data: ApplicationDetail | null
+}
 
 /**
  * Fetches a single application by ID with full details
@@ -648,18 +646,10 @@ export type GetApplicationByIdResponse = {
  * @param id - The application UUID
  * @returns GetApplicationByIdResponse with full application details or error
  */
-export async function getApplicationById(id: string): Promise<GetApplicationByIdResponse> {
-  // Require organizer role or higher to view application details
-  const auth = await requireRole('organizer');
-  if (!auth.success) {
-    return {
-      success: false,
-      error: auth.error,
-      data: null,
-    };
-  }
-
-  const supabase = await createClient();
+export async function getApplicationById(
+  id: string
+): Promise<GetApplicationByIdResponse> {
+  const supabase = await createClient()
 
   // Fetch the application with vendor and event data
   const { data: application, error: appError } = await supabase
@@ -684,6 +674,7 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
         phone,
         website,
         description,
+        user_id,
         created_at,
         updated_at
       ),
@@ -700,7 +691,7 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
     `
     )
     .eq('id', id)
-    .single();
+    .single()
 
   if (appError) {
     if (appError.code === 'PGRST116') {
@@ -708,14 +699,14 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
         success: false,
         error: 'Application not found',
         data: null,
-      };
+      }
     }
-    console.error('Error fetching application:', appError);
+    console.error('Error fetching application:', appError)
     return {
       success: false,
       error: 'Failed to fetch application',
       data: null,
-    };
+    }
   }
 
   if (!application || !application.vendor || !application.event) {
@@ -723,7 +714,7 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
       success: false,
       error: 'Application data is incomplete',
       data: null,
-    };
+    }
   }
 
   // Fetch attachments for this application
@@ -731,10 +722,10 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
     .from('attachments')
     .select('id, file_name, file_path, file_type, file_size, uploaded_at')
     .eq('application_id', id)
-    .order('uploaded_at', { ascending: true });
+    .order('uploaded_at', { ascending: true })
 
   if (attachError) {
-    console.error('Error fetching attachments:', attachError);
+    console.error('Error fetching attachments:', attachError)
     // Don't fail the whole request if attachments fail
   }
 
@@ -756,7 +747,7 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
       event: application.event as ApplicationDetail['event'],
       attachments: attachments || [],
     },
-  };
+  }
 }
 
 /**
@@ -768,44 +759,31 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
  * @returns Object with counts per status
  */
 export async function getApplicationCounts(eventId?: string): Promise<{
-  pending: number;
-  approved: number;
-  rejected: number;
-  waitlisted: number;
-  total: number;
+  pending: number
+  approved: number
+  rejected: number
+  waitlisted: number
+  total: number
 }> {
-  // Require organizer role or higher to view application counts
-  const auth = await requireRole('organizer');
-  if (!auth.success) {
-    // Return zeros for unauthorized users (consistent with error handling below)
-    return {
-      pending: 0,
-      approved: 0,
-      rejected: 0,
-      waitlisted: 0,
-      total: 0,
-    };
-  }
+  const supabase = await createClient()
 
-  const supabase = await createClient();
-
-  let query = supabase.from('applications').select('status');
+  let query = supabase.from('applications').select('status')
 
   if (eventId) {
-    query = query.eq('event_id', eventId);
+    query = query.eq('event_id', eventId)
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query
 
   if (error) {
-    console.error('Error fetching application counts:', error);
+    console.error('Error fetching application counts:', error)
     return {
       pending: 0,
       approved: 0,
       rejected: 0,
       waitlisted: 0,
       total: 0,
-    };
+    }
   }
 
   const counts = {
@@ -814,25 +792,25 @@ export async function getApplicationCounts(eventId?: string): Promise<{
     rejected: 0,
     waitlisted: 0,
     total: data?.length ?? 0,
-  };
+  }
 
   for (const app of data || []) {
-    const status = app.status as keyof typeof counts;
+    const status = app.status as keyof typeof counts
     if (status in counts && status !== 'total') {
-      counts[status]++;
+      counts[status]++
     }
   }
 
-  return counts;
+  return counts
 }
 
 /**
  * Response type for update operations
  */
 export type UpdateApplicationResponse = {
-  success: boolean;
-  error: string | null;
-};
+  success: boolean
+  error: string | null
+}
 
 /**
  * Updates the status of an application and sends a notification email
@@ -851,24 +829,23 @@ export async function updateApplicationStatus(
   id: string,
   status: ApplicationStatus
 ): Promise<UpdateApplicationResponse> {
-  // Require organizer role or higher to update application status
-  const auth = await requireRole('organizer');
-  if (!auth.success) {
-    return {
-      success: false,
-      error: auth.error,
-    };
-  }
-
   // Validate status
   if (!APPLICATION_STATUSES.includes(status)) {
     return {
       success: false,
       error: 'Invalid status value',
-    };
+    }
   }
 
-  const supabase = await createClient();
+  // Only organizers and admins can change application status
+  if (!(await isOrganizerOrAdmin())) {
+    return {
+      success: false,
+      error: 'Unauthorized: insufficient role',
+    }
+  }
+
+  const supabase = await createClient()
 
   // -------------------------------------------------------------------------
   // Step 1: Fetch application details for the email (before updating)
@@ -892,14 +869,14 @@ export async function updateApplicationStatus(
     `
     )
     .eq('id', id)
-    .single();
+    .single()
 
   if (fetchError || !application) {
-    console.error('Error fetching application for status update:', fetchError);
+    console.error('Error fetching application for status update:', fetchError)
     return {
       success: false,
       error: 'Application not found',
-    };
+    }
   }
 
   // Skip update if status hasn't changed
@@ -907,7 +884,7 @@ export async function updateApplicationStatus(
     return {
       success: true,
       error: null,
-    };
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -919,14 +896,14 @@ export async function updateApplicationStatus(
       status,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', id);
+    .eq('id', id)
 
   if (updateError) {
-    console.error('Error updating application status:', updateError);
+    console.error('Error updating application status:', updateError)
     return {
       success: false,
       error: 'Failed to update application status',
-    };
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -937,14 +914,14 @@ export async function updateApplicationStatus(
   if (status !== 'pending' && application.vendor && application.event) {
     try {
       const vendor = application.vendor as {
-        contact_name: string;
-        business_name: string;
-        email: string;
-      };
+        contact_name: string
+        business_name: string
+        email: string
+      }
       const event = application.event as {
-        name: string;
-        event_date: string;
-      };
+        name: string
+        event_date: string
+      }
 
       // Format the event date for display
       const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
@@ -952,7 +929,7 @@ export async function updateApplicationStatus(
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-      });
+      })
 
       // Generate the email content
       const emailContent = statusUpdateEmail({
@@ -962,7 +939,7 @@ export async function updateApplicationStatus(
         eventDate,
         status,
         organizerNotes: application.organizer_notes,
-      });
+      })
 
       // Send the notification email
       const emailResult = await sendEmail({
@@ -970,23 +947,26 @@ export async function updateApplicationStatus(
         subject: emailContent.subject,
         html: emailContent.html,
         text: emailContent.text,
-      });
+      })
 
       if (!emailResult.success) {
-        console.error('[Email] Failed to send status update email:', emailResult.error);
+        console.error('[Email] Failed to send status update email:', emailResult.error)
       } else {
-        console.log(`[Email] Status update email sent to ${vendor.email}:`, emailResult.messageId);
+        console.log(
+          `[Email] Status update email sent to ${vendor.email}:`,
+          emailResult.messageId
+        )
       }
     } catch (emailError) {
       // Log but don't fail the status update - email is non-critical
-      console.error('[Email] Unexpected error sending status update email:', emailError);
+      console.error('[Email] Unexpected error sending status update email:', emailError)
     }
   }
 
   return {
     success: true,
     error: null,
-  };
+  }
 }
 
 /**
@@ -1000,16 +980,15 @@ export async function updateApplicationNotes(
   id: string,
   notes: string
 ): Promise<UpdateApplicationResponse> {
-  // Require organizer role or higher to update application notes
-  const auth = await requireRole('organizer');
-  if (!auth.success) {
+  // Only organizers and admins can edit organizer notes
+  if (!(await isOrganizerOrAdmin())) {
     return {
       success: false,
-      error: auth.error,
-    };
+      error: 'Unauthorized: insufficient role',
+    }
   }
 
-  const supabase = await createClient();
+  const supabase = await createClient()
 
   const { error } = await supabase
     .from('applications')
@@ -1017,18 +996,18 @@ export async function updateApplicationNotes(
       organizer_notes: notes || null,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', id);
+    .eq('id', id)
 
   if (error) {
-    console.error('Error updating application notes:', error);
+    console.error('Error updating application notes:', error)
     return {
       success: false,
       error: 'Failed to update notes',
-    };
+    }
   }
 
   return {
     success: true,
     error: null,
-  };
+  }
 }

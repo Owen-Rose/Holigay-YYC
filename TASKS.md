@@ -1,1063 +1,559 @@
-# PR4 - Task Tracker
+# Holigay Vendor Market - RBAC Implementation Backlog
 
-> Check off tasks as you complete them. Mark with the appropriate status symbol.
+> Transform the app from single-role to multi-role (Vendor, Organizer, Admin) with proper access controls.
 
 ## Legend
-- ⬜ Not started
-- 🔄 In progress
-- ✅ Complete
-- ⏸️ Blocked
+- [ ] Not started
+- [x] Complete
+
+## Quick Reference
+
+| Epic | Priority | Status |
+|------|----------|--------|
+| Epic 1: RBAC Database Layer | Critical | Complete |
+| Epic 2: RBAC Application Layer | Critical | Complete |
+| Epic 3: Vendor Dashboard | High | In Progress |
+| Epic 4: Organizer Invite System | Medium | Not Started |
+| Epic 5: Event Management | High | Not Started |
+| Epic 6: UI/UX Improvements | Medium | Not Started |
+| Epic 7: Dynamic Forms | Low | Future |
 
 ---
 
-## Phase 1: Project Foundation (Days 1-2)
+## Epic 1: RBAC Foundation (Database Layer)
 
-### Task 1.1: Initialize Next.js Project
-- ✅ Run: `npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`
-- ✅ Verify: `npm run dev` shows Next.js page at localhost:3000
-- ⬜ Commit: `git add . && git commit -m "chore: initialize Next.js project"`
+> **Milestone:** Roles exist in the database and RLS enforces them.
+> **Depends on:** Nothing
+> **Blocks:** Epic 2
 
-**Files created:** `package.json`, `tsconfig.json`, `tailwind.config.ts`, `next.config.ts`, `src/app/*`
+### Story 1.1: Create User Profiles Table
 
----
+#### Task 1.1.1: Create migration 003_user_profiles.sql
+- [x] Create `user_role` enum type (`vendor`, `organizer`, `admin`)
+- [x] Create `user_profiles` table with `id`, `role`, `vendor_id`, timestamps
+- [x] Add indexes for role and vendor_id
+- [x] Add `updated_at` trigger
 
-### Task 1.2: Configure Development Tools
-- ✅ Install Prettier: `npm install -D prettier prettier-plugin-tailwindcss`
-- ✅ Create `.prettierrc` with config
-- ✅ Create `.vscode/settings.json` with format-on-save
-- ✅ Update `package.json` scripts (add `format`, `lint:fix`)
-- ✅ Verify: `npm run format` runs without error
-- ✅ Verify: `npm run lint` passes
-- ⬜ Commit: `git commit -m "chore: add Prettier and ESLint config"`
+**Scope:** SQL migration file only
+**AC:** Migration runs without errors in Supabase SQL editor
+**Test:** `SELECT * FROM user_profiles` returns empty table
+**Files:** `supabase/migrations/003_user_profiles.sql`
 
-**Files created:** `.prettierrc`, `.vscode/settings.json`, `.vscode/extensions.json`
+#### Task 1.1.2: Create handle_new_user trigger
+- [x] Create trigger function that inserts profile on auth.users insert
+- [x] Default role is `vendor`
+- [x] Link to existing vendor if email matches (see Task 1.2.2)
 
----
+**Scope:** SQL in same or separate migration
+**AC:** New signup creates row in user_profiles with role='vendor'
+**Test:** Sign up new user, check `user_profiles` table
 
-### Task 1.3: Set Up Testing Framework
-- ✅ Install: `npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-dom`
-- ✅ Create `vitest.config.ts`
-- ✅ Create `src/test/setup.ts`
-- ✅ Add `test` script to `package.json`
-- ✅ Create `src/app/page.test.tsx` (smoke test)
-- ✅ Verify: `npm test` passes
-- ⬜ Commit: `git commit -m "chore: add Vitest testing framework"`
+#### Task 1.1.3: Create get_user_role() helper function
+- [x] Create SQL function returning current user's role
+- [x] Use `SECURITY DEFINER` and `STABLE`
 
-**Files created:** `vitest.config.ts`, `src/test/setup.ts`, `src/app/page.test.tsx`
-
----
-
-### Task 1.4: Initialize Git & CI
-- ✅ Update `.gitignore` (already configured by Next.js)
-- ✅ Create `.github/workflows/ci.yml`
-- ⬜ Push to GitHub
-- ⬜ Verify: CI workflow runs on push
-- ⬜ Commit: `git commit -m "ci: add GitHub Actions workflow"`
-
-**Files created:** `.github/workflows/ci.yml`
+**Scope:** SQL function
+**AC:** `SELECT get_user_role()` returns role for authenticated user
+**Test:** Run in SQL editor with auth context
 
 ---
 
-### Task 1.5: Create Project Structure
-- ✅ Create folder structure (components, lib, types)
-- ✅ Create `src/lib/utils.ts` with `cn()` helper
-- ✅ Verify: Folders visible in file explorer
-- ⬜ Commit: `git commit -m "chore: create project folder structure"`
+### Story 1.2: Link Vendors to Users
 
-**Files created:** `src/lib/utils.ts`, multiple directories
+#### Task 1.2.1: Create migration 004_vendors_user_link.sql
+- [x] Add `user_id UUID REFERENCES auth.users(id)` to vendors table
+- [x] Add index on `user_id`
+- [x] Column should be nullable (existing vendors don't have users)
 
----
+**Scope:** SQL migration
+**AC:** Column exists, `SELECT user_id FROM vendors` works
+**Files:** `supabase/migrations/004_vendors_user_link.sql`
 
-## Phase 2: Database & Backend Setup (Days 3-4)
+#### Task 1.2.2: Update handle_new_user trigger for vendor linking
+- [x] On signup, check if vendor exists with same email
+- [x] If yes, set `vendor_id` in user_profiles and `user_id` in vendors
 
-### Task 2.1: Create Supabase Project
-- ✅ Go to [supabase.com](https://supabase.com) and create new project
-- ✅ Wait for project to finish provisioning (~2 min)
-- ✅ Copy Project URL and anon key from Settings > API
-- ✅ Create `.env.local` with credentials
-- ✅ Create `.env.example` with placeholder values
-- ✅ Verify: Environment variables configured
-- ⬜ Commit: `git commit -m "chore: add Supabase environment config"`
-
-**Files created:** `.env.local`, `.env.example`
+**Scope:** Update trigger from 1.1.2
+**AC:** Apply with email X, sign up with email X → linked
+**Test:** Manual test with existing vendor record
 
 ---
 
-### Task 2.2: Create Database Schema
-- ✅ Install Supabase CLI: `npm install -D supabase`
-- ✅ Initialize: `npx supabase init`
-- ✅ Create `supabase/migrations/001_initial_schema.sql`
-- ✅ Run migration in Supabase SQL Editor
-- ✅ Verify: Tables visible in Table Editor (events, vendors, applications, attachments)
-- ⬜ Commit: `git commit -m "feat: add database schema migration"`
+### Story 1.3: Replace RLS Policies
 
-**Files created:** `supabase/migrations/001_initial_schema.sql`, `supabase/config.toml`
+#### Task 1.3.1: Create migration 005_rbac_rls_policies.sql
+- [x] Drop all existing permissive policies
+- [x] Create role-aware policies for `events` table
+- [x] Create role-aware policies for `vendors` table
+- [x] Create role-aware policies for `applications` table
+- [x] Create role-aware policies for `attachments` table
 
----
+**Scope:** SQL migration (will be large)
+**AC:** Vendors only see own data, organizers see all
+**Test:**
+  - As vendor: `SELECT * FROM applications` returns only own
+  - As organizer: Returns all
+**Files:** `supabase/migrations/005_rbac_rls_policies.sql`
 
-### Task 2.3: Configure Row Level Security
-- ✅ Create `supabase/migrations/002_rls_policies.sql`
-- ✅ Run migration in Supabase SQL Editor
-- ✅ Verify: RLS enabled on all tables
-- ⬜ Commit: `git commit -m "feat: add Row Level Security policies"`
+#### Task 1.3.2: Add RLS policy for user_profiles table
+- [x] Users can SELECT own profile
+- [x] Admins can SELECT/UPDATE all profiles
+- [x] INSERT only allowed for trigger (system)
 
----
-
-### Task 2.4: Set Up Supabase Storage
-- ✅ Go to Supabase Dashboard > Storage
-- ✅ Create bucket named `attachments`
-- ✅ Set bucket to private
-- ✅ Add storage policies (public upload, authenticated download/delete)
-- ✅ Verify: Bucket visible in dashboard
+**Scope:** Add to 005 migration or separate
+**AC:** Vendor cannot query other profiles
+**Test:** Try to select another user's profile
 
 ---
 
-### Task 2.5: Generate TypeScript Types
-- ✅ Install: `npm install @supabase/supabase-js`
-- ✅ Run: `npx supabase gen types typescript --project-id <ref> > src/types/database.ts`
-- ✅ Add type generation script to `package.json`
-- ✅ Verify: Types file exists
-- ⬜ Commit: `git commit -m "feat: add Supabase TypeScript types"`
+### Story 1.4: Seed Admin User
+
+#### Task 1.4.1: Create admin seed script
+- [x] Create SQL script to promote user to admin by email
+- [x] Include clear instructions
+
+**Scope:** Single SQL file
+**AC:** Running script changes user role to admin
+**Files:** `scripts/seed-admin.sql`
+
+#### Task 1.4.2: Document admin bootstrap process
+- [x] Add section to CLAUDE.md explaining first-time admin setup
+- [x] Include commands to run
+
+**Scope:** Documentation only
+**AC:** Clear instructions a new dev can follow
+**Files:** `CLAUDE.md`
 
 ---
 
-### Task 2.6: Create Supabase Client Utilities
-- ✅ Install: `npm install @supabase/ssr`
-- ✅ Create `src/lib/supabase/client.ts`
-- ✅ Create `src/lib/supabase/server.ts`
-- ✅ Create `src/lib/supabase/middleware.ts`
-- ✅ Verify: Can connect to DB
-- ⬜ Commit: `git commit -m "feat: add Supabase client utilities"`
+### Epic 1 Definition of Done
+- [x] All migrations run successfully on staging
+- [x] New signups get `vendor` role automatically
+- [x] RLS blocks vendors from organizer data
+- [x] Admin user can be seeded
+- [x] Types regenerated (`npm run db:types`)
 
 ---
 
-## Phase 3: Authentication (Days 5-6)
+## Epic 2: RBAC Foundation (Application Layer)
 
-### Task 3.1: Create Auth UI Components
-- ✅ Install: `npm install react-hook-form zod @hookform/resolvers`
-- ✅ Create `src/lib/validations/auth.ts`
-- ✅ Create `src/components/auth/login-form.tsx`
-- ✅ Create `src/components/auth/signup-form.tsx`
-- ✅ Verify: Components render
-- ⬜ Commit: `git commit -m "feat: add auth form components"`
+> **Milestone:** Routes and server actions enforce roles.
+> **Depends on:** Epic 1
+> **Blocks:** Epics 3, 4, 5
 
----
+### Story 2.1: Auth Helper Utilities
 
-### Task 3.2: Implement Auth Pages
-- ✅ Create `src/app/(auth)/login/page.tsx`
-- ✅ Create `src/app/(auth)/signup/page.tsx`
-- ✅ Create `src/app/(auth)/layout.tsx`
-- ✅ Verify: Pages accessible at /login and /signup
-- ✅ Commit: `git commit -m "feat: add login and signup pages"`
+#### Task 2.1.1: Create src/lib/auth/roles.ts
+- [x] `getCurrentUserRole()` - returns role or null
+- [x] `requireRole(allowedRoles)` - throws if not authorized
+- [x] `isOrganizerOrAdmin()` - boolean helper
 
----
+**Scope:** New TypeScript file
+**AC:** Functions work with current Supabase session
+**Test:** Unit test or manual verification
+**Files:** `src/lib/auth/roles.ts`
 
-### Task 3.3: Create Auth Server Actions
-- ✅ Create `src/lib/actions/auth.ts`
-- ✅ Implement signIn, signUp, signOut
-- ✅ Verify: Auth works (TypeScript ✓, ESLint ✓, Build ✓, Pages accessible ✓)
-- ⬜ Commit: `git commit -m "feat: add auth server actions"`
+#### Task 2.1.2: Add role type definitions
+- [x] Export `Role` type from database types or manually
+- [x] Ensure TypeScript knows about `user_profiles` table
 
----
-
-### Task 3.4: Add Auth Middleware
-- ✅ Create `src/middleware.ts`
-- ✅ Configure protected routes (/dashboard requires auth, /login|/signup redirect if already logged in)
-- ✅ Verify: Redirects work (dashboard → /login?redirectTo=/dashboard when unauthenticated)
-- ✅ Commit: `git commit -m "feat: add auth middleware"`
-
-**Files created:** `src/middleware.ts`, `src/app/dashboard/page.tsx` (placeholder)
+**Scope:** Type definitions
+**AC:** No type errors when importing Role
+**Test:** Build passes
 
 ---
 
-### Task 3.5: Create Dashboard Layout
-- ✅ Create `src/app/dashboard/layout.tsx`
-- ✅ Add sidebar navigation
-- ✅ Add logout button
-- ✅ Verify: Dashboard works
-- ⬜ Commit: `git commit -m "feat: add dashboard layout"`
+### Story 2.2: Update Middleware
+
+#### Task 2.2.1: Fetch role in middleware
+- [x] After auth check, query `user_profiles` for role
+- [x] Handle case where profile doesn't exist (default to vendor)
+
+**Scope:** Modify middleware
+**AC:** Role available in middleware logic
+**Test:** Add console.log, verify role appears
+
+#### Task 2.2.2: Add role-based route redirects
+- [x] Vendors accessing `/dashboard` → redirect to `/vendor-dashboard`
+- [x] Non-admins accessing `/dashboard/team` → redirect to `/dashboard`
+- [x] Keep existing auth redirects working
+
+**Scope:** Modify middleware
+**AC:** Wrong role = redirect to appropriate dashboard
+**Test:** Log in as vendor, navigate to /dashboard, verify redirect
+**Files:** `src/middleware.ts`
 
 ---
 
-## Phase 4: Vendor Application Form (Days 7-9)
+### Story 2.3: Update Server Actions
 
-### Task 4.1: Create Zod Validation Schema
-- ✅ Create `src/lib/validations/application.ts`
-- ✅ Define all form fields with validation rules
-- ✅ Add custom validators (phone, file types)
-- ✅ Export inferred TypeScript types
-- ✅ Verify: Schema validates test data correctly
-- ✅ Commit: `git commit -m "feat: add application form validation schema"`
+#### Task 2.3.1: Add role check to updateApplicationStatus
+- [x] Import role helpers
+- [x] Check `isOrganizerOrAdmin()` before processing
+- [x] Return error if unauthorized
 
-**Files created:** `src/lib/validations/application.ts`
+**Scope:** Modify existing action
+**AC:** Vendor calling action gets error response
+**Test:** Call action as vendor in dev tools
 
----
+#### Task 2.3.2: Add role check to updateApplicationNotes
+- [x] Same pattern as 2.3.1
 
-### Task 4.2: Build Form UI Components
-- ✅ Create `src/components/ui/input.tsx`
-- ✅ Create `src/components/ui/textarea.tsx`
-- ✅ Create `src/components/ui/select.tsx`
-- ✅ Create `src/components/ui/button.tsx`
-- ✅ Create `src/components/ui/file-upload.tsx`
-- ✅ Create `src/components/ui/checkbox.tsx` (bonus: needed for product categories)
-- ✅ Create `src/components/forms/vendor-application-form.tsx`
-- ✅ Verify: Form renders all fields correctly (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ✅ Commit: `git commit -m "feat: add vendor application form UI"`
+**Scope:** Modify existing action
+**AC:** Vendor calling action gets error
+**Files:** `src/lib/actions/applications.ts`
 
-**Files created:** `src/components/ui/*`, `src/components/forms/vendor-application-form.tsx`
+#### Task 2.3.3: Add role check to event management actions
+- [ ] Apply to createEvent, updateEvent, deleteEvent (when created)
 
----
+**Scope:** Will be done when Epic 5 is implemented
+**Note:** Placeholder task - deferred to Epic 5 (actions don't exist yet)
 
-### Task 4.3: Create File Upload Handler
-- ✅ Create `src/lib/actions/upload.ts`
-- ✅ Implement `uploadFile` action (uploads to Supabase Storage)
-- ✅ Add file type validation (images, PDFs)
-- ✅ Add file size limit (10MB)
-- ✅ Return storage path on success
-- ✅ Verify: Test file upload manually
-- ✅ Commit: `git commit -m "feat: add file upload handler"`
+#### Task 2.3.4: Update signUp action for vendor linking
+- [x] After successful signup, check for existing vendor by email
+- [x] If found, update `vendors.user_id` and `user_profiles.vendor_id`
 
-**Files created:** `src/lib/actions/upload.ts`
+**Scope:** Modify auth action
+**AC:** Existing vendor gets linked on signup
+**Test:** Apply as guest, sign up with same email, verify linked
+**Files:** `src/lib/actions/auth.ts`
+**Note:** Already handled by `handle_new_user` database trigger (Task 1.1.2/1.2.2). No application-layer changes needed.
 
 ---
 
-### Task 4.4: Create Application Submit Action
-- ✅ Create `src/lib/actions/applications.ts`
-- ✅ Implement `submitApplication` action
-- ✅ Create/find vendor record by email
-- ✅ Create application record with event link
-- ✅ Link uploaded attachments
-- ✅ Verify: Submission creates records in DB
-- ✅ Commit: `git commit -m "feat: add application submit action"`
-
-**Files created:** `src/lib/actions/applications.ts`
+### Epic 2 Definition of Done
+- [x] Middleware redirects based on role
+- [x] Server actions reject unauthorized requests
+- [x] Vendor linking works on signup
+- [x] `npm run build` passes with no errors
+- [x] `npm test` passes
 
 ---
 
-### Task 4.5: Build Application Page
-- ✅ Create `src/app/(public)/apply/page.tsx`
-- ✅ Fetch active event(s) from DB
-- ✅ Render vendor application form
-- ✅ Handle form submission (with file uploads)
-- ✅ Show success message on submit
-- ✅ Show error messages on failure
-- ✅ Verify: TypeScript ✓, ESLint ✓, Build ✓, Tests ✓
-- ✅ Commit: `git commit -m "feat: add vendor application page"`
+## Epic 3: Vendor Dashboard
 
-**Files created:** `src/app/(public)/layout.tsx`, `src/app/(public)/apply/page.tsx`, `src/app/(public)/apply/client.tsx`
+> **Milestone:** Vendors have their own dashboard to track applications.
+> **Depends on:** Epic 2
+> **Blocks:** Nothing
 
----
+### Story 3.1: Vendor Dashboard Layout
 
-### Task 4.6: Add Form Submission Test
-- ✅ Create `src/test/application-form.test.tsx`
-- ✅ Test form validation (required fields, invalid email, product categories)
-- ✅ Test form submission (mocked with data verification)
-- ✅ Test form rendering (all sections, fields, options)
-- ✅ Test loading state during submission
-- ✅ Verify: `npm test` passes (16 tests)
-- ✅ Commit: `git commit -m "test: add application form tests"`
+#### Task 3.1.1: Create /vendor-dashboard route group
+- [x] Create layout with vendor-specific navigation
+- [x] Include: Home, My Applications, Profile, Logout
+- [x] Style similar to organizer dashboard but distinct
 
-**Files created:** `src/test/application-form.test.tsx`
+**Scope:** New layout file
+**AC:** Vendor nav is separate from organizer nav
+**Files:** `src/app/vendor-dashboard/layout.tsx`
 
----
+#### Task 3.1.2: Create vendor dashboard home page
+- [x] Show application status cards (pending/approved/rejected)
+- [x] Show recent applications list
+- [x] Counts should only include THIS vendor's applications
 
-## Phase 5: Organizer Dashboard (Days 10-13)
-
-### Task 5.1: Create Applications List Component
-- ✅ Create `src/components/dashboard/applications-table.tsx`
-- ✅ Add table columns: Business, Contact, Status, Date, Actions
-- ✅ Add loading skeleton state
-- ✅ Make responsive (card view on mobile)
-- ✅ Verify: Component renders with mock data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ⬜ Commit: `git commit -m "feat: add applications table component"`
-
-**Files created:** `src/components/dashboard/applications-table.tsx`
+**Scope:** New page
+**AC:** Vendor sees only their own data
+**Files:** `src/app/vendor-dashboard/page.tsx`
 
 ---
 
-### Task 5.2: Fetch Applications Server Action
-- ✅ Add `getApplications` to `src/lib/actions/applications.ts`
-- ✅ Accept filter parameters (status, search)
-- ✅ Include vendor info in response
-- ✅ Add pagination support
-- ✅ Verify: Data fetches correctly
-- ✅ Commit: `git commit -m "feat: add get applications action"`
+### Story 3.2: Vendor Applications View
 
-**Files created:** None (extends existing file)
+#### Task 3.2.1: Create vendor applications list page
+- [ ] List all applications for current vendor
+- [ ] Show event name, status, submission date
+- [ ] Link to detail view
 
----
+**Scope:** New page
+**AC:** Only shows applications linked to vendor's user_id
+**Files:** `src/app/vendor-dashboard/applications/page.tsx`
 
-### Task 5.3: Build Dashboard Home Page
-- ✅ Update `src/app/dashboard/page.tsx`
-- ✅ Add summary cards (Pending, Approved, Total)
-- ✅ Add recent applications preview (last 5)
-- ✅ Add quick action links
-- ✅ Verify: Stats display correctly (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ✅ Commit: `git commit -m "feat: add dashboard home with stats"`
+#### Task 3.2.2: Create vendor application detail page
+- [ ] Read-only view of application
+- [ ] Show status, event info, submitted files
+- [ ] No edit/status change buttons (vendor can't modify)
 
-**Files created:** None (updates existing file)
+**Scope:** New page
+**AC:** Can view but not edit
+**Files:** `src/app/vendor-dashboard/applications/[id]/page.tsx`
 
 ---
 
-### Task 5.4: Build Applications List Page
-- ✅ Create `src/app/dashboard/applications/page.tsx`
-- ✅ Fetch applications server-side
-- ✅ Render applications table
-- ✅ Verify: All applications display
-- ✅ Commit: `git commit -m "feat: add applications list page"`
+### Story 3.3: Vendor Profile Management
 
-**Files created:** `src/app/dashboard/applications/page.tsx`
+#### Task 3.3.1: Create vendor profile page
+- [ ] Form to edit business info (name, contact, description, website)
+- [ ] Pre-populate with current data
+- [ ] Submit updates vendor record
 
----
+**Scope:** New page with form
+**AC:** Changes persist after refresh
+**Files:** `src/app/vendor-dashboard/profile/page.tsx`
 
-### Task 5.5: Add Search & Filter
-- ✅ Create `src/components/dashboard/applications-filter.tsx`
-- ✅ Add search input (business name, email)
-- ✅ Add status filter dropdown
-- ✅ Use URL search params for state
-- ✅ Verify: Filters update table results (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ✅ Commit: `git commit -m "feat: add application search and filters"`
+#### Task 3.3.2: Create updateVendorProfile server action
+- [ ] Validate input
+- [ ] Ensure user can only update their own vendor record
+- [ ] RLS also enforces this
 
-**Files created:** `src/components/dashboard/applications-filter.tsx`
-
----
-
-### Task 5.6: Create Application Detail View
-- ✅ Create `src/app/dashboard/applications/[id]/page.tsx`
-- ✅ Fetch application by ID
-- ✅ Display all application fields
-- ✅ Display attached files with download links
-- ✅ Add status update buttons
-- ✅ Add organizer notes field
-- ✅ Verify: Detail page shows correct data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ✅ Commit: `git commit -m "feat: add application detail view"`
-
-**Files created:** `src/app/dashboard/applications/[id]/page.tsx`, `src/app/dashboard/applications/[id]/status-buttons.tsx`, `src/app/dashboard/applications/[id]/organizer-notes.tsx`, `src/app/dashboard/applications/[id]/attachments-list.tsx`, `src/lib/constants/application-status.ts`
+**Scope:** New server action
+**AC:** Cannot update another vendor's profile
+**Files:** `src/lib/actions/vendors.ts`
 
 ---
 
-### Task 5.7: Implement Status Update
-- ✅ Add `updateApplicationStatus` to `src/lib/actions/applications.ts`
-- ✅ Add `updateApplicationNotes` action
-- ✅ Update UI to call actions
-- ✅ Verify: Status changes persist
-- ✅ Commit: `git commit -m "feat: add status and notes update actions"`
-
-**Files created:** None (extends existing file)
-**Note:** Core functionality implemented in Task 5.6. See Future Enhancements for polish items.
+### Epic 3 Definition of Done
+- [ ] Vendor dashboard accessible at /vendor-dashboard
+- [ ] Vendors can view their applications
+- [ ] Vendors can edit their profile
+- [ ] RLS prevents data leakage
 
 ---
 
-### Task 5.8: Add CSV Export
-- ✅ Create `src/lib/actions/export.ts`
-- ✅ Implement `exportApplicationsCSV` action
-- ✅ Include relevant columns
-- ✅ Add export button to applications page
-- ✅ Verify: CSV downloads with correct data (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ✅ Commit: `git commit -m "feat: add CSV export functionality"`
+## Epic 4: Organizer Invite System
 
-**Files created:** `src/lib/actions/export.ts`, `src/components/dashboard/export-button.tsx`
+> **Milestone:** Admins can invite organizers.
+> **Depends on:** Epic 2
+> **Blocks:** Nothing
 
----
+### Story 4.1: Team Management UI
 
-## Phase 6: Email Notifications (Days 14-15)
+#### Task 4.1.1: Create /dashboard/team page
+- [ ] List existing organizers
+- [ ] Show invite form (email input + button)
+- [ ] Admin-only access (redirect if not admin)
 
-### Task 6.1: Set Up Resend
-- ✅ Create account at [resend.com](https://resend.com)
-- ✅ Get API key
-- ✅ Add `RESEND_API_KEY` to `.env.local`
-- ✅ Install: `npm install resend`
-- ✅ Create `src/lib/email/client.ts`
-- ✅ Test sending a simple email
-- ✅ Commit: `git commit -m "feat: add Resend email client"`
+**Scope:** New page
+**AC:** Non-admin gets redirected
+**Files:** `src/app/dashboard/team/page.tsx`
 
-**Files created:** `src/lib/email/client.ts`
+#### Task 4.1.2: Create organizer invite form
+- [ ] Email validation
+- [ ] Submit button with loading state
+- [ ] Success/error feedback
 
----
-
-### Task 6.2: Create Email Templates
-- ✅ Create `src/lib/email/templates/application-received.tsx`
-- ✅ Create `src/lib/email/templates/status-update.tsx`
-- ✅ Style with inline CSS (email-safe)
-- ✅ Verify: Templates render correctly
-- ⬜ Commit: `git commit -m "feat: add email templates"`
-
-**Files created:** `src/lib/email/templates/*`
+**Scope:** Client component in team page
+**AC:** Form submits to server action
 
 ---
 
-### Task 6.3: Send Confirmation on Submit
-- ✅ Update `submitApplication` action
-- ✅ Send confirmation email after DB insert
-- ✅ Handle email failures gracefully (log, don't block)
-- ⬜ Verify: Email received after submission
-- ✅ Commit: `git commit -m "feat: send confirmation email on submit"`
+### Story 4.2: Invite Server Action
 
-**Files created:** None (updates existing file)
+#### Task 4.2.1: Set up Supabase Admin client
+- [ ] Create server-only client using service role key
+- [ ] Add `SUPABASE_SERVICE_ROLE_KEY` to .env.example
 
----
+**Scope:** New Supabase client file
+**AC:** Can call admin API methods
+**Files:** `src/lib/supabase/admin.ts`
 
-### Task 6.4: Send Notification on Status Change
-- ✅ Update `updateApplicationStatus` action
-- ✅ Send email on approve/reject
-- ✅ Use different templates per status
-- ⬜ Verify: Email received on status change
-- ✅ Commit: `git commit -m "feat: send email on status change"`
+#### Task 4.2.2: Create inviteOrganizer action
+- [ ] Check current user is admin
+- [ ] Create user via `auth.admin.inviteUserByEmail`
+- [ ] Update user_profiles to set role='organizer'
+- [ ] Handle errors gracefully
 
-**Files created:** None (updates existing file)
+**Scope:** New server action
+**AC:** Invited user receives email, can log in as organizer
+**Files:** `src/lib/actions/team.ts`
 
----
+#### Task 4.2.3: Add SUPABASE_SERVICE_ROLE_KEY to env
+- [ ] Add to `.env.local`
+- [ ] Document in `.env.example`
 
-## Phase 7: Landing Page & Polish (Days 16-17)
-
-### Task 7.1: Design Landing Page
-- ✅ Update `src/app/(public)/page.tsx`
-- ✅ Add hero section with event info
-- ✅ Add benefits section for vendors
-- ✅ Add CTA button to apply
-- ✅ Add event details/dates
-- ✅ Verify: Looks good on desktop and mobile
-- ✅ Commit: `git commit -m "feat: add landing page design"`
-
-**Files created:** `src/app/(public)/page.tsx`
+**Scope:** Environment config
+**AC:** Action doesn't error on missing key
 
 ---
 
-### Task 7.2: Add Shared UI Components
-- ✅ Create `src/components/ui/card.tsx`
-- ✅ Create `src/components/ui/badge.tsx`
-- ✅ Create `src/components/ui/spinner.tsx`
-- ✅ Update existing components with variants
-- ✅ Verify: Consistent styling across app (TypeScript ✓, ESLint ✓, Build ✓, Tests ✓)
-- ✅ Commit: `git commit -m "feat: add shared UI components"`
-
-**Files created:** `src/components/ui/card.tsx`, `src/components/ui/badge.tsx`, `src/components/ui/spinner.tsx`
+### Epic 4 Definition of Done
+- [ ] Admin can access /dashboard/team
+- [ ] Non-admins are redirected
+- [ ] Invite sends email to new organizer
+- [ ] Invited organizer can log in and access dashboard
 
 ---
 
-### Task 7.3: Responsive Layout Check
-- ✅ Test all pages at 320px width (mobile)
-- ✅ Test all pages at 768px width (tablet)
-- ✅ Test all pages at 1280px+ width (desktop)
-- ✅ Fix any overflow issues
-- ✅ Ensure buttons are touch-friendly (min 44px)
-- ✅ Commit: `git commit -m "fix: responsive layout improvements"`
+## Epic 5: Event Management
 
-**Files modified:** `src/app/dashboard/layout.tsx`, `src/components/ui/button.tsx`, `src/components/ui/input.tsx`, `src/components/ui/select.tsx`, `src/components/ui/checkbox.tsx`, `src/components/auth/login-form.tsx`, `src/components/auth/signup-form.tsx`, `src/app/dashboard/applications/[id]/status-buttons.tsx`, `src/components/dashboard/applications-table.tsx`
+> **Milestone:** Organizers can create and manage events.
+> **Depends on:** Epic 2
+> **Blocks:** Nothing
 
----
+### Story 5.1: Events List Page
 
-### Task 7.4: Add Loading & Error States
-- ✅ Create `src/app/loading.tsx` (global loading)
-- ✅ Create `src/app/error.tsx` (global error boundary)
-- ✅ Create `src/app/not-found.tsx` (404 page)
-- ✅ Add loading states to async components
-- ✅ Verify: Errors display nicely, loading shows skeleton (TypeScript ✓, ESLint ✓, Build ✓)
-- ⬜ Commit: `git commit -m "feat: add loading and error states"`
+#### Task 5.1.1: Create /dashboard/events page
+- [ ] List all events with status badges
+- [ ] Show draft, active, closed
+- [ ] Link to edit page
+- [ ] "Create Event" button
 
-**Files created:** `src/app/loading.tsx`, `src/app/error.tsx`, `src/app/not-found.tsx`, `src/app/dashboard/loading.tsx`, `src/app/dashboard/applications/loading.tsx`
+**Scope:** New page
+**AC:** All events visible with correct statuses
+**Files:** `src/app/dashboard/events/page.tsx`
 
----
+#### Task 5.1.2: Create getEvents server action
+- [ ] Fetch all events
+- [ ] Include application count per event
+- [ ] Order by event_date descending
 
-## Phase 8: Deployment & Documentation (Days 18-19)
-
-### Task 8.1: Prepare for Production
-- ⬜ Run `npm run build` and fix any errors
-- ⬜ Check all env vars are documented in `.env.example`
-- ⬜ Remove any `console.log` statements
-- ⬜ Optimize images (if any)
-- ⬜ Verify: Build succeeds with no warnings
-- ⬜ Commit: `git commit -m "chore: prepare for production"`
-
-**Files created:** None
+**Scope:** New server action
+**AC:** Returns events with stats
+**Files:** `src/lib/actions/events.ts`
 
 ---
 
-### Task 8.2: Deploy to Vercel
-- ⬜ Go to [vercel.com](https://vercel.com) and import GitHub repo
-- ⬜ Add environment variables in Vercel dashboard
-- ⬜ Deploy
-- ⬜ Verify: Live URL is accessible
-- ⬜ Verify: All features work on production
+### Story 5.2: Event Create/Edit
 
-**Files created:** None (Vercel dashboard)
+#### Task 5.2.1: Create event form component
+- [ ] Fields: name, description, event_date, location, deadline, status, max_vendors
+- [ ] Validation with Zod
+- [ ] Reusable for create and edit
 
----
+**Scope:** New form component
+**AC:** Validates required fields
+**Files:** `src/components/forms/event-form.tsx`
 
-### Task 8.3: Configure Supabase for Production
-- ⬜ Add Vercel URL to Supabase > Auth > URL Configuration
-- ⬜ Add Vercel URL to allowed origins in Storage policies
-- ⬜ (Optional) Consider separate prod Supabase project
-- ⬜ Verify: Auth and storage work on production
+#### Task 5.2.2: Create /dashboard/events/new page
+- [ ] Render event form in create mode
+- [ ] Submit creates event
+- [ ] Redirect to events list on success
 
-**Files created:** None (Supabase dashboard)
+**Scope:** New page
+**AC:** Can create new event
+**Files:** `src/app/dashboard/events/new/page.tsx`
 
----
+#### Task 5.2.3: Create /dashboard/events/[id] page
+- [ ] Fetch event by ID
+- [ ] Render form with existing values
+- [ ] Submit updates event
 
-### Task 8.4: Write README
-- ⬜ Create comprehensive `README.md`
-- ⬜ Include: Project overview, features list
-- ⬜ Include: Prerequisites (Node, npm, etc.)
-- ⬜ Include: Local setup steps (goal: one command)
-- ⬜ Include: Environment variables table
-- ⬜ Include: Deployment instructions
-- ⬜ Include: Maintenance notes
-- ⬜ Commit: `git commit -m "docs: add comprehensive README"`
+**Scope:** New page
+**AC:** Can edit existing event
+**Files:** `src/app/dashboard/events/[id]/page.tsx`
 
-**Files created:** `README.md`
+#### Task 5.2.4: Create event CRUD server actions
+- [ ] `createEvent` - validate, insert, return ID
+- [ ] `updateEvent` - validate, update by ID
+- [ ] `deleteEvent` - soft delete or hard delete?
+- [ ] All actions check organizer/admin role
 
----
-
-### Task 8.5: Create Seed Data Script
-- ⬜ Create `scripts/seed.ts`
-- ⬜ Add sample event
-- ⬜ Add sample applications (various statuses)
-- ⬜ Add script to `package.json`
-- ⬜ Verify: `npm run seed` populates data
-- ⬜ Commit: `git commit -m "feat: add database seed script"`
-
-**Files created:** `scripts/seed.ts`
+**Scope:** Add to events.ts
+**AC:** Vendor cannot create/update/delete events
+**Files:** `src/lib/actions/events.ts`
 
 ---
 
-### Task 8.6: Final Testing & QA
-- ⬜ Test: Vendor can submit application
-- ⬜ Test: Files upload successfully
-- ⬜ Test: Confirmation email received
-- ⬜ Test: Organizer can log in
-- ⬜ Test: Dashboard shows applications
-- ⬜ Test: Filter and search work
-- ⬜ Test: Status update works
-- ⬜ Test: Status change email received
-- ⬜ Test: CSV export downloads correctly
-- ⬜ Test: Mobile experience is usable
-- ⬜ Document any bugs for future fix
+### Story 5.3: Event Status Workflow
 
-**Files created:** None
+#### Task 5.3.1: Add event status transitions
+- [ ] draft → active (publish)
+- [ ] active → closed (end applications)
+- [ ] Add UI controls for status changes
+
+**Scope:** Update event form or detail page
+**AC:** Can activate and close events
+
+#### Task 5.3.2: Hide closed events from public apply page
+- [ ] Update /apply page query
+- [ ] Only show events with status='active'
+
+**Scope:** Modify apply page
+**AC:** Closed events not in dropdown
 
 ---
 
-## Quick Commands
+### Epic 5 Definition of Done
+- [ ] Organizers can create, edit, delete events
+- [ ] Event status workflow works
+- [ ] Only active events shown to public
+- [ ] Dashboard nav links to events page
+
+---
+
+## Epic 6: UI/UX Improvements
+
+> **Milestone:** Polish and usability improvements.
+> **Depends on:** Epics 3, 5 (can be done in parallel)
+> **Blocks:** Nothing
+
+### Story 6.1: Toast Notifications
+
+#### Task 6.1.1: Install toast library
+- [ ] Add react-hot-toast or sonner
+- [ ] Set up Toaster in root layout
+
+**Scope:** Package install + layout change
+**AC:** Toast function available globally
+**Files:** `package.json`, `src/app/layout.tsx`
+
+#### Task 6.1.2: Add toasts to key actions
+- [ ] Application status update
+- [ ] Event create/update
+- [ ] Profile save
+- [ ] Error states
+
+**Scope:** Update components that call actions
+**AC:** User gets visual feedback on actions
+
+---
+
+### Story 6.2: Application Form UX
+
+#### Task 6.2.1: Add file preview for uploads
+- [ ] Show thumbnail of uploaded images
+- [ ] Show filename for PDFs
+
+**Scope:** Update FileUpload component
+**AC:** Can see file before submitting
+
+---
+
+### Story 6.3: Mobile Improvements
+
+#### Task 6.3.1: Test and fix mobile layouts
+- [ ] Check all pages at 375px width
+- [ ] Fix any overflow issues
+- [ ] Ensure touch targets are 44px+
+
+**Scope:** CSS fixes
+**AC:** Usable on mobile device
+
+---
+
+### Epic 6 Definition of Done
+- [ ] Toast notifications work
+- [ ] No major mobile issues
+- [ ] File previews work
+
+---
+
+## Epic 7: Dynamic Application Forms (Future)
+
+> **Status:** Low priority, not blocking launch
+> **Note:** Current static form works fine for MVP
+
+Tasks deferred - see plan file for details.
+
+---
+
+## Commands Reference
 
 ```bash
-npm run dev          # Start dev server
-npm run lint         # Run ESLint
-npm run format       # Run Prettier
-npm test             # Run tests
-npm run build        # Production build
+# Development
+npm run dev              # Start dev server
+npm run build            # Production build
+npm run lint             # Run ESLint
+npm run format           # Run Prettier
+npm test                 # Run tests
+
+# Database
+npm run db:types         # Regenerate Supabase types
+npx supabase db push     # Push migrations to linked project
 ```
 
 ---
 
-## Future Enhancements
+## Archived
 
-> Non-critical polish items to revisit after core features are complete.
-
-### UX Polish
-- ⬜ Add optimistic updates for status changes (instant UI feedback)
-- ⬜ Add toast notifications for success/error messages
-- ⬜ Add loading skeletons for application detail page
-
-### Accessibility
-- ⬜ Audit and improve keyboard navigation
-- ⬜ Add ARIA labels where missing
-- ⬜ Test with screen readers
-
-### Performance
-- ⬜ Add caching for frequently accessed data
-- ⬜ Optimize image loading for attachments
-
----
-
-## Progress Summary
-
-| Phase | Status | Tasks |
-|-------|--------|-------|
-| 1. Project Foundation | ✅ Complete | 5/5 |
-| 2. Database & Backend Setup | ✅ Complete | 6/6 |
-| 3. Authentication | ✅ Complete | 5/5 |
-| 4. Vendor Application Form | ✅ Complete | 6/6 |
-| 5. Organizer Dashboard | ✅ Complete | 8/8 |
-| 6. Email Notifications | ✅ Complete | 4/4 |
-| 7. Landing Page & Polish | ✅ Complete | 4/4 |
-| 8. Deployment & Documentation | ⬜ Not Started | 0/6 |
-| 9. RBAC Implementation | 🔄 In Progress | 25/27 |
-| **Total** | **In Progress** | **63/71** |
-
----
-
-## Phase 9: RBAC Implementation
-
-> Role-Based Access Control with three roles: `vendor`, `organizer`, `admin`
->
-> **Current State:** Any authenticated user has full organizer access
-> **End State:** Role-based access with vendor portal, protected dashboard, and admin management
->
-> **Approach:** Build infrastructure first (no behavior change), then gradually enforce
-
----
-
-### Stage 9A: Database Foundation (No Behavior Change)
-
----
-
-#### Task 9.1: Create Role Constants
-
-Create a shared constants file for roles to ensure consistency across the codebase.
-
-- ✅ Create `src/lib/constants/roles.ts` with role definitions
-- ✅ Export `ROLES` array: `['vendor', 'organizer', 'admin']`
-- ✅ Export `Role` type
-- ✅ Export `ROLE_HIERARCHY` for permission comparison
-- ✅ Export `hasMinimumRole()` helper function
-- ✅ Verify: `npm run lint` passes
-- ⬜ Commit: `git commit -m "feat(rbac): add role constants"`
-
-**Files created:** `src/lib/constants/roles.ts`
-
----
-
-#### Task 9.2: Create User Roles Migration
-
-Create the database migration for the `user_roles` table. Do NOT run it yet.
-
-- ✅ Create `supabase/migrations/003_user_roles.sql`
-- ✅ Define `user_roles` table with columns: `id`, `user_id`, `role`, `created_at`, `updated_at`
-- ✅ Add foreign key to `auth.users(id)` with `ON DELETE CASCADE`
-- ✅ Add check constraint: `role IN ('vendor', 'organizer', 'admin')`
-- ✅ Add unique constraint on `user_id`
-- ✅ Add indexes on `user_id` and `role`
-- ✅ Add `update_updated_at` trigger
-- ✅ Create `get_user_role(user_id)` SQL function (returns role or 'vendor' default)
-- ✅ Create `user_has_role(user_id, required_role)` SQL function (checks hierarchy)
-- ⬜ Verify: SQL syntax valid (check in Supabase SQL editor without running)
-- ⬜ Commit: `git commit -m "feat(rbac): add user_roles migration (not yet applied)"`
-
-**Files created:** `supabase/migrations/003_user_roles.sql`
-
----
-
-#### Task 9.3: Create User Roles RLS Policies
-
-Create RLS policies for the `user_roles` table. Separate migration for clarity.
-
-- ✅ Create `supabase/migrations/004_user_roles_rls.sql`
-- ✅ Enable RLS on `user_roles` table
-- ✅ Add policy: Users can SELECT their own role
-- ✅ Add policy: Admins can SELECT all roles
-- ✅ Add policy: Admins can UPDATE any role
-- ✅ Add policy: Authenticated users can INSERT their own role (for signup)
-- ⬜ Verify: SQL syntax valid
-- ⬜ Commit: `git commit -m "feat(rbac): add user_roles RLS policies (not yet applied)"`
-
-**Files created:** `supabase/migrations/004_user_roles_rls.sql`
-
----
-
-#### Task 9.4: Run User Roles Migrations
-
-Apply the migrations to the database.
-
-- ✅ Open Supabase Dashboard > SQL Editor
-- ✅ Run `003_user_roles.sql` migration
-- ✅ Verify: `user_roles` table exists in Table Editor
-- ✅ Verify: `get_user_role` function exists (Database > Functions)
-- ✅ Verify: `user_has_role` function exists
-- ✅ Run `004_user_roles_rls.sql` migration
-- ✅ Verify: RLS enabled on `user_roles` (Table Editor > Policies)
-- ⬜ Commit: `git commit -m "chore(rbac): mark migrations as applied"`
-
-**Files modified:** None (database changes only)
-
----
-
-#### Task 9.5: Seed Initial User Roles
-
-Assign roles to existing users: you (admin) + 2 organizers.
-
-- ✅ Get user IDs from Supabase Dashboard > Authentication > Users
-- ✅ Create `supabase/seed/001_initial_roles.sql` with INSERT statements
-- ✅ Run seed SQL in Supabase SQL Editor
-- ✅ Verify: `SELECT * FROM user_roles` returns row with admin role
-- ⬜ Commit: `git commit -m "chore(rbac): add initial roles seed script"`
-
-**Files created:** `supabase/seed/001_initial_roles.sql`
-
----
-
-#### Task 9.6: Regenerate TypeScript Types
-
-Update auto-generated Supabase types to include the new table.
-
-- ✅ Run: `npm run db:types`
-- ✅ Verify: `src/types/database.ts` contains `user_roles` table type
-- ✅ Verify: `npm run build` succeeds
-- ⬜ Commit: `git commit -m "chore(rbac): regenerate database types"`
-
-**Files modified:** `src/types/database.ts`
-
----
-
-### Stage 9B: Application Layer (No Behavior Change)
-
----
-
-#### Task 9.7: Create Role Fetching Server Action
-
-Create a server action to fetch the current user's role.
-
-- ✅ Create `src/lib/actions/roles.ts`
-- ✅ Implement `getCurrentUserRole()` function
-- ✅ Return `{ success, error, data: { role, userId } }`
-- ✅ Return `'vendor'` as default if no role found
-- ✅ Verify: `npm run lint` passes
-- ⬜ Commit: `git commit -m "feat(rbac): add getCurrentUserRole action"`
-
-**Files created:** `src/lib/actions/roles.ts`
-
----
-
-#### Task 9.8: Create Role Requirement Helper
-
-Create a helper function to require a minimum role in server actions.
-
-- ✅ Add `requireRole(minimumRole)` function to `src/lib/actions/roles.ts`
-- ✅ Uses `hasMinimumRole()` to check hierarchy
-- ✅ Returns `{ success: false, error }` if unauthorized
-- ✅ Returns `{ success: true, data: { role, userId } }` if authorized
-- ✅ Verify: `npm run lint` passes
-- ⬜ Commit: `git commit -m "feat(rbac): add requireRole helper"`
-
-**Files modified:** `src/lib/actions/roles.ts`
-
----
-
-#### Task 9.9: Create Role Context Provider
-
-Create a React context to share role info across client components.
-
-- ✅ Create `src/lib/context/role-context.tsx`
-- ✅ Create `RoleProvider` component that fetches role on mount
-- ✅ Export `useRole()` hook returning `{ role, isLoading, error, refetch }`
-- ✅ Verify: `npm run lint` passes
-- ⬜ Commit: `git commit -m "feat(rbac): add RoleProvider context"`
-
-**Files created:** `src/lib/context/role-context.tsx`
-
----
-
-#### Task 9.10: Add Role Badge to Dashboard
-
-Add a visual indicator showing the current user's role. No access control yet.
-
-- ✅ Create `src/components/dashboard/role-badge.tsx`
-- ✅ Display role with color coding (admin=purple, organizer=blue, vendor=gray)
-- ✅ Wrap dashboard layout with `RoleProvider`
-- ✅ Add `RoleBadge` to dashboard header/sidebar
-- ⬜ Verify: Badge displays your admin role correctly
-- ✅ Verify: `npm run build` succeeds
-- ⬜ Commit: `git commit -m "feat(rbac): display user role in dashboard"`
-
-**Files created:** `src/components/dashboard/role-badge.tsx`
-**Files modified:** `src/app/dashboard/layout.tsx`
-
----
-
-### Stage 9C: Enforce Role Checks (Gradual Behavior Change)
-
----
-
-#### Task 9.11: Protect Export Action (Low Risk Test)
-
-Start with a non-critical action to test the pattern.
-
-- ✅ Open `src/lib/actions/export.ts`
-- ✅ Import `requireRole` from `@/lib/actions/roles`
-- ✅ Add `const auth = await requireRole('organizer')` at start of `exportApplicationsCSV`
-- ✅ Return early with error if `!auth.success`
-- ⬜ Verify: Export still works for your admin account
-- ⬜ Commit: `git commit -m "feat(rbac): protect export action with role check"`
-
-**Files modified:** `src/lib/actions/export.ts`
-
----
-
-#### Task 9.12: Protect Application Status Actions
-
-Only organizers can approve/reject applications.
-
-- ✅ Open `src/lib/actions/applications.ts`
-- ✅ Add `requireRole('organizer')` to `updateApplicationStatus()`
-- ✅ Add `requireRole('organizer')` to `updateApplicationNotes()`
-- ⬜ Verify: Status updates still work for organizers
-- ⬜ Commit: `git commit -m "feat(rbac): protect status update actions"`
-
-**Files modified:** `src/lib/actions/applications.ts`
-
----
-
-#### Task 9.13: Protect Application Listing Actions
-
-Only organizers can view the full applications list.
-
-- ✅ Open `src/lib/actions/applications.ts`
-- ✅ Add `requireRole('organizer')` to `getApplications()`
-- ✅ Add `requireRole('organizer')` to `getApplicationById()`
-- ✅ Add `requireRole('organizer')` to `getApplicationCounts()`
-- ✅ Note: Keep `getActiveEvents()` public (for vendor form)
-- ⬜ Verify: Dashboard still loads for organizers
-- ⬜ Commit: `git commit -m "feat(rbac): protect application listing actions"`
-
-**Files modified:** `src/lib/actions/applications.ts`
-
----
-
-#### Task 9.14: Create Unauthorized Page
-
-Create a friendly page for users who lack permission.
-
-- ✅ Create `src/app/unauthorized/page.tsx`
-- ✅ Show message: "You don't have permission to access this page"
-- ✅ Add link to appropriate destination (home or vendor portal)
-- ✅ Style consistently with rest of app
-- ✅ Verify: Page renders at `/unauthorized`
-- ⬜ Commit: `git commit -m "feat(rbac): add unauthorized page"`
-
-**Files created:** `src/app/unauthorized/page.tsx`
-
----
-
-#### Task 9.15: Add Middleware Role Check for Dashboard
-
-Protect dashboard routes at the middleware level.
-
-- ✅ Open `src/middleware.ts`
-- ✅ After auth check for `/dashboard/*`, fetch user role from database
-- ✅ If role is not `organizer` or `admin`, redirect to `/unauthorized`
-- ⬜ Verify: Organizers can access dashboard
-- ⬜ Verify: Vendors get redirected to `/unauthorized`
-- ⬜ Commit: `git commit -m "feat(rbac): add middleware role check for dashboard"`
-
-**Files modified:** `src/middleware.ts`
-
----
-
-### Stage 9D: Vendor Portal Foundation
-
----
-
-#### Task 9.16: Create Vendor Portal Layout
-
-Create the basic vendor portal structure.
-
-- ✅ Create `src/app/(vendor)/layout.tsx` with vendor-specific styling
-- ✅ Add simple sidebar with: Home, My Applications, Profile links
-- ✅ Add logout button
-- ✅ Wrap with `RoleProvider`
-- ✅ Verify: Layout renders correctly
-- ⬜ Commit: `git commit -m "feat(rbac): add vendor portal layout"`
-
-**Files created:** `src/app/(vendor)/layout.tsx`, `src/app/(vendor)/vendor/page.tsx` (placeholder)
-
----
-
-#### Task 9.17: Create Vendor Portal Home Page
-
-Create the vendor dashboard home page.
-
-- ✅ Create `src/app/(vendor)/vendor/page.tsx`
-- ✅ Show welcome message with vendor name
-- ✅ Show summary of their applications (count by status)
-- ✅ Add quick link to apply for new events
-- ✅ Verify: Page renders at `/vendor`
-- ⬜ Commit: `git commit -m "feat(rbac): add vendor portal home page"`
-
-**Files created:** `src/app/(vendor)/vendor/page.tsx`, `src/lib/actions/vendor-portal.ts`
-
----
-
-#### Task 9.18: Protect Vendor Routes in Middleware
-
-Add vendor route protection (require authentication, any role).
-
-- ✅ Open `src/middleware.ts`
-- ✅ Add `/vendor` to protected routes (require auth)
-- ✅ Any authenticated user can access vendor portal
-- ⬜ Verify: Unauthenticated users redirected to login
-- ⬜ Verify: Authenticated users can access `/vendor`
-- ⬜ Commit: `git commit -m "feat(rbac): add middleware protection for vendor portal"`
-
-**Files modified:** `src/middleware.ts`
-
----
-
-#### Task 9.19: Add Role-Based Redirect After Login
-
-Redirect users to appropriate portal based on role.
-
-- ✅ Open `src/lib/actions/auth.ts`
-- ✅ After successful `signIn`, fetch user role
-- ✅ Return redirect URL: `/dashboard` for organizer/admin, `/vendor` for vendor
-- ✅ Update `src/app/(auth)/login/page.tsx` to use returned redirect
-- ✅ Update `src/middleware.ts` to use role-based redirect for auth routes
-- ⬜ Verify: Organizers land on dashboard after login
-- ⬜ Verify: Vendors land on vendor portal after login
-- ⬜ Commit: `git commit -m "feat(rbac): add role-based redirect after login"`
-
-**Files modified:** `src/lib/actions/auth.ts`, `src/app/(auth)/login/page.tsx`, `src/middleware.ts`
-
----
-
-#### Task 9.20: Assign Vendor Role on Signup
-
-New signups automatically get vendor role.
-
-- ✅ Open `src/lib/actions/auth.ts`
-- ✅ After successful `signUp`, insert row into `user_roles` with `role='vendor'`
-- ✅ Handle insert failure gracefully (log, don't block signup)
-- ⬜ Verify: New signup creates role in database
-- ⬜ Verify: New user redirected to vendor portal
-- ⬜ Commit: `git commit -m "feat(rbac): assign vendor role on signup"`
-
-**Files modified:** `src/lib/actions/auth.ts`
-
----
-
-### Stage 9E: Admin Role Management
-
----
-
-#### Task 9.21: Create Get Users Action
-
-Create action for admins to view all users.
-
-- ✅ Create `src/lib/actions/admin.ts`
-- ✅ Implement `getUsers()` with `requireRole('admin')`
-- ✅ Return list of users with their roles (from auth.users + user_roles)
-- ✅ Create database migration for `users_with_roles` view
-- ✅ Add view types to `src/types/database.ts`
-- ⬜ Run migration `005_users_with_roles_view.sql` in Supabase SQL Editor
-- ⬜ Verify: Action returns user list
-- ⬜ Commit: `git commit -m "feat(rbac): add getUsers admin action"`
-
-**Files created:** `src/lib/actions/admin.ts`, `supabase/migrations/005_users_with_roles_view.sql`
-**Files modified:** `src/types/database.ts`
-
----
-
-#### Task 9.22: Create Update Role Action
-
-Create action for admins to change user roles.
-
-- ✅ Add `updateUserRole(userId, newRole)` to `src/lib/actions/admin.ts`
-- ✅ Add `requireRole('admin')` check
-- ✅ Prevent admin from demoting themselves
-- ✅ Update or insert role in `user_roles` table (upsert)
-- ⬜ Verify: Role updates work
-- ⬜ Commit: `git commit -m "feat(rbac): add updateUserRole admin action"`
-
-**Files modified:** `src/lib/actions/admin.ts`
-
----
-
-#### Task 9.23: Create Admin Users Page
-
-Create UI for managing user roles.
-
-- ✅ Create `src/app/dashboard/admin/page.tsx`
-- ✅ Fetch and display user list with roles
-- ✅ Create `src/components/admin/user-role-select.tsx` dropdown
-- ✅ Add confirmation before role change
-- ✅ Show success/error feedback (toast notification)
-- ⬜ Verify: Can promote vendor to organizer
-- ⬜ Commit: `git commit -m "feat(rbac): add admin users management page"`
-
-**Files created:** `src/app/dashboard/admin/page.tsx`, `src/components/admin/user-role-select.tsx`
-
----
-
-#### Task 9.24: Add Admin Link to Navigation
-
-Show admin link only to admins.
-
-- ✅ Open `src/app/dashboard/layout.tsx`
-- ✅ Use `useRole()` to get current role
-- ✅ Conditionally render "User Management" nav link if role is 'admin'
-- ✅ Add separator and purple highlight for admin section
-- ⬜ Verify: Link visible for admins only
-- ⬜ Verify: Organizers don't see admin link
-- ⬜ Commit: `git commit -m "feat(rbac): add admin link to dashboard nav"`
-
-**Files modified:** `src/app/dashboard/layout.tsx`
-
----
-
-### Stage 9F: Final Validation & Cleanup
-
----
-
-#### Task 9.25: Update RLS for Role-Based Access
-
-Add defense-in-depth with role checks in RLS policies.
-
-- ✅ Create `supabase/migrations/006_rbac_rls_updates.sql` (006 since 005 already exists)
-- ✅ Update events: only `organizer`/`admin` can INSERT/UPDATE/DELETE
-- ✅ Update applications: organizers can UPDATE, public can still INSERT
-- ✅ Update vendors: organizers can UPDATE/DELETE
-- ✅ Update attachments: organizers can DELETE
-- ✅ Keep existing public read policies for active events
-- ⬜ Run migration in Supabase SQL Editor
-- ⬜ Verify: Policies work correctly
-- ⬜ Commit: `git commit -m "feat(rbac): update RLS policies for role-based access"`
-
-**Files created:** `supabase/migrations/006_rbac_rls_updates.sql`
-
----
-
-#### Task 9.26: Manual End-to-End Testing
-
-Test all role scenarios manually.
-
-- ⬜ Test as Admin: Access dashboard, admin page, change roles
-- ⬜ Test as Organizer: Access dashboard, cannot access admin page
-- ⬜ Test as Vendor: Access vendor portal, cannot access dashboard
-- ⬜ Test unauthenticated: Only public pages accessible
-- ⬜ Test new signup: Gets vendor role, lands on vendor portal
-- ⬜ Test login redirect: Each role goes to correct portal
-- ⬜ Document any issues found
-
-**Files created:** None (manual testing)
-
----
-
-#### Task 9.27: Update Documentation
-
-Update CLAUDE.md with RBAC information.
-
-- ⬜ Add RBAC section to CLAUDE.md
-- ⬜ Document role types: vendor, organizer, admin
-- ⬜ Document role hierarchy and `hasMinimumRole()`
-- ⬜ Document `requireRole()` usage pattern for new actions
-- ⬜ Document admin role management location
-- ⬜ Commit: `git commit -m "docs: add RBAC documentation to CLAUDE.md"`
-
-**Files modified:** `CLAUDE.md`
-
----
-
-### Phase 9 Rollback Procedures
-
-If issues arise, these commands can undo each stage:
-
-**Stage 9A Rollback (Database):**
-```sql
-DROP FUNCTION IF EXISTS user_has_role(UUID, TEXT);
-DROP FUNCTION IF EXISTS get_user_role(UUID);
-DROP TABLE IF EXISTS user_roles;
-```
-
-**Stage 9C Rollback (Action Checks):**
-Remove `requireRole()` calls from server actions. Actions revert to permissive.
-
-**Stage 9E Rollback (Admin UI):**
-Delete `src/app/dashboard/admin/` and `src/components/admin/`. Remove nav link.
+Previous task list archived to: `docs/archive/TASKS-v1.md`
