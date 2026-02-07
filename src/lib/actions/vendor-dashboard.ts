@@ -112,3 +112,81 @@ export async function getVendorDashboardData(): Promise<VendorDashboardData | nu
 
   return { counts, recentApplications }
 }
+
+// =============================================================================
+// Vendor Applications List
+// =============================================================================
+
+const VALID_STATUSES = ['pending', 'approved', 'rejected', 'waitlisted']
+
+type VendorApplicationsListResult =
+  | { success: true; data: VendorApplication[] }
+  | { success: false; error: string; data: null }
+
+/**
+ * Fetches all applications for the current vendor, optionally filtered by status.
+ * Returns null data if the user has no linked vendor profile.
+ */
+export async function getVendorApplicationsList(
+  status?: string | null
+): Promise<VendorApplicationsListResult> {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'not_authenticated', data: null }
+  }
+
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('vendor_id')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.vendor_id) {
+    return { success: false, error: 'no_vendor_profile', data: null }
+  }
+
+  let query = supabase
+    .from('applications')
+    .select(
+      `
+      id,
+      status,
+      submitted_at,
+      event:events (
+        id,
+        name,
+        event_date,
+        location
+      )
+    `
+    )
+    .eq('vendor_id', profile.vendor_id)
+    .order('submitted_at', { ascending: false })
+
+  if (status && VALID_STATUSES.includes(status)) {
+    query = query.eq('status', status)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('Error fetching vendor applications list:', error)
+    return { success: false, error: 'fetch_failed', data: null }
+  }
+
+  const applications: VendorApplication[] = (data || [])
+    .filter((app) => app.event !== null)
+    .map((app) => ({
+      id: app.id,
+      status: app.status,
+      submitted_at: app.submitted_at,
+      event: app.event as VendorApplication['event'],
+    }))
+
+  return { success: true, data: applications }
+}
