@@ -42,7 +42,7 @@
 #### Task 1.1.2: Create handle_new_user trigger
 - [x] Create trigger function that inserts profile on auth.users insert
 - [x] Default role is `vendor`
-- [ ] Link to existing vendor if email matches (see Task 1.2.2)
+- [x] Link to existing vendor if email matches (see Task 1.2.2)
 
 **Scope:** SQL in same or separate migration
 **AC:** New signup creates row in user_profiles with role='vendor'
@@ -70,8 +70,8 @@
 **Files:** `supabase/migrations/004_vendors_user_link.sql`
 
 #### Task 1.2.2: Update handle_new_user trigger for vendor linking
-- [ ] On signup, check if vendor exists with same email
-- [ ] If yes, set `vendor_id` in user_profiles and `user_id` in vendors
+- [x] On signup, check if vendor exists with same email
+- [x] If yes, set `vendor_id` in user_profiles and `user_id` in vendors
 
 **Scope:** Update trigger from 1.1.2
 **AC:** Apply with email X, sign up with email X → linked

@@ -50,10 +50,24 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  matched_vendor_id UUID;
 BEGIN
-  -- Create profile for new user with default vendor role
-  INSERT INTO public.user_profiles (id, role)
-  VALUES (NEW.id, 'vendor');
+  -- Check if a vendor record exists with the same email
+  SELECT id INTO matched_vendor_id
+  FROM public.vendors
+  WHERE email = NEW.email;
+
+  -- Create profile with vendor link if a match was found
+  INSERT INTO public.user_profiles (id, role, vendor_id)
+  VALUES (NEW.id, 'vendor', matched_vendor_id);
+
+  -- If matched, also link the vendor back to this auth user
+  IF matched_vendor_id IS NOT NULL THEN
+    UPDATE public.vendors
+    SET user_id = NEW.id
+    WHERE id = matched_vendor_id;
+  END IF;
 
   RETURN NEW;
 END;
