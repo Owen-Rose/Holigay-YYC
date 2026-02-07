@@ -248,9 +248,9 @@
 **Files:** `src/app/vendor-dashboard/layout.tsx`
 
 #### Task 3.1.2: Create vendor dashboard home page
-- [ ] Show application status cards (pending/approved/rejected)
-- [ ] Show recent applications list
-- [ ] Counts should only include THIS vendor's applications
+- [x] Show application status cards (pending/approved/rejected)
+- [x] Show recent applications list
+- [x] Counts should only include THIS vendor's applications
 
 **Scope:** New page
 **AC:** Vendor sees only their own data
