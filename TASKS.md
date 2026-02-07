@@ -283,18 +283,18 @@
 ### Story 3.3: Vendor Profile Management
 
 #### Task 3.3.1: Create vendor profile page
-- [ ] Form to edit business info (name, contact, description, website)
-- [ ] Pre-populate with current data
-- [ ] Submit updates vendor record
+- [x] Form to edit business info (name, contact, description, website)
+- [x] Pre-populate with current data
+- [x] Submit updates vendor record
 
 **Scope:** New page with form
 **AC:** Changes persist after refresh
 **Files:** `src/app/vendor-dashboard/profile/page.tsx`
 
 #### Task 3.3.2: Create updateVendorProfile server action
-- [ ] Validate input
-- [ ] Ensure user can only update their own vendor record
-- [ ] RLS also enforces this
+- [x] Validate input
+- [x] Ensure user can only update their own vendor record
+- [x] RLS also enforces this
 
 **Scope:** New server action
 **AC:** Cannot update another vendor's profile
