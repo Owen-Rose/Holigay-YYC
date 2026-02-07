@@ -980,6 +980,14 @@ export async function updateApplicationNotes(
   id: string,
   notes: string
 ): Promise<UpdateApplicationResponse> {
+  // Only organizers and admins can edit organizer notes
+  if (!(await isOrganizerOrAdmin())) {
+    return {
+      success: false,
+      error: 'Unauthorized: insufficient role',
+    }
+  }
+
   const supabase = await createClient()
 
   const { error } = await supabase

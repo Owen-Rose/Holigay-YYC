@@ -197,7 +197,7 @@
 **Test:** Call action as vendor in dev tools
 
 #### Task 2.3.2: Add role check to updateApplicationNotes
-- [ ] Same pattern as 2.3.1
+- [x] Same pattern as 2.3.1
 
 **Scope:** Modify existing action
 **AC:** Vendor calling action gets error
