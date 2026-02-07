@@ -12,7 +12,7 @@
 |------|----------|--------|
 | Epic 1: RBAC Database Layer | Critical | Complete |
 | Epic 2: RBAC Application Layer | Critical | Complete |
-| Epic 3: Vendor Dashboard | High | Not Started |
+| Epic 3: Vendor Dashboard | High | In Progress |
 | Epic 4: Organizer Invite System | Medium | Not Started |
 | Epic 5: Event Management | High | Not Started |
 | Epic 6: UI/UX Improvements | Medium | Not Started |
@@ -239,9 +239,9 @@
 ### Story 3.1: Vendor Dashboard Layout
 
 #### Task 3.1.1: Create /vendor-dashboard route group
-- [ ] Create layout with vendor-specific navigation
-- [ ] Include: Home, My Applications, Profile, Logout
-- [ ] Style similar to organizer dashboard but distinct
+- [x] Create layout with vendor-specific navigation
+- [x] Include: Home, My Applications, Profile, Logout
+- [x] Style similar to organizer dashboard but distinct
 
 **Scope:** New layout file
 **AC:** Vendor nav is separate from organizer nav
