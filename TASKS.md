@@ -82,11 +82,11 @@
 ### Story 1.3: Replace RLS Policies
 
 #### Task 1.3.1: Create migration 005_rbac_rls_policies.sql
-- [ ] Drop all existing permissive policies
-- [ ] Create role-aware policies for `events` table
-- [ ] Create role-aware policies for `vendors` table
-- [ ] Create role-aware policies for `applications` table
-- [ ] Create role-aware policies for `attachments` table
+- [x] Drop all existing permissive policies
+- [x] Create role-aware policies for `events` table
+- [x] Create role-aware policies for `vendors` table
+- [x] Create role-aware policies for `applications` table
+- [x] Create role-aware policies for `attachments` table
 
 **Scope:** SQL migration (will be large)
 **AC:** Vendors only see own data, organizers see all
