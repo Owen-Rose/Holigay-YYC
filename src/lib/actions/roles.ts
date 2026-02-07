@@ -34,11 +34,11 @@ export async function getCurrentUserRole(): Promise<RoleResponse> {
     };
   }
 
-  // Fetch role from user_roles table
+  // Fetch role from user_profiles table (same table middleware reads from)
   const { data: roleData, error: roleError } = await supabase
-    .from('user_roles')
+    .from('user_profiles')
     .select('role')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (roleError && roleError.code !== 'PGRST116') {

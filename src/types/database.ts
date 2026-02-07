@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -169,6 +169,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "user_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users_with_roles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_profiles_vendor_id_fkey"
             columns: ["vendor_id"]
             isOneToOne: false
@@ -176,30 +183,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       vendors: {
         Row: {
@@ -238,19 +221,33 @@ export type Database = {
           user_id?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vendors_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      users_with_roles: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          role_updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      get_user_role:
-        | { Args: never; Returns: Database["public"]["Enums"]["user_role"] }
-        | { Args: { p_user_id: string }; Returns: string }
-      user_has_role: {
-        Args: { p_required_role: string; p_user_id: string }
-        Returns: boolean
+      get_user_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
       }
     }
     Enums: {

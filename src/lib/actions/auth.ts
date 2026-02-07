@@ -58,9 +58,9 @@ export async function signIn(data: LoginInput): Promise<SignInResponse> {
 
   if (authData.user) {
     const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
+      .from('user_profiles')
       .select('role')
-      .eq('user_id', authData.user.id)
+      .eq('id', authData.user.id)
       .single();
 
     // If user has organizer or admin role, redirect to dashboard
@@ -110,22 +110,8 @@ export async function signUp(data: SignupInput): Promise<AuthResponse> {
     };
   }
 
-  // ---------------------------------------------------------------------------
-  // Assign vendor role to new user
-  // This is non-blocking - signup succeeds even if role assignment fails
-  // ---------------------------------------------------------------------------
-  if (authData.user) {
-    const { error: roleError } = await supabase.from('user_roles').insert({
-      user_id: authData.user.id,
-      role: 'vendor',
-    });
-
-    // Log role assignment errors but don't block signup
-    // The user will still be able to use the app with default 'vendor' behavior
-    if (roleError) {
-      console.error('Failed to assign vendor role to new user:', roleError.message);
-    }
-  }
+  // Role assignment is handled by the handle_new_user database trigger,
+  // which auto-creates a user_profiles row with role='vendor' on signup.
 
   return {
     error: null,

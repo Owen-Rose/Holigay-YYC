@@ -51,7 +51,7 @@ export type UpdateRoleResponse = {
  * Get all users with their roles.
  *
  * Requires admin role. Uses the users_with_roles database view which joins
- * auth.users with user_roles table.
+ * auth.users with user_profiles table.
  *
  * @returns List of users with their roles, sorted by creation date (newest first)
  */
@@ -72,7 +72,7 @@ export async function getUsers(): Promise<GetUsersResponse> {
 
   // ---------------------------------------------------------------------------
   // Fetch users from the users_with_roles view
-  // This view joins auth.users with user_roles, defaulting to 'vendor' role
+  // This view joins auth.users with user_profiles, defaulting to 'vendor' role
   // ---------------------------------------------------------------------------
   const { data, error } = await supabase
     .from('users_with_roles')
@@ -91,13 +91,15 @@ export async function getUsers(): Promise<GetUsersResponse> {
   // ---------------------------------------------------------------------------
   // Transform to camelCase for frontend consistency
   // ---------------------------------------------------------------------------
-  const users: UserWithRole[] = (data || []).map((user) => ({
-    id: user.id,
-    email: user.email,
-    role: user.role as Role,
-    createdAt: user.created_at,
-    roleUpdatedAt: user.role_updated_at,
-  }));
+  const users: UserWithRole[] = (data || [])
+    .filter((user) => user.id && user.email)
+    .map((user) => ({
+      id: user.id!,
+      email: user.email!,
+      role: user.role as Role,
+      createdAt: user.created_at!,
+      roleUpdatedAt: user.role_updated_at,
+    }));
 
   return {
     success: true,
@@ -159,20 +161,12 @@ export async function updateUserRole(
   const supabase = await createClient();
 
   // ---------------------------------------------------------------------------
-  // Upsert role: Update if exists, insert if not
-  // This handles users who signed up before RBAC was implemented
+  // Update role in user_profiles (the table middleware and auth checks read from)
   // ---------------------------------------------------------------------------
   const { error } = await supabase
-    .from('user_roles')
-    .upsert(
-      {
-        user_id: userId,
-        role: newRole,
-      },
-      {
-        onConflict: 'user_id',
-      }
-    );
+    .from('user_profiles')
+    .update({ role: newRole })
+    .eq('id', userId);
 
   if (error) {
     console.error('Failed to update user role:', error.message);
