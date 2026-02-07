@@ -41,6 +41,30 @@ CREATE TRIGGER update_user_profiles_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
+-- Handle New User Trigger
+-- Automatically creates a user_profile when a new user signs up
+-- ============================================
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  -- Create profile for new user with default vendor role
+  INSERT INTO public.user_profiles (id, role)
+  VALUES (NEW.id, 'vendor');
+
+  RETURN NEW;
+END;
+$$;
+
+-- Trigger fires after a new user is created in auth.users
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- ============================================
 -- Enable RLS
 -- Policies will be added in a later migration (005)
 -- ============================================

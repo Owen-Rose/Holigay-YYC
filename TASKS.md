@@ -40,8 +40,8 @@
 **Files:** `supabase/migrations/003_user_profiles.sql`
 
 #### Task 1.1.2: Create handle_new_user trigger
-- [ ] Create trigger function that inserts profile on auth.users insert
-- [ ] Default role is `vendor`
+- [x] Create trigger function that inserts profile on auth.users insert
+- [x] Default role is `vendor`
 - [ ] Link to existing vendor if email matches (see Task 1.2.2)
 
 **Scope:** SQL in same or separate migration
