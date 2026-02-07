@@ -61,9 +61,9 @@
 ### Story 1.2: Link Vendors to Users
 
 #### Task 1.2.1: Create migration 004_vendors_user_link.sql
-- [ ] Add `user_id UUID REFERENCES auth.users(id)` to vendors table
-- [ ] Add index on `user_id`
-- [ ] Column should be nullable (existing vendors don't have users)
+- [x] Add `user_id UUID REFERENCES auth.users(id)` to vendors table
+- [x] Add index on `user_id`
+- [x] Column should be nullable (existing vendors don't have users)
 
 **Scope:** SQL migration
 **AC:** Column exists, `SELECT user_id FROM vendors` works
