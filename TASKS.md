@@ -49,8 +49,8 @@
 **Test:** Sign up new user, check `user_profiles` table
 
 #### Task 1.1.3: Create get_user_role() helper function
-- [ ] Create SQL function returning current user's role
-- [ ] Use `SECURITY DEFINER` and `STABLE`
+- [x] Create SQL function returning current user's role
+- [x] Use `SECURITY DEFINER` and `STABLE`
 
 **Scope:** SQL function
 **AC:** `SELECT get_user_role()` returns role for authenticated user

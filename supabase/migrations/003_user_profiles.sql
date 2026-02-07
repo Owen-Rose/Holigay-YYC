@@ -65,6 +65,21 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
 -- ============================================
+-- get_user_role() Helper Function
+-- Returns the current authenticated user's role
+-- Used by RLS policies to enforce role-based access
+-- ============================================
+CREATE OR REPLACE FUNCTION get_user_role()
+RETURNS user_role
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM public.user_profiles WHERE id = auth.uid();
+$$;
+
+-- ============================================
 -- Enable RLS
 -- Policies will be added in a later migration (005)
 -- ============================================
