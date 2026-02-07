@@ -1,8 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { Database } from '@/types/database'
+
+type Role = Database['public']['Enums']['user_role']
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard']
+const protectedRoutes = ['/dashboard', '/vendor-dashboard']
 
 // Routes that should redirect to dashboard if already authenticated
 const authRoutes = ['/login', '/signup']
@@ -12,7 +15,7 @@ export async function middleware(request: NextRequest) {
     request,
   })
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -57,6 +60,19 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(redirectUrl)
+  }
+
+  // Fetch the user's role for role-based routing decisions
+  let role: Role = 'vendor'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    // Default to 'vendor' if profile doesn't exist yet (e.g. trigger hasn't fired)
+    role = profile?.role ?? 'vendor'
   }
 
   // Redirect authenticated users away from auth routes

@@ -166,8 +166,8 @@
 ### Story 2.2: Update Middleware
 
 #### Task 2.2.1: Fetch role in middleware
-- [ ] After auth check, query `user_profiles` for role
-- [ ] Handle case where profile doesn't exist (default to vendor)
+- [x] After auth check, query `user_profiles` for role
+- [x] Handle case where profile doesn't exist (default to vendor)
 
 **Scope:** Modify middleware
 **AC:** Role available in middleware logic
