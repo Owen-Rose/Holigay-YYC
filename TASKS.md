@@ -261,9 +261,9 @@
 ### Story 3.2: Vendor Applications View
 
 #### Task 3.2.1: Create vendor applications list page
-- [ ] List all applications for current vendor
-- [ ] Show event name, status, submission date
-- [ ] Link to detail view
+- [x] List all applications for current vendor
+- [x] Show event name, status, submission date
+- [x] Link to detail view
 
 **Scope:** New page
 **AC:** Only shows applications linked to vendor's user_id
