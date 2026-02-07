@@ -144,10 +144,14 @@ Once RBAC migrations are applied:
 
 ### Admin Bootstrap
 
-After applying RBAC migrations, create the first admin:
+After applying RBAC migrations (`003` through `005`), create the first admin:
 
-1. Sign up with your admin email at `/signup`
-2. Run in Supabase SQL Editor:
+1. Apply all migrations in Supabase SQL Editor (in order: `003_user_profiles.sql`, `004_vendors_user_link.sql`, `005_rbac_rls_policies.sql`)
+2. Sign up with your admin email at `/signup` (this auto-creates a `vendor` profile)
+3. Open `scripts/seed-admin.sql`, replace `your-email@example.com` with your email
+4. Run the script in Supabase SQL Editor — it promotes your account to `admin` and prints a verification row
+
+Alternatively, run the UPDATE directly:
 ```sql
 UPDATE user_profiles
 SET role = 'admin'

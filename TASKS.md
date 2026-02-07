@@ -117,8 +117,8 @@
 **Files:** `scripts/seed-admin.sql`
 
 #### Task 1.4.2: Document admin bootstrap process
-- [ ] Add section to CLAUDE.md explaining first-time admin setup
-- [ ] Include commands to run
+- [x] Add section to CLAUDE.md explaining first-time admin setup
+- [x] Include commands to run
 
 **Scope:** Documentation only
 **AC:** Clear instructions a new dev can follow
