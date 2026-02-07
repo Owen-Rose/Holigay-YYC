@@ -207,7 +207,7 @@
 - [ ] Apply to createEvent, updateEvent, deleteEvent (when created)
 
 **Scope:** Will be done when Epic 5 is implemented
-**Note:** Placeholder task - complete during Epic 5
+**Note:** Placeholder task - deferred to Epic 5 (actions don't exist yet)
 
 #### Task 2.3.4: Update signUp action for vendor linking
 - [ ] After successful signup, check for existing vendor by email
