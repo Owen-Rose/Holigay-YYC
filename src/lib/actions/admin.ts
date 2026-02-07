@@ -10,6 +10,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/actions/roles';
 import { ROLES, type Role } from '@/lib/constants/roles';
+import type { Database } from '@/types/database';
+
+type UsersWithRolesRow = Database['public']['Views']['users_with_roles']['Row'];
 
 // =============================================================================
 // Types
@@ -75,9 +78,10 @@ export async function getUsers(): Promise<GetUsersResponse> {
   // This view joins auth.users with user_profiles, defaulting to 'vendor' role
   // ---------------------------------------------------------------------------
   const { data, error } = await supabase
-    .from('users_with_roles')
+    .from('users_with_roles' as 'user_profiles')
     .select('id, email, role, created_at, role_updated_at')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<UsersWithRolesRow[]>();
 
   if (error) {
     console.error('Failed to fetch users:', error.message);
