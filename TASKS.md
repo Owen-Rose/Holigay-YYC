@@ -144,9 +144,9 @@
 ### Story 2.1: Auth Helper Utilities
 
 #### Task 2.1.1: Create src/lib/auth/roles.ts
-- [ ] `getCurrentUserRole()` - returns role or null
-- [ ] `requireRole(allowedRoles)` - throws if not authorized
-- [ ] `isOrganizerOrAdmin()` - boolean helper
+- [x] `getCurrentUserRole()` - returns role or null
+- [x] `requireRole(allowedRoles)` - throws if not authorized
+- [x] `isOrganizerOrAdmin()` - boolean helper
 
 **Scope:** New TypeScript file
 **AC:** Functions work with current Supabase session

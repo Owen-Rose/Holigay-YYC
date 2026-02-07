@@ -145,6 +145,62 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vendors: {
         Row: {
           business_name: string
@@ -155,6 +211,7 @@ export type Database = {
           id: string
           phone: string | null
           updated_at: string
+          user_id: string | null
           website: string | null
         }
         Insert: {
@@ -166,6 +223,7 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
+          user_id?: string | null
           website?: string | null
         }
         Update: {
@@ -177,6 +235,7 @@ export type Database = {
           id?: string
           phone?: string | null
           updated_at?: string
+          user_id?: string | null
           website?: string | null
         }
         Relationships: []
@@ -186,10 +245,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role:
+        | { Args: never; Returns: Database["public"]["Enums"]["user_role"] }
+        | { Args: { p_user_id: string }; Returns: string }
+      user_has_role: {
+        Args: { p_required_role: string; p_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "vendor" | "organizer" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -316,6 +381,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["vendor", "organizer", "admin"],
+    },
   },
 } as const

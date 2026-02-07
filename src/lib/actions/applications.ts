@@ -67,6 +67,7 @@ export type ApplicationWithVendor = {
     phone: string | null
     website: string | null
     description: string | null
+    user_id: string | null
     created_at: string
     updated_at: string
   }
@@ -463,6 +464,7 @@ export async function getApplications(
         phone,
         website,
         description,
+        user_id,
         created_at,
         updated_at
       )
@@ -602,6 +604,7 @@ export type ApplicationDetail = {
     phone: string | null
     website: string | null
     description: string | null
+    user_id: string | null
     created_at: string
     updated_at: string
   }
@@ -670,6 +673,7 @@ export async function getApplicationById(
         phone,
         website,
         description,
+        user_id,
         created_at,
         updated_at
       ),
