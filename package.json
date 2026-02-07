@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "db:types": "supabase gen types typescript --project-id hgmfjvjlxrhdojwlkgap > src/types/database.ts"
+    "db:types": "supabase gen types typescript --project-id hgmfjvjlxrhdojwlkgap > src/types/database.ts",
+    "db:types:dev": "supabase gen types typescript --project-id kcokcufmzyckbodelqpb > src/types/database.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
