@@ -10,8 +10,8 @@
 
 | Epic | Priority | Status |
 |------|----------|--------|
-| Epic 1: RBAC Database Layer | Critical | Not Started |
-| Epic 2: RBAC Application Layer | Critical | Not Started |
+| Epic 1: RBAC Database Layer | Critical | Complete |
+| Epic 2: RBAC Application Layer | Critical | Complete |
 | Epic 3: Vendor Dashboard | High | Not Started |
 | Epic 4: Organizer Invite System | Medium | Not Started |
 | Epic 5: Event Management | High | Not Started |
@@ -127,11 +127,11 @@
 ---
 
 ### Epic 1 Definition of Done
-- [ ] All migrations run successfully on staging
-- [ ] New signups get `vendor` role automatically
-- [ ] RLS blocks vendors from organizer data
-- [ ] Admin user can be seeded
-- [ ] Types regenerated (`npm run db:types`)
+- [x] All migrations run successfully on staging
+- [x] New signups get `vendor` role automatically
+- [x] RLS blocks vendors from organizer data
+- [x] Admin user can be seeded
+- [x] Types regenerated (`npm run db:types`)
 
 ---
 
@@ -222,11 +222,11 @@
 ---
 
 ### Epic 2 Definition of Done
-- [ ] Middleware redirects based on role
-- [ ] Server actions reject unauthorized requests
-- [ ] Vendor linking works on signup
-- [ ] `npm run build` passes with no errors
-- [ ] `npm test` passes
+- [x] Middleware redirects based on role
+- [x] Server actions reject unauthorized requests
+- [x] Vendor linking works on signup
+- [x] `npm run build` passes with no errors
+- [x] `npm test` passes
 
 ---
 
