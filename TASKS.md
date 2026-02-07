@@ -174,9 +174,9 @@
 **Test:** Add console.log, verify role appears
 
 #### Task 2.2.2: Add role-based route redirects
-- [ ] Vendors accessing `/dashboard` → redirect to `/vendor-dashboard`
-- [ ] Non-admins accessing `/dashboard/team` → redirect to `/dashboard`
-- [ ] Keep existing auth redirects working
+- [x] Vendors accessing `/dashboard` → redirect to `/vendor-dashboard`
+- [x] Non-admins accessing `/dashboard/team` → redirect to `/dashboard`
+- [x] Keep existing auth redirects working
 
 **Scope:** Modify middleware
 **AC:** Wrong role = redirect to appropriate dashboard

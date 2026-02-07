@@ -75,9 +75,28 @@ export async function middleware(request: NextRequest) {
     role = profile?.role ?? 'vendor'
   }
 
-  // Redirect authenticated users away from auth routes
-  if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // Role-based route redirects (only for authenticated users)
+  if (user) {
+    // Vendors accessing organizer dashboard → send to vendor dashboard
+    const isOrganizerRoute =
+      pathname === '/dashboard' || pathname.startsWith('/dashboard/')
+    if (role === 'vendor' && isOrganizerRoute) {
+      return NextResponse.redirect(new URL('/vendor-dashboard', request.url))
+    }
+
+    // Non-admins accessing /dashboard/team → send back to dashboard
+    const isTeamRoute =
+      pathname === '/dashboard/team' || pathname.startsWith('/dashboard/team/')
+    if (role !== 'admin' && isTeamRoute) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    // Redirect away from auth routes to the appropriate dashboard
+    if (isAuthRoute) {
+      const destination =
+        role === 'vendor' ? '/vendor-dashboard' : '/dashboard'
+      return NextResponse.redirect(new URL(destination, request.url))
+    }
   }
 
   return supabaseResponse
