@@ -109,8 +109,8 @@
 ### Story 1.4: Seed Admin User
 
 #### Task 1.4.1: Create admin seed script
-- [ ] Create SQL script to promote user to admin by email
-- [ ] Include clear instructions
+- [x] Create SQL script to promote user to admin by email
+- [x] Include clear instructions
 
 **Scope:** Single SQL file
 **AC:** Running script changes user role to admin
