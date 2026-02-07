@@ -221,3 +221,25 @@ CREATE POLICY "authenticated_insert_attachments"
 CREATE POLICY "organizer_delete_attachments"
   ON attachments FOR DELETE TO authenticated
   USING (get_user_role() IN ('organizer', 'admin'));
+
+
+-- ============================================
+-- User Profiles Policies
+-- Users: read own profile
+-- Admins: read/update all profiles
+-- Insert: none (handle_new_user trigger uses SECURITY DEFINER, bypasses RLS)
+-- ============================================
+
+-- Users can read their own profile; admins can read all
+CREATE POLICY "select_own_profile"
+  ON user_profiles FOR SELECT TO authenticated
+  USING (
+    id = auth.uid()
+    OR get_user_role() = 'admin'
+  );
+
+-- Only admins can update profiles (e.g. changing a user's role)
+CREATE POLICY "admin_update_profiles"
+  ON user_profiles FOR UPDATE TO authenticated
+  USING (get_user_role() = 'admin')
+  WITH CHECK (get_user_role() = 'admin');

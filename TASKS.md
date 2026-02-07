@@ -96,9 +96,9 @@
 **Files:** `supabase/migrations/005_rbac_rls_policies.sql`
 
 #### Task 1.3.2: Add RLS policy for user_profiles table
-- [ ] Users can SELECT own profile
-- [ ] Admins can SELECT/UPDATE all profiles
-- [ ] INSERT only allowed for trigger (system)
+- [x] Users can SELECT own profile
+- [x] Admins can SELECT/UPDATE all profiles
+- [x] INSERT only allowed for trigger (system)
 
 **Scope:** Add to 005 migration or separate
 **AC:** Vendor cannot query other profiles
