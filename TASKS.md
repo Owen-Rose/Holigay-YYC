@@ -154,8 +154,8 @@
 **Files:** `src/lib/auth/roles.ts`
 
 #### Task 2.1.2: Add role type definitions
-- [ ] Export `Role` type from database types or manually
-- [ ] Ensure TypeScript knows about `user_profiles` table
+- [x] Export `Role` type from database types or manually
+- [x] Ensure TypeScript knows about `user_profiles` table
 
 **Scope:** Type definitions
 **AC:** No type errors when importing Role
