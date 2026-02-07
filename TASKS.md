@@ -270,9 +270,9 @@
 **Files:** `src/app/vendor-dashboard/applications/page.tsx`
 
 #### Task 3.2.2: Create vendor application detail page
-- [ ] Read-only view of application
-- [ ] Show status, event info, submitted files
-- [ ] No edit/status change buttons (vendor can't modify)
+- [x] Read-only view of application
+- [x] Show status, event info, submitted files
+- [x] No edit/status change buttons (vendor can't modify)
 
 **Scope:** New page
 **AC:** Can view but not edit
