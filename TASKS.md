@@ -210,13 +210,14 @@
 **Note:** Placeholder task - deferred to Epic 5 (actions don't exist yet)
 
 #### Task 2.3.4: Update signUp action for vendor linking
-- [ ] After successful signup, check for existing vendor by email
-- [ ] If found, update `vendors.user_id` and `user_profiles.vendor_id`
+- [x] After successful signup, check for existing vendor by email
+- [x] If found, update `vendors.user_id` and `user_profiles.vendor_id`
 
 **Scope:** Modify auth action
 **AC:** Existing vendor gets linked on signup
 **Test:** Apply as guest, sign up with same email, verify linked
 **Files:** `src/lib/actions/auth.ts`
+**Note:** Already handled by `handle_new_user` database trigger (Task 1.1.2/1.2.2). No application-layer changes needed.
 
 ---
 
