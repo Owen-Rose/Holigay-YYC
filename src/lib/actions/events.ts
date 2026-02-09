@@ -121,3 +121,85 @@ export async function createEvent(
 
   return { success: true, error: null }
 }
+
+/** Database row type for a single event (no application count) */
+export type EventRow = {
+  id: string
+  name: string
+  event_date: string
+  location: string
+  description: string | null
+  application_deadline: string | null
+  status: string
+  max_vendors: number | null
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Fetches a single event by ID.
+ */
+export async function getEventById(
+  id: string
+): Promise<{ success: boolean; error: string | null; data: EventRow | null }> {
+  const supabase = await createClient()
+
+  const { data: event, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      return { success: false, error: 'Event not found', data: null }
+    }
+    console.error('Error fetching event:', error)
+    return { success: false, error: 'Failed to fetch event', data: null }
+  }
+
+  return { success: true, error: null, data: event }
+}
+
+/**
+ * Updates an existing event by ID. Requires organizer or admin role.
+ */
+export async function updateEvent(
+  id: string,
+  data: EventFormInput
+): Promise<{ success: boolean; error: string | null }> {
+  if (!(await isOrganizerOrAdmin())) {
+    return { success: false, error: 'Unauthorized: insufficient role' }
+  }
+
+  const parsed = eventFormSchema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input' }
+  }
+
+  const { name, description, eventDate, location, applicationDeadline, status, maxVendors } =
+    parsed.data
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('events')
+    .update({
+      name,
+      description: description || null,
+      event_date: eventDate,
+      location,
+      application_deadline: applicationDeadline || null,
+      status,
+      max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating event:', error)
+    return { success: false, error: 'Failed to update event' }
+  }
+
+  return { success: true, error: null }
+}
