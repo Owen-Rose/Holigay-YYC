@@ -350,9 +350,8 @@ export async function submitApplication(
 }
 
 /**
- * Fetches all active events that are accepting applications
- *
- * @returns List of events with status 'accepting_applications' or before deadline
+ * Fetches events visible to the public: status='active' and deadline not yet passed.
+ * Draft and closed events are excluded.
  */
 export async function getActiveEvents() {
   const supabase = await createClient()
