@@ -1,6 +1,9 @@
 import Link from 'next/link'
-import { getVendorProfile } from '@/lib/actions/vendors'
+import { getVendorProfile } from '@/lib/actions/vendor-dashboard'
 import { VendorProfileForm } from '@/components/forms/vendor-profile-form'
+
+// This page uses cookies (via Supabase auth) so it cannot be statically rendered
+export const dynamic = 'force-dynamic'
 
 // =============================================================================
 // Error States

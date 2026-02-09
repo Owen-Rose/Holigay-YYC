@@ -7,20 +7,6 @@ import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/
 // Types
 // =============================================================================
 
-export type VendorProfile = {
-  id: string
-  business_name: string
-  contact_name: string
-  email: string
-  phone: string | null
-  website: string | null
-  description: string | null
-}
-
-type GetVendorProfileResult =
-  | { success: true; data: VendorProfile }
-  | { success: false; error: 'not_authenticated' | 'no_vendor_profile' | 'fetch_failed'; data: null }
-
 type UpdateVendorProfileResult =
   | { success: true }
   | { success: false; error: string }
@@ -28,45 +14,6 @@ type UpdateVendorProfileResult =
 // =============================================================================
 // Server Actions
 // =============================================================================
-
-/**
- * Fetches the current vendor's profile, scoped to the authenticated user.
- */
-export async function getVendorProfile(): Promise<GetVendorProfileResult> {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { success: false, error: 'not_authenticated', data: null }
-  }
-
-  // Get vendor_id from user_profiles
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('vendor_id')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.vendor_id) {
-    return { success: false, error: 'no_vendor_profile', data: null }
-  }
-
-  const { data: vendor, error } = await supabase
-    .from('vendors')
-    .select('id, business_name, contact_name, email, phone, website, description')
-    .eq('id', profile.vendor_id)
-    .single()
-
-  if (error || !vendor) {
-    console.error('Error fetching vendor profile:', error)
-    return { success: false, error: 'fetch_failed', data: null }
-  }
-
-  return { success: true, data: vendor }
-}
 
 /**
  * Updates the current vendor's profile.
