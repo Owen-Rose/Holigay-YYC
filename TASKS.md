@@ -328,9 +328,9 @@
 **Files:** `src/app/dashboard/team/page.tsx`
 
 #### Task 4.1.2: Create organizer invite form
-- [ ] Email validation
-- [ ] Submit button with loading state
-- [ ] Success/error feedback
+- [x] Email validation
+- [x] Submit button with loading state
+- [x] Success/error feedback
 
 **Scope:** Client component in team page
 **AC:** Form submits to server action
