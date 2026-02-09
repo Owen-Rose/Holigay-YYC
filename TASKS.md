@@ -14,7 +14,7 @@
 | Epic 2: RBAC Application Layer | Critical | Complete |
 | Epic 3: Vendor Dashboard | High | Complete |
 | Epic 4: Organizer Invite System | Medium | In Progress |
-| Epic 5: Event Management | High | In Progress |
+| Epic 5: Event Management | High | Complete |
 | Epic 6: UI/UX Improvements | Medium | Not Started |
 | Epic 7: Dynamic Forms | Low | Future |
 
@@ -204,10 +204,10 @@
 **Files:** `src/lib/actions/applications.ts`
 
 #### Task 2.3.3: Add role check to event management actions
-- [ ] Apply to createEvent, updateEvent, deleteEvent (when created)
+- [x] Apply to createEvent, updateEvent, deleteEvent (when created)
 
-**Scope:** Will be done when Epic 5 is implemented
-**Note:** Placeholder task - deferred to Epic 5 (actions don't exist yet)
+**Scope:** Completed as part of Epic 5
+**Note:** All event actions use `isOrganizerOrAdmin()` — see `src/lib/actions/events.ts`
 
 #### Task 2.3.4: Update signUp action for vendor linking
 - [x] After successful signup, check for existing vendor by email
@@ -455,19 +455,19 @@
 **AC:** Can activate and close events
 
 #### Task 5.3.2: Hide closed events from public apply page
-- [ ] Update /apply page query
-- [ ] Only show events with status='active'
+- [x] Update /apply page query
+- [x] Only show events with status='active'
 
-**Scope:** Modify apply page
+**Scope:** Verified existing query in getActiveEvents()
 **AC:** Closed events not in dropdown
 
 ---
 
 ### Epic 5 Definition of Done
-- [ ] Organizers can create, edit, delete events
-- [ ] Event status workflow works
-- [ ] Only active events shown to public
-- [ ] Dashboard nav links to events page
+- [x] Organizers can create, edit, delete events
+- [x] Event status workflow works
+- [x] Only active events shown to public
+- [x] Dashboard nav links to events page
 
 ---
 
