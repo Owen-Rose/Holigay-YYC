@@ -433,10 +433,10 @@
 **Files:** `src/app/dashboard/events/[id]/page.tsx`
 
 #### Task 5.2.4: Create event CRUD server actions
-- [ ] `createEvent` - validate, insert, return ID
-- [ ] `updateEvent` - validate, update by ID
-- [ ] `deleteEvent` - soft delete or hard delete?
-- [ ] All actions check organizer/admin role
+- [x] `createEvent` - validate, insert, return ID
+- [x] `updateEvent` - validate, update by ID
+- [x] `deleteEvent` - hard delete (blocked if event has applications)
+- [x] All actions check organizer/admin role
 
 **Scope:** Add to events.ts
 **AC:** Vendor cannot create/update/delete events

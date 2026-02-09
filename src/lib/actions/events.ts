@@ -85,10 +85,11 @@ export async function getEvents(): Promise<GetEventsResponse> {
 
 /**
  * Creates a new event. Requires organizer or admin role.
+ * Returns the new event's ID on success.
  */
 export async function createEvent(
   data: EventFormInput
-): Promise<{ success: boolean; error: string | null }> {
+): Promise<{ success: boolean; error: string | null; id?: string }> {
   if (!(await isOrganizerOrAdmin())) {
     return { success: false, error: 'Unauthorized: insufficient role' }
   }
@@ -104,22 +105,26 @@ export async function createEvent(
 
   const supabase = await createClient()
 
-  const { error } = await supabase.from('events').insert({
-    name,
-    description: description || null,
-    event_date: eventDate,
-    location,
-    application_deadline: applicationDeadline || null,
-    status,
-    max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
-  })
+  const { data: created, error } = await supabase
+    .from('events')
+    .insert({
+      name,
+      description: description || null,
+      event_date: eventDate,
+      location,
+      application_deadline: applicationDeadline || null,
+      status,
+      max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
+    })
+    .select('id')
+    .single()
 
-  if (error) {
+  if (error || !created) {
     console.error('Error creating event:', error)
     return { success: false, error: 'Failed to create event' }
   }
 
-  return { success: true, error: null }
+  return { success: true, error: null, id: created.id }
 }
 
 /** Database row type for a single event (no application count) */
@@ -199,6 +204,47 @@ export async function updateEvent(
   if (error) {
     console.error('Error updating event:', error)
     return { success: false, error: 'Failed to update event' }
+  }
+
+  return { success: true, error: null }
+}
+
+/**
+ * Deletes an event by ID (hard delete). Requires organizer or admin role.
+ * Will fail if the event has linked applications (FK constraint).
+ */
+export async function deleteEvent(
+  id: string
+): Promise<{ success: boolean; error: string | null }> {
+  if (!(await isOrganizerOrAdmin())) {
+    return { success: false, error: 'Unauthorized: insufficient role' }
+  }
+
+  const supabase = await createClient()
+
+  // Check for linked applications before attempting delete
+  const { count, error: countError } = await supabase
+    .from('applications')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', id)
+
+  if (countError) {
+    console.error('Error checking applications:', countError)
+    return { success: false, error: 'Failed to check for linked applications' }
+  }
+
+  if (count && count > 0) {
+    return {
+      success: false,
+      error: `Cannot delete this event because it has ${count} application${count === 1 ? '' : 's'}. Set the status to "Closed" instead.`,
+    }
+  }
+
+  const { error } = await supabase.from('events').delete().eq('id', id)
+
+  if (error) {
+    console.error('Error deleting event:', error)
+    return { success: false, error: 'Failed to delete event' }
   }
 
   return { success: true, error: null }
