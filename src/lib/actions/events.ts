@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { isOrganizerOrAdmin } from '@/lib/auth/roles'
+import { eventFormSchema, type EventFormInput } from '@/lib/validations/event'
 
 // =============================================================================
 // Types
@@ -79,4 +81,43 @@ export async function getEvents(): Promise<GetEventsResponse> {
   }))
 
   return { success: true, error: null, data: eventsWithCounts }
+}
+
+/**
+ * Creates a new event. Requires organizer or admin role.
+ */
+export async function createEvent(
+  data: EventFormInput
+): Promise<{ success: boolean; error: string | null }> {
+  if (!(await isOrganizerOrAdmin())) {
+    return { success: false, error: 'Unauthorized: insufficient role' }
+  }
+
+  // Server-side validation
+  const parsed = eventFormSchema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input' }
+  }
+
+  const { name, description, eventDate, location, applicationDeadline, status, maxVendors } =
+    parsed.data
+
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('events').insert({
+    name,
+    description: description || null,
+    event_date: eventDate,
+    location,
+    application_deadline: applicationDeadline || null,
+    status,
+    max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
+  })
+
+  if (error) {
+    console.error('Error creating event:', error)
+    return { success: false, error: 'Failed to create event' }
+  }
+
+  return { success: true, error: null }
 }
