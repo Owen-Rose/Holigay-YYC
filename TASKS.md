@@ -12,8 +12,8 @@
 |------|----------|--------|
 | Epic 1: RBAC Database Layer | Critical | Complete |
 | Epic 2: RBAC Application Layer | Critical | Complete |
-| Epic 3: Vendor Dashboard | High | In Progress |
-| Epic 4: Organizer Invite System | Medium | Not Started |
+| Epic 3: Vendor Dashboard | High | Complete |
+| Epic 4: Organizer Invite System | Medium | In Progress |
 | Epic 5: Event Management | High | Not Started |
 | Epic 6: UI/UX Improvements | Medium | Not Started |
 | Epic 7: Dynamic Forms | Low | Future |
@@ -303,10 +303,10 @@
 ---
 
 ### Epic 3 Definition of Done
-- [ ] Vendor dashboard accessible at /vendor-dashboard
-- [ ] Vendors can view their applications
-- [ ] Vendors can edit their profile
-- [ ] RLS prevents data leakage
+- [x] Vendor dashboard accessible at /vendor-dashboard
+- [x] Vendors can view their applications
+- [x] Vendors can edit their profile
+- [x] RLS prevents data leakage
 
 ---
 
@@ -319,9 +319,9 @@
 ### Story 4.1: Team Management UI
 
 #### Task 4.1.1: Create /dashboard/team page
-- [ ] List existing organizers
-- [ ] Show invite form (email input + button)
-- [ ] Admin-only access (redirect if not admin)
+- [x] List existing organizers
+- [x] Show invite form (email input + button)
+- [x] Admin-only access (redirect if not admin)
 
 **Scope:** New page
 **AC:** Non-admin gets redirected
