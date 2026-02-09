@@ -415,9 +415,9 @@
 **Files:** `src/components/forms/event-form.tsx`
 
 #### Task 5.2.2: Create /dashboard/events/new page
-- [ ] Render event form in create mode
-- [ ] Submit creates event
-- [ ] Redirect to events list on success
+- [x] Render event form in create mode
+- [x] Submit creates event
+- [x] Redirect to events list on success
 
 **Scope:** New page
 **AC:** Can create new event
