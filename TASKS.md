@@ -447,11 +447,11 @@
 ### Story 5.3: Event Status Workflow
 
 #### Task 5.3.1: Add event status transitions
-- [ ] draft → active (publish)
-- [ ] active → closed (end applications)
-- [ ] Add UI controls for status changes
+- [x] draft → active (publish)
+- [x] active → closed (end applications)
+- [x] Add UI controls for status changes
 
-**Scope:** Update event form or detail page
+**Scope:** Events list page + server action
 **AC:** Can activate and close events
 
 #### Task 5.3.2: Hide closed events from public apply page

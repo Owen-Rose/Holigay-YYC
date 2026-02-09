@@ -209,6 +209,63 @@ export async function updateEvent(
   return { success: true, error: null }
 }
 
+// =============================================================================
+// Status Transitions
+// =============================================================================
+
+/** Allowed status transitions: draft → active → closed */
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  draft: ['active'],
+  active: ['closed'],
+  closed: [],
+}
+
+/**
+ * Updates only the status of an event, enforcing valid transitions.
+ * Requires organizer or admin role.
+ */
+export async function updateEventStatus(
+  id: string,
+  newStatus: string
+): Promise<{ success: boolean; error: string | null }> {
+  if (!(await isOrganizerOrAdmin())) {
+    return { success: false, error: 'Unauthorized: insufficient role' }
+  }
+
+  const supabase = await createClient()
+
+  // Fetch current status to validate the transition
+  const { data: event, error: fetchError } = await supabase
+    .from('events')
+    .select('status')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !event) {
+    return { success: false, error: 'Event not found' }
+  }
+
+  const allowed = VALID_TRANSITIONS[event.status] || []
+  if (!allowed.includes(newStatus)) {
+    return {
+      success: false,
+      error: `Cannot change status from "${event.status}" to "${newStatus}"`,
+    }
+  }
+
+  const { error } = await supabase
+    .from('events')
+    .update({ status: newStatus, updated_at: new Date().toISOString() })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating event status:', error)
+    return { success: false, error: 'Failed to update event status' }
+  }
+
+  return { success: true, error: null }
+}
+
 /**
  * Deletes an event by ID (hard delete). Requires organizer or admin role.
  * Will fail if the event has linked applications (FK constraint).

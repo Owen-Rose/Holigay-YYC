@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getEvents, type EventWithCount } from '@/lib/actions/events';
 import { Badge } from '@/components/ui/badge';
+import { EventStatusActions } from './event-status-actions';
 
 // =============================================================================
 // Event Status Badge
@@ -118,7 +119,7 @@ function EventRow({ event }: { event: EventWithCount }) {
     >
       <div className="grid grid-cols-12 items-center gap-4">
         {/* Name and location */}
-        <div className="col-span-12 sm:col-span-4">
+        <div className="col-span-12 sm:col-span-3">
           <p className="truncate text-sm font-medium text-gray-900">{event.name}</p>
           <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
             <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" />
@@ -143,7 +144,7 @@ function EventRow({ event }: { event: EventWithCount }) {
         </div>
 
         {/* Status */}
-        <div className="col-span-2 sm:col-span-2">
+        <div className="col-span-2 sm:col-span-1">
           <EventStatusBadge status={event.status} />
         </div>
 
@@ -153,6 +154,11 @@ function EventRow({ event }: { event: EventWithCount }) {
           <span className="ml-1 text-sm text-gray-500">
             {event.application_count === 1 ? 'app' : 'apps'}
           </span>
+        </div>
+
+        {/* Status actions */}
+        <div className="col-span-4 sm:col-span-2 text-right">
+          <EventStatusActions eventId={event.id} status={event.status} />
         </div>
       </div>
     </Link>
@@ -212,11 +218,12 @@ export default async function EventsPage() {
           {/* Table Header */}
           <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
             <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-gray-500">
-              <div className="col-span-12 sm:col-span-4">Event</div>
+              <div className="col-span-12 sm:col-span-3">Event</div>
               <div className="col-span-4 sm:col-span-2">Date</div>
               <div className="col-span-4 sm:col-span-2">Deadline</div>
-              <div className="col-span-2 sm:col-span-2">Status</div>
+              <div className="col-span-2 sm:col-span-1">Status</div>
               <div className="col-span-2 sm:col-span-2 text-right">Applications</div>
+              <div className="col-span-4 sm:col-span-2 text-right">Actions</div>
             </div>
           </div>
 
