@@ -424,9 +424,9 @@
 **Files:** `src/app/dashboard/events/new/page.tsx`
 
 #### Task 5.2.3: Create /dashboard/events/[id] page
-- [ ] Fetch event by ID
-- [ ] Render form with existing values
-- [ ] Submit updates event
+- [x] Fetch event by ID
+- [x] Render form with existing values
+- [x] Submit updates event
 
 **Scope:** New page
 **AC:** Can edit existing event
