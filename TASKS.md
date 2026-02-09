@@ -406,9 +406,9 @@
 ### Story 5.2: Event Create/Edit
 
 #### Task 5.2.1: Create event form component
-- [ ] Fields: name, description, event_date, location, deadline, status, max_vendors
-- [ ] Validation with Zod
-- [ ] Reusable for create and edit
+- [x] Fields: name, description, event_date, location, deadline, status, max_vendors
+- [x] Validation with Zod
+- [x] Reusable for create and edit
 
 **Scope:** New form component
 **AC:** Validates required fields
