@@ -14,7 +14,7 @@
 | Epic 2: RBAC Application Layer | Critical | Complete |
 | Epic 3: Vendor Dashboard | High | Complete |
 | Epic 4: Organizer Invite System | Medium | In Progress |
-| Epic 5: Event Management | High | Not Started |
+| Epic 5: Event Management | High | In Progress |
 | Epic 6: UI/UX Improvements | Medium | Not Started |
 | Epic 7: Dynamic Forms | Low | Future |
 
@@ -383,19 +383,19 @@
 ### Story 5.1: Events List Page
 
 #### Task 5.1.1: Create /dashboard/events page
-- [ ] List all events with status badges
-- [ ] Show draft, active, closed
-- [ ] Link to edit page
-- [ ] "Create Event" button
+- [x] List all events with status badges
+- [x] Show draft, active, closed
+- [x] Link to edit page
+- [x] "Create Event" button
 
 **Scope:** New page
 **AC:** All events visible with correct statuses
 **Files:** `src/app/dashboard/events/page.tsx`
 
 #### Task 5.1.2: Create getEvents server action
-- [ ] Fetch all events
-- [ ] Include application count per event
-- [ ] Order by event_date descending
+- [x] Fetch all events
+- [x] Include application count per event
+- [x] Order by event_date descending
 
 **Scope:** New server action
 **AC:** Returns events with stats
