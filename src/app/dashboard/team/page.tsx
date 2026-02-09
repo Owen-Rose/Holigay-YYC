@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getUsers, type UserWithRole } from '@/lib/actions/admin';
+import { InviteForm } from '@/components/team/invite-form';
 import type { Role } from '@/lib/constants/roles';
 
 // =============================================================================
@@ -137,18 +138,6 @@ function ExclamationIcon({ className }: { className?: string }) {
   );
 }
 
-function EnvelopeIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-      />
-    </svg>
-  );
-}
-
 // =============================================================================
 // Main Page
 // =============================================================================
@@ -157,7 +146,6 @@ export default function TeamPage() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [inviteEmail, setInviteEmail] = useState('');
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
@@ -198,41 +186,8 @@ export default function TeamPage() {
       </div>
 
       {/* Invite Organizer Form */}
-      <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6">
-        <div className="flex items-center gap-2">
-          <EnvelopeIcon className="h-5 w-5 text-gray-400" />
-          <h2 className="text-lg font-semibold text-gray-900">Invite Organizer</h2>
-        </div>
-        <p className="mt-1 text-sm text-gray-600">
-          Send an invitation email to add a new organizer to your team.
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            // Server action will be wired in Task 4.2.2
-          }}
-          className="mt-4 flex gap-3"
-        >
-          <input
-            type="email"
-            value={inviteEmail}
-            onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="organizer@example.com"
-            required
-            disabled
-            className="min-h-[44px] flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60"
-          />
-          <button
-            type="submit"
-            disabled
-            className="min-h-[44px] rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Send Invite
-          </button>
-        </form>
-        <p className="mt-2 text-xs text-gray-400">
-          Invite functionality requires email service configuration (coming soon).
-        </p>
+      <div className="mb-8">
+        <InviteForm onInvited={fetchUsers} />
       </div>
 
       {/* Stats */}
