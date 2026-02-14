@@ -29,7 +29,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
           type="email"
           autoComplete="email"
           {...register('email')}
-          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="you@example.com"
         />
         {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
@@ -45,7 +45,7 @@ export function LoginForm({ onSubmit }: LoginFormProps) {
           type="password"
           autoComplete="current-password"
           {...register('password')}
-          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           placeholder="Enter your password"
         />
         {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}

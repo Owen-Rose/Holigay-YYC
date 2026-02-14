@@ -22,7 +22,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           id={textareaId}
           className={cn(
-            'block w-full rounded-md border px-3 py-2 shadow-sm transition-colors',
+            'text-gray-900 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors',
             'focus:ring-1 focus:outline-none',
             'min-h-[100px] resize-y',
             error
