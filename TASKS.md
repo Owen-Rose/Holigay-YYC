@@ -856,23 +856,23 @@
 
 ### Story 6.7: Utility Pages & Dashboard Components Re-skin
 
-#### Task 6.7.1: Re-skin error/404/loading/unauthorized pages
-- [ ] `src/app/not-found.tsx`: `bg-surface-bright` circle, `text-muted-foreground`, primary buttons
-- [ ] `src/app/error.tsx`: `bg-red-500/15` circle, `text-red-400` icon
-- [ ] `src/app/loading.tsx`: `text-primary` spinner, `text-muted` text
-- [ ] `src/app/unauthorized/page.tsx`: `bg-amber-500/15`, `text-amber-400`, primary buttons
+#### Task 6.7.1: Re-skin error/404/loading/unauthorized pages ✅
+- [x] `src/app/not-found.tsx`: `bg-surface-bright` circle, `text-muted-foreground`, primary buttons
+- [x] `src/app/error.tsx`: `bg-red-500/15` circle, `text-red-400` icon
+- [x] `src/app/loading.tsx`: `text-primary` spinner, `text-muted` text
+- [x] `src/app/unauthorized/page.tsx`: `bg-amber-500/15`, `text-amber-400`, primary buttons
 
 **Scope:** Update 4 utility pages
 **AC:** Error/loading/404 pages are dark themed
 **Test:** Visit `/nonexistent` to test 404
 
-#### Task 6.7.2: Re-skin dashboard components
-- [ ] `src/components/dashboard/role-badge.tsx`:
+#### Task 6.7.2: Re-skin dashboard components ✅
+- [x] `src/components/dashboard/role-badge.tsx`:
   - admin: `bg-purple-500/15 text-purple-400`
   - organizer: `bg-primary/15 text-primary`
   - vendor: `bg-foreground/10 text-foreground`
   - Loading skeleton: `bg-surface-bright`
-- [ ] Apply same dark-theme replacements to:
+- [x] Apply same dark-theme replacements to:
   - `src/components/dashboard/applications-filter.tsx`
   - `src/components/dashboard/applications-table.tsx`
   - `src/components/dashboard/export-button.tsx`
