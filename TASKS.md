@@ -543,10 +543,10 @@
 **Files:** `src/app/(public)/layout.tsx`
 
 #### Task 6.2.2: Re-skin auth layout
-- [ ] Remove `bg-gray-50` wrapper
-- [ ] Auth card: `bg-surface border border-border-subtle rounded-xl backdrop-blur-sm shadow-xl`
-- [ ] Brand text: `text-foreground`
-- [ ] Back link: `text-muted-foreground hover:text-primary`
+- [x] Remove `bg-gray-50` wrapper
+- [x] Auth card: `bg-surface border border-border-subtle rounded-xl backdrop-blur-sm shadow-xl`
+- [x] Brand text: `text-foreground`
+- [x] Back link: `text-muted-foreground hover:text-primary`
 
 **Scope:** Modify auth layout
 **AC:** Login/signup pages have dark card on dark background
