@@ -697,10 +697,10 @@
 > Update auth forms and pages that use raw elements (not the UI component library).
 
 #### Task 6.4.1: Re-skin login form component
-- [ ] Labels: `text-foreground` (replaces `text-gray-700`)
-- [ ] Inputs: `bg-surface text-foreground border-border`, focus: `border-primary ring-primary/50`
-- [ ] Submit button: `bg-primary text-primary-foreground hover:bg-primary-hover`
-- [ ] Links: `text-primary hover:text-primary-hover`
+- [x] Labels: `text-foreground` (replaces `text-gray-700`)
+- [x] Inputs: `bg-surface text-foreground border-border`, focus: `border-primary ring-primary/50`
+- [x] Submit button: `bg-primary text-primary-foreground hover:bg-primary-hover`
+- [x] Links: `text-primary hover:text-primary-hover`
 
 **Scope:** Update inline Tailwind classes in login form
 **AC:** Login form has dark inputs and violet button
