@@ -578,7 +578,7 @@
 **Files:** `src/app/vendor-dashboard/layout.tsx`
 
 #### Task 6.2.5: Re-skin vendor portal layout
-- [ ] Same treatment as 6.2.4
+- [x] Same treatment as 6.2.4
 
 **Scope:** Systematic class replacement
 **AC:** Vendor portal layout matches vendor dashboard dark theme
