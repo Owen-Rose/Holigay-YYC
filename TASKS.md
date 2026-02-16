@@ -652,7 +652,7 @@
 **Files:** `src/components/ui/select.tsx`
 
 #### Task 6.3.6: Re-skin Badge component
-- [ ] Replace light-bg variants with semi-transparent dark-friendly versions:
+- [x] Replace light-bg variants with semi-transparent dark-friendly versions:
   - `default`: `bg-foreground/10 text-foreground`
   - `secondary`: `bg-foreground/5 text-muted`
   - `success`: `bg-green-500/15 text-green-400`
