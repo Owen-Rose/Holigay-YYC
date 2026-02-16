@@ -642,10 +642,10 @@
 **Files:** `src/components/ui/textarea.tsx`
 
 #### Task 6.3.5: Re-skin Select component
-- [ ] Same treatment as Input for borders, focus, disabled
-- [ ] `bg-white` → `bg-surface`
-- [ ] Update SVG dropdown arrow fill from `%236b7280` to `%23A89BB2` for visibility on dark bg
-- [ ] Note: native `<option>` elements inherit OS styling (known limitation on dark themes)
+- [x] Same treatment as Input for borders, focus, disabled
+- [x] `bg-white` → `bg-surface`
+- [x] Update SVG dropdown arrow fill from `%236b7280` to `%23A89BB2` for visibility on dark bg
+- [x] Note: native `<option>` elements inherit OS styling (known limitation on dark themes)
 
 **Scope:** Update styles in Select component
 **AC:** Select has dark background, arrow is visible, focus ring is violet
