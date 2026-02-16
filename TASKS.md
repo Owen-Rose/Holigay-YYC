@@ -635,7 +635,7 @@
 **Files:** `src/components/ui/input.tsx`
 
 #### Task 6.3.4: Re-skin Textarea component
-- [ ] Same treatment as Input (6.3.3)
+- [x] Same treatment as Input (6.3.3)
 
 **Scope:** Update styles in Textarea component
 **AC:** Textareas match Input dark styling

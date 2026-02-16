@@ -15,21 +15,21 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={textareaId} className="mb-1 block text-sm font-medium text-gray-700">
+          <label htmlFor={textareaId} className="mb-1 block text-sm font-medium text-foreground">
             {label}
           </label>
         )}
         <textarea
           id={textareaId}
           className={cn(
-            'text-gray-900 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors',
+            'block w-full rounded-md border bg-surface text-foreground px-3 py-2 shadow-sm transition-colors',
             'focus:ring-1 focus:outline-none',
             'min-h-[100px] resize-y',
             error
-              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
-            'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500',
-            'placeholder:text-gray-400',
+              ? 'border-red-500/60 focus:border-red-400 focus:ring-red-400/50'
+              : 'border-border focus:border-primary focus:ring-primary/50',
+            'disabled:cursor-not-allowed disabled:bg-surface-bright disabled:text-muted-foreground',
+            'placeholder:text-muted-foreground',
             className
           )}
           ref={ref}
@@ -38,12 +38,12 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {hint && !error && (
-          <p id={`${textareaId}-hint`} className="mt-1 text-sm text-gray-500">
+          <p id={`${textareaId}-hint`} className="mt-1 text-sm text-muted">
             {hint}
           </p>
         )}
         {error && (
-          <p id={`${textareaId}-error`} className="mt-1 text-sm text-red-600" role="alert">
+          <p id={`${textareaId}-error`} className="mt-1 text-sm text-red-400" role="alert">
             {error}
           </p>
         )}
