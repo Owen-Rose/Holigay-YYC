@@ -21,7 +21,7 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {/* Email Field */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="email" className="block text-sm font-medium text-foreground">
           Email
         </label>
         <input
@@ -29,15 +29,15 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
           type="email"
           autoComplete="email"
           {...register('email')}
-          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-border bg-surface px-3 py-2.5 text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none"
           placeholder="you@example.com"
         />
-        {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+        {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>}
       </div>
 
       {/* Password Field */}
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="password" className="block text-sm font-medium text-foreground">
           Password
         </label>
         <input
@@ -45,15 +45,15 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
           type="password"
           autoComplete="new-password"
           {...register('password')}
-          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-border bg-surface px-3 py-2.5 text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none"
           placeholder="Enter your password"
         />
-        {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
+        {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password.message}</p>}
       </div>
 
       {/* Confirm Password Field */}
       <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
           Confirm Password
         </label>
         <input
@@ -61,11 +61,11 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
           type="password"
           autoComplete="new-password"
           {...register('confirmPassword')}
-          className="mt-1 block min-h-[44px] w-full rounded-md border border-gray-300 px-3 py-2.5 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="mt-1 block min-h-[44px] w-full rounded-md border border-border bg-surface px-3 py-2.5 text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none"
           placeholder="Confirm your password"
         />
         {errors.confirmPassword && (
-          <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+          <p className="mt-1 text-sm text-red-400">{errors.confirmPassword.message}</p>
         )}
       </div>
 
@@ -73,7 +73,7 @@ export function SignupForm({ onSubmit }: SignupFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="min-h-[44px] w-full rounded-md bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="min-h-[44px] w-full rounded-md bg-primary px-4 py-2.5 font-medium text-primary-foreground hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? 'Creating account...' : 'Create Account'}
       </button>

@@ -707,7 +707,7 @@
 **Files:** `src/components/auth/login-form.tsx`
 
 #### Task 6.4.2: Re-skin signup form component
-- [ ] Same treatment as 6.4.1
+- [x] Same treatment as 6.4.1
 
 **Scope:** Update inline Tailwind classes in signup form
 **AC:** Signup form matches login form dark styling
