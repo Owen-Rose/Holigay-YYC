@@ -3,22 +3,22 @@
 import { useRole } from '@/lib/context/role-context';
 import type { Role } from '@/lib/constants/roles';
 
-// Color configuration for each role
+// Color configuration for each role — dark-friendly semi-transparent backgrounds
 const roleConfig: Record<Role, { label: string; bgColor: string; textColor: string }> = {
   admin: {
     label: 'Admin',
-    bgColor: 'bg-purple-100',
-    textColor: 'text-purple-800',
+    bgColor: 'bg-purple-500/15',
+    textColor: 'text-purple-400',
   },
   organizer: {
     label: 'Organizer',
-    bgColor: 'bg-blue-100',
-    textColor: 'text-blue-800',
+    bgColor: 'bg-primary/15',
+    textColor: 'text-primary',
   },
   vendor: {
     label: 'Vendor',
-    bgColor: 'bg-gray-100',
-    textColor: 'text-gray-800',
+    bgColor: 'bg-foreground/10',
+    textColor: 'text-foreground',
   },
 };
 
@@ -31,7 +31,7 @@ export function RoleBadge() {
 
   // Show subtle loading indicator
   if (isLoading) {
-    return <span className="inline-flex h-5 w-16 animate-pulse rounded-full bg-gray-200" />;
+    return <span className="inline-flex h-5 w-16 animate-pulse rounded-full bg-surface-bright" />;
   }
 
   // Don't show anything if there's an error or no role

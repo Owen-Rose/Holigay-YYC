@@ -103,12 +103,12 @@ export function InviteForm({ onInvited }: InviteFormProps) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div className="rounded-lg border border-border-subtle bg-surface p-6">
       <div className="flex items-center gap-2">
-        <EnvelopeIcon className="h-5 w-5 text-gray-400" />
-        <h2 className="text-lg font-semibold text-gray-900">Invite Organizer</h2>
+        <EnvelopeIcon className="h-5 w-5 text-muted-foreground" />
+        <h2 className="text-lg font-semibold text-foreground">Invite Organizer</h2>
       </div>
-      <p className="mt-1 text-sm text-gray-600">
+      <p className="mt-1 text-sm text-muted">
         Send an invitation email to add a new organizer to your team.
       </p>
 
@@ -124,12 +124,12 @@ export function InviteForm({ onInvited }: InviteFormProps) {
           placeholder="organizer@example.com"
           required
           disabled={isSubmitting}
-          className="min-h-[44px] flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60"
+          className="min-h-[44px] flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-bright disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={isSubmitting}
-          className="min-h-[44px] rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? 'Sending...' : 'Send Invite'}
         </button>
@@ -137,17 +137,17 @@ export function InviteForm({ onInvited }: InviteFormProps) {
 
       {/* Error feedback */}
       {error && (
-        <div className="mt-3 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2">
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-red-500/10 px-3 py-2">
           <ExclamationIcon className="h-4 w-4 flex-shrink-0 text-red-400" />
-          <p className="text-sm text-red-700">{error}</p>
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
       {/* Success feedback */}
       {success && (
-        <div className="mt-3 flex items-center gap-2 rounded-md bg-green-50 px-3 py-2">
+        <div className="mt-3 flex items-center gap-2 rounded-md bg-green-500/10 px-3 py-2">
           <CheckIcon className="h-4 w-4 flex-shrink-0 text-green-400" />
-          <p className="text-sm text-green-700">{success}</p>
+          <p className="text-sm text-green-400">{success}</p>
         </div>
       )}
     </div>

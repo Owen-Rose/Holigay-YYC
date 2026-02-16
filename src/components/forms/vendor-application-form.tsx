@@ -86,7 +86,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Vendor Information Section */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Business Information</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Business Information</h2>
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
@@ -142,7 +142,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
       {/* Event Selection Section */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Event Details</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Event Details</h2>
         <div className="space-y-4">
           <Select
             label="Select Event"
@@ -164,12 +164,12 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
       {/* Product Categories Section */}
       <section>
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">Product Categories</h2>
-        <p className="mb-4 text-sm text-gray-500">
+        <h2 className="mb-2 text-lg font-semibold text-foreground">Product Categories</h2>
+        <p className="mb-4 text-sm text-muted">
           Select 1-5 categories that best describe your products.
         </p>
         {errors.productCategories && (
-          <p className="mb-3 text-sm text-red-600" role="alert">
+          <p className="mb-3 text-sm text-red-400" role="alert">
             {errors.productCategories.message}
           </p>
         )}
@@ -198,14 +198,14 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
             />
           ))}
         </div>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-muted">
           {selectedCategories.length}/5 categories selected
         </p>
       </section>
 
       {/* Special Requirements Section */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Additional Information</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Additional Information</h2>
         <Textarea
           label="Special Requirements (optional)"
           placeholder="Let us know if you have any special requirements, such as electrical outlets, extra space, etc."
@@ -217,7 +217,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
       {/* File Upload Section */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Product Photos</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Product Photos</h2>
         <FileUpload
           label="Upload product photos (optional)"
           hint="Upload photos of your products to help us review your application"
@@ -227,7 +227,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
       </section>
 
       {/* Submit Button */}
-      <div className="flex justify-end border-t border-gray-200 pt-4">
+      <div className="flex justify-end border-t border-border-subtle pt-4">
         <Button type="submit" size="lg" isLoading={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit Application'}
         </Button>

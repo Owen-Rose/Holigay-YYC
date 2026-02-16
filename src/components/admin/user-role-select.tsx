@@ -107,7 +107,7 @@ export function UserRoleSelect({
         value={currentRole}
         onChange={handleSelectChange}
         disabled={isUpdating}
-        className="min-h-[36px] w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="min-h-[36px] w-full rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
         {ROLES.map((role) => (
           <option key={role} value={role}>
@@ -118,38 +118,38 @@ export function UserRoleSelect({
 
       {/* Confirmation Dialog */}
       {showConfirm && pendingRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900">Confirm Role Change</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-foreground">Confirm Role Change</h3>
 
-            <p className="mt-2 text-sm text-gray-600">
+            <p className="mt-2 text-sm text-muted">
               Are you sure you want to change the role for{' '}
-              <span className="font-medium text-gray-900">{userEmail}</span>?
+              <span className="font-medium text-foreground">{userEmail}</span>?
             </p>
 
-            <div className="mt-4 rounded-md bg-gray-50 p-3">
+            <div className="mt-4 rounded-md bg-surface-bright p-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500">Current:</span>
-                <span className="font-medium text-gray-700">
+                <span className="text-muted">Current:</span>
+                <span className="font-medium text-foreground">
                   {ROLE_CONFIG[currentRole].label}
                 </span>
               </div>
               <div className="mt-1 flex items-center justify-between text-sm">
-                <span className="text-gray-500">New:</span>
-                <span className="font-medium text-blue-600">
+                <span className="text-muted">New:</span>
+                <span className="font-medium text-primary">
                   {ROLE_CONFIG[pendingRole].label}
                 </span>
               </div>
             </div>
 
-            <p className="mt-3 text-xs text-gray-500">
+            <p className="mt-3 text-xs text-muted-foreground">
               {ROLE_CONFIG[pendingRole].description}
             </p>
 
             {/* Error Message */}
             {error && (
-              <div className="mt-4 rounded-md bg-red-50 p-3">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="mt-4 rounded-md bg-red-500/10 p-3">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 
@@ -159,7 +159,7 @@ export function UserRoleSelect({
                 type="button"
                 onClick={handleCancel}
                 disabled={isUpdating}
-                className="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                className="flex-1 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-bright focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -167,7 +167,7 @@ export function UserRoleSelect({
                 type="button"
                 onClick={handleConfirm}
                 disabled={isUpdating}
-                className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+                className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:opacity-50"
               >
                 {isUpdating ? 'Updating...' : 'Confirm Change'}
               </button>

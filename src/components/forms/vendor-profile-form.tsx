@@ -98,8 +98,8 @@ export function VendorProfileForm({ defaultValues, email }: VendorProfileFormPro
           role="alert"
           className={`rounded-md p-3 text-sm ${
             submitResult.type === 'success'
-              ? 'bg-green-50 text-green-800'
-              : 'bg-red-50 text-red-800'
+              ? 'bg-green-500/10 text-green-400'
+              : 'bg-red-500/10 text-red-400'
           }`}
         >
           {submitResult.message}
