@@ -530,12 +530,12 @@
 > Update the layout shells (headers, sidebars, footers) so all child pages inherit the dark theme.
 
 #### Task 6.2.1: Re-skin public layout
-- [ ] Header: `bg-surface/80 backdrop-blur-lg border-b border-border-subtle` (glassmorphic sticky)
-- [ ] Add 2px rainbow gradient decorative bar at very top of page
-- [ ] Brand text: `text-foreground font-bold`, hover: `text-primary`
-- [ ] "Sign In" link: `text-muted hover:text-primary`
-- [ ] Footer: `border-t border-border-subtle`, `text-muted-foreground`
-- [ ] Remove any `bg-gray-50` or `bg-white` references
+- [x] Header: `bg-surface/80 backdrop-blur-lg border-b border-border-subtle` (glassmorphic sticky)
+- [x] Add 2px rainbow gradient decorative bar at very top of page
+- [x] Brand text: `text-foreground font-bold`, hover: `text-primary`
+- [x] "Sign In" link: `text-muted hover:text-primary`
+- [x] Footer: `border-t border-border-subtle`, `text-muted-foreground`
+- [x] Remove any `bg-gray-50` or `bg-white` references
 
 **Scope:** Modify public layout
 **AC:** Public pages have dark header/footer with glassmorphic effect and rainbow top bar
