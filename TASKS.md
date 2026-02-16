@@ -739,11 +739,11 @@
 > The most visually impactful page. Introduce rainbow gradient and glassmorphic effects.
 
 #### Task 6.5.1: Re-skin hero section
-- [ ] Heading text: `text-foreground` (replaces `text-gray-900`)
-- [ ] Brand name "Holigay Vendor Market": rainbow gradient text using `bg-gradient-to-r bg-clip-text text-transparent`
-- [ ] Subtitle: `text-muted` (replaces `text-gray-600`)
-- [ ] "Apply Now" CTA: rainbow or violet gradient background with white text
-- [ ] "View Events" button: `border-border bg-surface text-foreground hover:bg-surface-bright`
+- [x] Heading text: `text-foreground` (replaces `text-gray-900`)
+- [x] Brand name "Holigay Vendor Market": rainbow gradient text using `bg-gradient-to-r bg-clip-text text-transparent`
+- [x] Subtitle: `text-muted` (replaces `text-gray-600`)
+- [x] "Apply Now" CTA: rainbow or violet gradient background with white text
+- [x] "View Events" button: `border-border bg-surface text-foreground hover:bg-surface-bright`
 
 **Scope:** Update hero section classes
 **AC:** Hero has rainbow gradient brand name, dark background, violet/rainbow CTA
@@ -751,10 +751,10 @@
 **Files:** `src/app/(public)/page.tsx`
 
 #### Task 6.5.2: Re-skin benefits section
-- [ ] Section headings: `text-foreground` and `text-muted`
-- [ ] Benefit cards: `border-border-subtle bg-surface/60 backdrop-blur-sm` (glassmorphic)
-- [ ] Card text: `text-foreground` and `text-muted`
-- [ ] Icon circles shift to dark-friendly versions:
+- [x] Section headings: `text-foreground` and `text-muted`
+- [x] Benefit cards: `border-border-subtle bg-surface/60 backdrop-blur-sm` (glassmorphic)
+- [x] Card text: `text-foreground` and `text-muted`
+- [x] Icon circles shift to dark-friendly versions:
   - `bg-blue-100 text-blue-600` → `bg-blue-500/15 text-blue-400`
   - `bg-green-100 text-green-600` → `bg-green-500/15 text-green-400`
   - `bg-purple-100 text-purple-600` → `bg-purple-500/15 text-purple-400`
@@ -767,20 +767,20 @@
 **Files:** `src/app/(public)/page.tsx`
 
 #### Task 6.5.3: Re-skin events section and event cards
-- [ ] EventCard container: `border-border-subtle bg-surface`
-- [ ] Date badge: `bg-primary text-primary-foreground` (replaces `bg-blue-600`)
-- [ ] Text: `text-foreground` / `text-muted`
-- [ ] "Apply for this Event" button: `bg-primary text-primary-foreground`
-- [ ] Empty state: `bg-surface`, icon: `bg-surface-bright text-muted-foreground`
+- [x] EventCard container: `border-border-subtle bg-surface`
+- [x] Date badge: `bg-primary text-primary-foreground` (replaces `bg-blue-600`)
+- [x] Text: `text-foreground` / `text-muted`
+- [x] "Apply for this Event" button: `bg-primary text-primary-foreground`
+- [x] Empty state: `bg-surface`, icon: `bg-surface-bright text-muted-foreground`
 
 **Scope:** Update event cards and empty state
 **AC:** Event cards are dark with violet date badges
 **Files:** `src/app/(public)/page.tsx`
 
 #### Task 6.5.4: Re-skin final CTA section
-- [ ] Background: rainbow gradient (`bg-gradient-to-r from-violet-600 via-pink-500 to-orange-400`) replaces `bg-blue-600`
-- [ ] Subtitle: `text-white/80` (replaces `text-blue-100`)
-- [ ] CTA button: `bg-white text-primary-foreground` (white button pops on rainbow)
+- [x] Background: rainbow gradient (`bg-gradient-to-r from-violet-600 via-pink-500 to-orange-400`) replaces `bg-blue-600`
+- [x] Subtitle: `text-white/80` (replaces `text-blue-100`)
+- [x] CTA button: `bg-white text-primary-foreground` (white button pops on rainbow)
 
 **Scope:** Update CTA section classes
 **AC:** CTA section has rainbow gradient background, white button stands out
