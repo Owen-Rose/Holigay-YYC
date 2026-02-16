@@ -83,18 +83,18 @@ function MapPinIcon({ className }: { className?: string }) {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-        <CalendarIcon className="h-6 w-6 text-gray-400" />
+    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-bright">
+        <CalendarIcon className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h3 className="mt-4 text-sm font-medium text-gray-900">No events yet</h3>
-      <p className="mt-1 text-sm text-gray-500">
+      <h3 className="mt-4 text-sm font-medium text-foreground">No events yet</h3>
+      <p className="mt-1 text-sm text-muted">
         Get started by creating your first market event.
       </p>
       <div className="mt-6">
         <Link
           href="/dashboard/events/new"
-          className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
         >
           <PlusIcon className="h-4 w-4" />
           Create Event
@@ -115,13 +115,13 @@ function EventRow({ event }: { event: EventWithCount }) {
   return (
     <Link
       href={`/dashboard/events/${event.id}`}
-      className="block px-6 py-4 hover:bg-gray-50"
+      className="block px-6 py-4 hover:bg-surface-bright"
     >
       <div className="grid grid-cols-12 items-center gap-4">
         {/* Name and location */}
         <div className="col-span-12 sm:col-span-3">
-          <p className="truncate text-sm font-medium text-gray-900">{event.name}</p>
-          <div className="mt-1 flex items-center gap-1 text-xs text-gray-500">
+          <p className="truncate text-sm font-medium text-foreground">{event.name}</p>
+          <div className="mt-1 flex items-center gap-1 text-xs text-muted">
             <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="truncate">{event.location}</span>
           </div>
@@ -129,17 +129,17 @@ function EventRow({ event }: { event: EventWithCount }) {
 
         {/* Event date */}
         <div className="col-span-4 sm:col-span-2">
-          <p className="text-sm text-gray-900">{formatDate(event.event_date)}</p>
+          <p className="text-sm text-foreground">{formatDate(event.event_date)}</p>
         </div>
 
         {/* Deadline */}
         <div className="col-span-4 sm:col-span-2">
           {event.application_deadline ? (
-            <p className={`text-sm ${isPastDeadline ? 'text-red-600' : 'text-gray-500'}`}>
+            <p className={`text-sm ${isPastDeadline ? 'text-red-400' : 'text-muted'}`}>
               {formatDate(event.application_deadline)}
             </p>
           ) : (
-            <p className="text-sm text-gray-400">No deadline</p>
+            <p className="text-sm text-muted-foreground">No deadline</p>
           )}
         </div>
 
@@ -150,8 +150,8 @@ function EventRow({ event }: { event: EventWithCount }) {
 
         {/* Application count */}
         <div className="col-span-2 sm:col-span-2 text-right">
-          <span className="text-sm font-medium text-gray-900">{event.application_count}</span>
-          <span className="ml-1 text-sm text-gray-500">
+          <span className="text-sm font-medium text-foreground">{event.application_count}</span>
+          <span className="ml-1 text-sm text-muted">
             {event.application_count === 1 ? 'app' : 'apps'}
           </span>
         </div>
@@ -177,11 +177,11 @@ export default async function EventsPage() {
     return (
       <div>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Events</h1>
-          <p className="mt-1 text-sm text-gray-600">Create and manage your market events.</p>
+          <h1 className="text-2xl font-bold text-foreground">Events</h1>
+          <p className="mt-1 text-sm text-muted">Create and manage your market events.</p>
         </div>
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
-          <p className="text-sm text-red-600">
+        <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-6 text-center">
+          <p className="text-sm text-red-400">
             {result.error || 'Failed to load events. Please try again.'}
           </p>
         </div>
@@ -196,13 +196,13 @@ export default async function EventsPage() {
       {/* Page Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Events</h1>
-          <p className="mt-1 text-sm text-gray-600">Create and manage your market events.</p>
+          <h1 className="text-2xl font-bold text-foreground">Events</h1>
+          <p className="mt-1 text-sm text-muted">Create and manage your market events.</p>
         </div>
         <div className="flex-shrink-0">
           <Link
             href="/dashboard/events/new"
-            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
           >
             <PlusIcon className="h-4 w-4" />
             Create Event
@@ -214,10 +214,10 @@ export default async function EventsPage() {
       {events.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
           {/* Table Header */}
-          <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
-            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+          <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
+            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-muted">
               <div className="col-span-12 sm:col-span-3">Event</div>
               <div className="col-span-4 sm:col-span-2">Date</div>
               <div className="col-span-4 sm:col-span-2">Deadline</div>
@@ -228,7 +228,7 @@ export default async function EventsPage() {
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border-subtle">
             {events.map((event) => (
               <EventRow key={event.id} event={event} />
             ))}

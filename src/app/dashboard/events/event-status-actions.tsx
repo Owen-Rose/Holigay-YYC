@@ -52,12 +52,12 @@ export function EventStatusActions({ eventId, status }: EventStatusActionsProps)
           e.stopPropagation()
           handleTransition(config.target)
         }}
-        className={`inline-flex items-center rounded px-2.5 py-1 text-xs font-medium text-white shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50 ${config.style}`}
+        className={`inline-flex items-center rounded px-2.5 py-1 text-xs font-medium text-white shadow-sm focus:ring-2 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:opacity-50 ${config.style}`}
       >
         {loading ? 'Updating...' : config.label}
       </button>
       {error && (
-        <span className="text-xs text-red-600" title={error}>
+        <span className="text-xs text-red-400" title={error}>
           Failed
         </span>
       )}
