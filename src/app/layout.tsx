@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Quicksand } from 'next/font/google';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 const quicksand = Quicksand({
@@ -21,7 +22,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${quicksand.variable} antialiased`}>{children}</body>
+      <body className={`${quicksand.variable} antialiased`}>
+        {children}
+        <Toaster
+          theme="dark"
+          position="bottom-right"
+          toastOptions={{
+            style: {
+              background: '#2A2230',
+              border: '1px solid #3A3142',
+              color: '#F5F0F5',
+              fontFamily: 'var(--font-quicksand), sans-serif',
+            },
+          }}
+        />
+      </body>
     </html>
   );
 }
