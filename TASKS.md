@@ -569,8 +569,8 @@
 **Files:** `src/app/dashboard/layout.tsx`
 
 #### Task 6.2.4: Re-skin vendor dashboard layout
-- [ ] Same treatment as 6.2.3 (dark surfaces, dark borders, dark text)
-- [ ] Keep teal accent for differentiation: `bg-teal-500/15 text-teal-400` (replaces `bg-teal-50 text-teal-700`)
+- [x] Same treatment as 6.2.3 (dark surfaces, dark borders, dark text)
+- [x] Keep teal accent for differentiation: `bg-teal-500/15 text-teal-400` (replaces `bg-teal-50 text-teal-700`)
 
 **Scope:** Systematic class replacement in vendor dashboard layout
 **AC:** Vendor sidebar is dark with teal accent on active nav
