@@ -15,16 +15,16 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const baseStyles = [
       'inline-flex items-center justify-center font-medium rounded-md',
-      'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2',
+      'transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background',
       'disabled:opacity-50 disabled:cursor-not-allowed',
     ];
 
     const variantStyles = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-      secondary: 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500',
-      outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500',
-      ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-500',
-      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+      primary: 'bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50',
+      secondary: 'bg-surface-bright text-foreground hover:bg-surface-bright/80 focus:ring-primary/50',
+      outline: 'border border-border bg-transparent text-foreground hover:bg-surface-bright focus:ring-primary/50',
+      ghost: 'text-muted hover:bg-surface-bright hover:text-foreground focus:ring-primary/50',
+      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/50',
     };
 
     // All sizes ensure minimum 44px height for touch accessibility (WCAG)

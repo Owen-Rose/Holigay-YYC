@@ -591,12 +591,12 @@
 > Re-skin all shared UI components. Since pages import these everywhere, changes cascade globally.
 
 #### Task 6.3.1: Re-skin Button component
-- [ ] `primary`: `bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50`
-- [ ] `secondary`: `bg-surface-bright text-foreground hover:bg-surface-bright/80`
-- [ ] `outline`: `border border-border bg-transparent text-foreground hover:bg-surface-bright`
-- [ ] `ghost`: `text-muted hover:bg-surface-bright hover:text-foreground`
-- [ ] `danger`: keep `bg-red-600 text-white` but update ring to `focus:ring-red-500/50`
-- [ ] Add `focus:ring-offset-background` to all variants so ring offset matches dark bg
+- [x] `primary`: `bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50`
+- [x] `secondary`: `bg-surface-bright text-foreground hover:bg-surface-bright/80`
+- [x] `outline`: `border border-border bg-transparent text-foreground hover:bg-surface-bright`
+- [x] `ghost`: `text-muted hover:bg-surface-bright hover:text-foreground`
+- [x] `danger`: keep `bg-red-600 text-white` but update ring to `focus:ring-red-500/50`
+- [x] Add `focus:ring-offset-background` to all variants so ring offset matches dark bg
 
 **Scope:** Update variant styles in Button component
 **AC:** All buttons have violet primary, dark outline/ghost, correct focus rings on dark bg
