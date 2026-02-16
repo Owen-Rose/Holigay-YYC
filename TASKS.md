@@ -677,14 +677,14 @@
 **Files:** `src/components/ui/checkbox.tsx`
 
 #### Task 6.3.8: Re-skin FileUpload component
-- [ ] Label: `text-foreground`
-- [ ] Drop zone border: `border-border hover:border-border/80`
-- [ ] Active drag: `border-primary bg-primary-soft`
-- [ ] Error zone: `border-red-500/60 bg-red-500/10`
-- [ ] Icon/text: `text-muted-foreground` / `text-muted`
-- [ ] Upload link: `text-primary hover:text-primary-hover`
-- [ ] File list: `border-border-subtle divide-border-subtle`
-- [ ] Remove button: `text-red-400 hover:text-red-300`
+- [x] Label: `text-foreground`
+- [x] Drop zone border: `border-border hover:border-border/80`
+- [x] Active drag: `border-primary bg-primary-soft`
+- [x] Error zone: `border-red-500/60 bg-red-500/10`
+- [x] Icon/text: `text-muted-foreground` / `text-muted`
+- [x] Upload link: `text-primary hover:text-primary-hover`
+- [x] File list: `border-border-subtle divide-border-subtle`
+- [x] Remove button: `text-red-400 hover:text-red-300`
 
 **Scope:** Update styles in FileUpload component
 **AC:** File upload area is visible on dark bg, drag state uses violet accent
