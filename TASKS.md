@@ -792,57 +792,61 @@
 
 > Systematic replacement of gray/blue/white classes across all dashboard pages.
 
-#### Task 6.6.1: Re-skin organizer dashboard home page
-- [ ] Stat card icons: `bg-primary-soft text-primary` (replaces `bg-blue-50 text-blue-600`)
-- [ ] All `text-gray-*` → `text-foreground` / `text-muted` / `text-muted-foreground`
-- [ ] All `bg-white` / `bg-gray-*` → `bg-surface` / `bg-surface-bright`
-- [ ] All `border-gray-*` → `border-border-subtle`
-- [ ] `hover:bg-gray-50` → `hover:bg-surface-bright`
-- [ ] `divide-gray-200` → `divide-border-subtle`
-- [ ] Links: `text-primary hover:text-primary-hover`
+#### Task 6.6.1: Re-skin organizer dashboard home page ✅
+- [x] Stat card icons: `bg-primary-soft text-primary` (replaces `bg-blue-50 text-blue-600`)
+- [x] All `text-gray-*` → `text-foreground` / `text-muted` / `text-muted-foreground`
+- [x] All `bg-white` / `bg-gray-*` → `bg-surface` / `bg-surface-bright`
+- [x] All `border-gray-*` → `border-border-subtle`
+- [x] `hover:bg-gray-50` → `hover:bg-surface-bright`
+- [x] `divide-gray-200` → `divide-border-subtle`
+- [x] Links: `text-primary hover:text-primary-hover`
 
 **Scope:** Systematic class replacement on organizer dashboard page
 **AC:** Dashboard is fully dark with violet accents
 **Files:** `src/app/dashboard/page.tsx`
 
-#### Task 6.6.2: Re-skin vendor dashboard home page
-- [ ] Same treatment as 6.6.1
-- [ ] Keep teal accent for vendor: `bg-teal-500/15 text-teal-400`
+#### Task 6.6.2: Re-skin vendor dashboard home page ✅
+- [x] Same treatment as 6.6.1
+- [x] Keep teal accent for vendor: `bg-teal-500/15 text-teal-400`
 
 **Scope:** Systematic class replacement on vendor dashboard page
 **AC:** Vendor dashboard is dark with teal accents
 **Files:** `src/app/vendor-dashboard/page.tsx`
 
-#### Task 6.6.3: Re-skin events management page
-- [ ] "Create Event" button: `bg-primary text-primary-foreground`
-- [ ] Table header: `bg-surface-bright` (replaces `bg-gray-50`)
-- [ ] Table rows hover: `hover:bg-surface-bright`
-- [ ] All gray text/border replacements as per 6.6.1
+#### Task 6.6.3: Re-skin events management page ✅
+- [x] "Create Event" button: `bg-primary text-primary-foreground`
+- [x] Table header: `bg-surface-bright` (replaces `bg-gray-50`)
+- [x] Table rows hover: `hover:bg-surface-bright`
+- [x] All gray text/border replacements as per 6.6.1
 
 **Scope:** Update events page classes
 **AC:** Events table is dark with readable text
 **Files:** `src/app/dashboard/events/page.tsx`
 
-#### Task 6.6.4: Re-skin public apply page
-- [ ] `text-gray-900` → `text-foreground`
-- [ ] `text-gray-600` → `text-muted`
-- [ ] `bg-white shadow-md` → `bg-surface border border-border-subtle`
+#### Task 6.6.4: Re-skin public apply page ✅
+- [x] `text-gray-900` → `text-foreground`
+- [x] `text-gray-600` → `text-muted`
+- [x] `bg-white shadow-md` → `bg-surface border border-border-subtle`
 
 **Scope:** Update apply page wrapper classes
 **AC:** Apply page has dark card wrapper
 **Files:** `src/app/(public)/apply/page.tsx`
 
-#### Task 6.6.5: Re-skin remaining dashboard subpages
-- [ ] Apply systematic gray→dark replacements to all remaining pages (~10-15 files):
+#### Task 6.6.5: Re-skin remaining dashboard subpages ✅
+- [x] Apply systematic gray→dark replacements to all remaining pages (~12 files):
   - `/dashboard/events/new/page.tsx`
   - `/dashboard/events/[id]/page.tsx`
-  - `/dashboard/applications/page.tsx` (if exists)
+  - `/dashboard/applications/page.tsx`
+  - `/dashboard/applications/[id]/page.tsx`
+  - `/dashboard/applications/[id]/attachments-list.tsx`
+  - `/dashboard/applications/[id]/organizer-notes.tsx`
+  - `/dashboard/applications/[id]/status-buttons.tsx`
   - `/dashboard/team/page.tsx`
+  - `/dashboard/admin/page.tsx`
   - `/vendor-dashboard/applications/page.tsx`
   - `/vendor-dashboard/applications/[id]/page.tsx`
   - `/vendor-dashboard/profile/page.tsx`
-  - Any other dashboard subpages
-- [ ] Follow the same class mapping used in 6.6.1
+- [x] Follow the same class mapping used in 6.6.1
 
 **Scope:** Bulk class updates across remaining pages
 **AC:** No white/light-gray elements remain in any dashboard page
