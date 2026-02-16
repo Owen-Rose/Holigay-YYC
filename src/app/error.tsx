@@ -20,9 +20,9 @@ export default function Error({
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="text-center">
         {/* Error icon */}
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15">
           <svg
-            className="h-8 w-8 text-red-600"
+            className="h-8 w-8 text-red-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -37,11 +37,11 @@ export default function Error({
           </svg>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900">Something went wrong</h1>
-        <p className="mt-2 text-gray-600">We encountered an unexpected error. Please try again.</p>
+        <h1 className="text-2xl font-bold text-foreground">Something went wrong</h1>
+        <p className="mt-2 text-muted">We encountered an unexpected error. Please try again.</p>
 
         {/* Show error digest in development for debugging */}
-        {error.digest && <p className="mt-2 text-xs text-gray-400">Error ID: {error.digest}</p>}
+        {error.digest && <p className="mt-2 text-xs text-muted-foreground">Error ID: {error.digest}</p>}
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button onClick={reset}>Try again</Button>
