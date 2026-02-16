@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { inviteOrganizer } from '@/lib/actions/team';
 
 // =============================================================================
@@ -28,14 +29,6 @@ function EnvelopeIcon({ className }: { className?: string }) {
   );
 }
 
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-    </svg>
-  );
-}
-
 function ExclamationIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -56,19 +49,10 @@ export function InviteForm({ onInvited }: InviteFormProps) {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  // Auto-dismiss success message after 5 seconds
-  useEffect(() => {
-    if (!success) return;
-    const timer = setTimeout(() => setSuccess(null), 5000);
-    return () => clearTimeout(timer);
-  }, [success]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSuccess(null);
 
     // Client-side email validation
     const trimmed = email.trim();
@@ -87,15 +71,15 @@ export function InviteForm({ onInvited }: InviteFormProps) {
       const result = await inviteOrganizer(trimmed);
 
       if (!result.success) {
-        setError(result.error || 'Failed to send invite');
+        toast.error(result.error || 'Failed to send invite');
         return;
       }
 
-      setSuccess(`Invitation sent to ${trimmed}`);
+      toast.success(`Invitation sent to ${trimmed}`);
       setEmail('');
       onInvited?.();
     } catch (err) {
-      setError('An unexpected error occurred');
+      toast.error('An unexpected error occurred');
       console.error('Invite error:', err);
     } finally {
       setIsSubmitting(false);
@@ -143,13 +127,6 @@ export function InviteForm({ onInvited }: InviteFormProps) {
         </div>
       )}
 
-      {/* Success feedback */}
-      {success && (
-        <div className="mt-3 flex items-center gap-2 rounded-md bg-green-500/10 px-3 py-2">
-          <CheckIcon className="h-4 w-4 flex-shrink-0 text-green-400" />
-          <p className="text-sm text-green-400">{success}</p>
-        </div>
-      )}
     </div>
   );
 }

@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { getUsers, type UserWithRole } from '@/lib/actions/admin';
 import { UserRoleSelect } from '@/components/admin/user-role-select';
 import type { Role } from '@/lib/constants/roles';
@@ -126,29 +127,6 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 }
 
 // =============================================================================
-// Success Toast
-// =============================================================================
-
-function SuccessToast({ message, onClose }: { message: string; onClose: () => void }) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-green-500/20 bg-green-500/10 p-4 shadow-lg">
-      <div className="flex items-center gap-3">
-        <CheckIcon className="h-5 w-5 text-green-400" />
-        <p className="text-sm font-medium text-green-400">{message}</p>
-        <button onClick={onClose} className="text-green-400 hover:text-green-300">
-          <CloseIcon className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// =============================================================================
 // Icons
 // =============================================================================
 
@@ -176,22 +154,6 @@ function ExclamationIcon({ className }: { className?: string }) {
   );
 }
 
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-    </svg>
-  );
-}
-
-function CloseIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-    </svg>
-  );
-}
-
 // =============================================================================
 // Main Page Component
 // =============================================================================
@@ -200,7 +162,6 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Fetch users on mount
   const fetchUsers = useCallback(async () => {
@@ -235,7 +196,7 @@ export default function AdminUsersPage() {
         user.id === userId ? { ...user, role: newRole } : user
       )
     );
-    setSuccessMessage('User role updated successfully');
+    toast.success('User role updated');
   }
 
   return (
@@ -330,13 +291,6 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Success Toast */}
-      {successMessage && (
-        <SuccessToast
-          message={successMessage}
-          onClose={() => setSuccessMessage(null)}
-        />
-      )}
     </div>
   );
 }

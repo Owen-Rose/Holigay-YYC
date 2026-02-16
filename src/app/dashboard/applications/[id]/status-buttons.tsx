@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { updateApplicationStatus } from '@/lib/actions/applications';
 import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
@@ -52,22 +53,19 @@ const statusButtonConfig: Record<
 export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpdateButtonsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   async function handleStatusChange(newStatus: ApplicationStatus) {
     if (newStatus === currentStatus) return;
-
-    setError(null);
 
     startTransition(async () => {
       const result = await updateApplicationStatus(applicationId, newStatus);
 
       if (!result.success) {
-        setError(result.error || 'Failed to update status');
+        toast.error(result.error || 'Failed to update status');
         return;
       }
 
-      // Refresh the page to show updated status
+      toast.success(`Application ${newStatus}`);
       router.refresh();
     });
   }
@@ -99,12 +97,6 @@ export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpda
           );
         })}
       </div>
-
-      {error && (
-        <p className="mt-2 text-sm text-red-400" role="alert">
-          {error}
-        </p>
-      )}
     </div>
   );
 }

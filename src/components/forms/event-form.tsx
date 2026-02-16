@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
 import {
   eventFormSchema,
   EVENT_STATUSES,
@@ -32,11 +32,6 @@ interface EventFormProps {
 // =============================================================================
 
 export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFormProps) {
-  const [submitResult, setSubmitResult] = useState<{
-    type: 'success' | 'error'
-    message: string
-  } | null>(null)
-
   const {
     register,
     handleSubmit,
@@ -55,17 +50,12 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
   })
 
   async function handleFormSubmit(data: EventFormInput) {
-    setSubmitResult(null)
-
     const result = await onSubmit(data)
 
     if (result.success) {
-      setSubmitResult({
-        type: 'success',
-        message: mode === 'create' ? 'Event created successfully.' : 'Event updated successfully.',
-      })
+      toast.success(mode === 'create' ? 'Event created' : 'Event updated')
     } else {
-      setSubmitResult({ type: 'error', message: result.error || 'Something went wrong.' })
+      toast.error(result.error || 'Something went wrong')
     }
   }
 
@@ -147,20 +137,6 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
           />
         </div>
       </section>
-
-      {/* Submit feedback */}
-      {submitResult && (
-        <div
-          role="alert"
-          className={`rounded-md p-3 text-sm ${
-            submitResult.type === 'success'
-              ? 'bg-green-500/10 text-green-400'
-              : 'bg-red-500/10 text-red-400'
-          }`}
-        >
-          {submitResult.message}
-        </div>
-      )}
 
       {/* Submit button */}
       <div className="flex justify-end border-t border-border-subtle pt-4">

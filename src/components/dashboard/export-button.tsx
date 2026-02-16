@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { exportApplicationsCSV } from '@/lib/actions/export';
 import type { ApplicationFilters } from '@/lib/actions/applications';
 
@@ -23,17 +24,15 @@ interface ExportButtonProps {
  */
 export function ExportButton({ filters = {} }: ExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleExport() {
     setIsExporting(true);
-    setError(null);
 
     try {
       const result = await exportApplicationsCSV(filters);
 
       if (!result.success || !result.data) {
-        setError(result.error || 'Failed to export applications');
+        toast.error(result.error || 'Failed to export applications');
         return;
       }
 
@@ -51,9 +50,11 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
       // Cleanup
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+
+      toast.success('Export downloaded');
     } catch (err) {
       console.error('Export error:', err);
-      setError('An unexpected error occurred');
+      toast.error('An unexpected error occurred');
     } finally {
       setIsExporting(false);
     }
@@ -115,13 +116,6 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
           </>
         )}
       </button>
-
-      {/* Error message */}
-      {error && (
-        <span className="text-sm text-red-400" role="alert">
-          {error}
-        </span>
-      )}
     </div>
   );
 }

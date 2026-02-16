@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
 import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/vendor'
 import { updateVendorProfile } from '@/lib/actions/vendors'
 import { Input } from '@/components/ui/input'
@@ -23,11 +23,6 @@ interface VendorProfileFormProps {
 // =============================================================================
 
 export function VendorProfileForm({ defaultValues, email }: VendorProfileFormProps) {
-  const [submitResult, setSubmitResult] = useState<{
-    type: 'success' | 'error'
-    message: string
-  } | null>(null)
-
   const {
     register,
     handleSubmit,
@@ -38,14 +33,12 @@ export function VendorProfileForm({ defaultValues, email }: VendorProfileFormPro
   })
 
   async function onSubmit(data: VendorProfileInput) {
-    setSubmitResult(null)
-
     const result = await updateVendorProfile(data)
 
     if (result.success) {
-      setSubmitResult({ type: 'success', message: 'Profile updated successfully.' })
+      toast.success('Profile updated')
     } else {
-      setSubmitResult({ type: 'error', message: result.error })
+      toast.error(result.error)
     }
   }
 
@@ -91,20 +84,6 @@ export function VendorProfileForm({ defaultValues, email }: VendorProfileFormPro
         error={errors.description?.message}
         {...register('description')}
       />
-
-      {/* Submit feedback */}
-      {submitResult && (
-        <div
-          role="alert"
-          className={`rounded-md p-3 text-sm ${
-            submitResult.type === 'success'
-              ? 'bg-green-500/10 text-green-400'
-              : 'bg-red-500/10 text-red-400'
-          }`}
-        >
-          {submitResult.message}
-        </div>
-      )}
 
       {/* Submit button */}
       <div className="flex justify-end">

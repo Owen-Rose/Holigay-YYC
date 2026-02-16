@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { updateUserRole } from '@/lib/actions/admin';
 import { ROLES, type Role } from '@/lib/constants/roles';
 
@@ -88,10 +89,11 @@ export function UserRoleSelect({
         return;
       }
 
-      // Success - notify parent and close dialog
+      // Success - notify parent, close dialog, and show toast
       onRoleChange?.(pendingRole);
       setShowConfirm(false);
       setPendingRole(null);
+      toast.success(`Role updated to ${pendingRole}`);
     } catch (err) {
       setError('An unexpected error occurred');
       console.error('Role update error:', err);

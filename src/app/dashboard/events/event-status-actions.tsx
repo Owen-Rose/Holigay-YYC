@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { updateEventStatus } from '@/lib/actions/events'
 
 interface EventStatusActionsProps {
@@ -16,18 +17,17 @@ interface EventStatusActionsProps {
 export function EventStatusActions({ eventId, status }: EventStatusActionsProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function handleTransition(newStatus: string) {
     setLoading(true)
-    setError(null)
 
     const result = await updateEventStatus(eventId, newStatus)
 
     if (result.success) {
+      toast.success(newStatus === 'active' ? 'Event published' : 'Event closed')
       router.refresh()
     } else {
-      setError(result.error)
+      toast.error(result.error || 'Failed to update event status')
     }
 
     setLoading(false)
@@ -56,11 +56,6 @@ export function EventStatusActions({ eventId, status }: EventStatusActionsProps)
       >
         {loading ? 'Updating...' : config.label}
       </button>
-      {error && (
-        <span className="text-xs text-red-400" title={error}>
-          Failed
-        </span>
-      )}
     </div>
   )
 }

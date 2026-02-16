@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { updateApplicationNotes } from '@/lib/actions/applications';
 
 // =============================================================================
@@ -22,30 +23,20 @@ export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesPr
   const [isPending, startTransition] = useTransition();
   const [notes, setNotes] = useState(initialNotes);
   const [savedNotes, setSavedNotes] = useState(initialNotes);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const hasChanges = notes !== savedNotes;
 
   async function handleSave() {
-    setError(null);
-    setSuccess(false);
-
     startTransition(async () => {
       const result = await updateApplicationNotes(applicationId, notes);
 
       if (!result.success) {
-        setError(result.error || 'Failed to save notes');
+        toast.error(result.error || 'Failed to save notes');
         return;
       }
 
       setSavedNotes(notes);
-      setSuccess(true);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000);
-
-      // Refresh the page data
+      toast.success('Notes saved');
       router.refresh();
     });
   }
@@ -70,20 +61,7 @@ export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesPr
         className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-bright disabled:text-muted-foreground"
       />
 
-      <div className="mt-4 flex items-center justify-between">
-        <div>
-          {error && (
-            <p className="text-sm text-red-400" role="alert">
-              {error}
-            </p>
-          )}
-          {success && (
-            <p className="text-sm text-green-400" role="status">
-              Notes saved successfully
-            </p>
-          )}
-        </div>
-
+      <div className="mt-4 flex justify-end">
         <button
           onClick={handleSave}
           disabled={isPending || !hasChanges}
