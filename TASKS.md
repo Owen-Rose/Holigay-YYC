@@ -619,15 +619,15 @@
 **Files:** `src/components/ui/card.tsx`
 
 #### Task 6.3.3: Re-skin Input component
-- [ ] Label: `text-foreground`
-- [ ] Input base: add `bg-surface text-foreground`
-- [ ] Normal border: `border-border` (replaces `border-gray-300`)
-- [ ] Focus: `border-primary ring-primary/50` (replaces blue)
-- [ ] Error: `border-red-500/60 focus:border-red-400 focus:ring-red-400/50`
-- [ ] Disabled: `disabled:bg-surface-bright disabled:text-muted-foreground`
-- [ ] Placeholder: `placeholder:text-muted-foreground`
-- [ ] Hint text: `text-muted`
-- [ ] Error text: `text-red-400`
+- [x] Label: `text-foreground`
+- [x] Input base: add `bg-surface text-foreground`
+- [x] Normal border: `border-border` (replaces `border-gray-300`)
+- [x] Focus: `border-primary ring-primary/50` (replaces blue)
+- [x] Error: `border-red-500/60 focus:border-red-400 focus:ring-red-400/50`
+- [x] Disabled: `disabled:bg-surface-bright disabled:text-muted-foreground`
+- [x] Placeholder: `placeholder:text-muted-foreground`
+- [x] Hint text: `text-muted`
+- [x] Error text: `text-red-400`
 
 **Scope:** Update styles in Input component
 **AC:** Inputs have dark background, visible on dark page, violet focus ring
