@@ -15,7 +15,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-gray-700">
+          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-foreground">
             {label}
           </label>
         )}
@@ -23,13 +23,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           id={inputId}
           className={cn(
-            'text-gray-900 block min-h-[44px] w-full rounded-md border px-3 py-2.5 shadow-sm transition-colors',
+            'block min-h-[44px] w-full rounded-md border bg-surface text-foreground px-3 py-2.5 shadow-sm transition-colors',
             'focus:ring-1 focus:outline-none',
             error
-              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500',
-            'disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500',
-            'placeholder:text-gray-400',
+              ? 'border-red-500/60 focus:border-red-400 focus:ring-red-400/50'
+              : 'border-border focus:border-primary focus:ring-primary/50',
+            'disabled:cursor-not-allowed disabled:bg-surface-bright disabled:text-muted-foreground',
+            'placeholder:text-muted-foreground',
             className
           )}
           ref={ref}
@@ -38,12 +38,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {hint && !error && (
-          <p id={`${inputId}-hint`} className="mt-1 text-sm text-gray-500">
+          <p id={`${inputId}-hint`} className="mt-1 text-sm text-muted">
             {hint}
           </p>
         )}
         {error && (
-          <p id={`${inputId}-error`} className="mt-1 text-sm text-red-600" role="alert">
+          <p id={`${inputId}-error`} className="mt-1 text-sm text-red-400" role="alert">
             {error}
           </p>
         )}
