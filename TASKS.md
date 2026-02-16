@@ -486,8 +486,8 @@
 > Set up the color palette, CSS custom properties, and font that everything else depends on.
 
 #### Task 6.1.1: Rewrite globals.css with brand color system
-- [ ] Remove light/dark media query (dark-only design)
-- [ ] Define all CSS custom properties in `:root`:
+- [x] Remove light/dark media query (dark-only design)
+- [x] Define all CSS custom properties in `:root`:
   - `--background: #1C171C` (warm near-black from Carrd)
   - `--foreground: #F5F0F5` (warm off-white, 13:1 contrast)
   - `--surface: #2A2230` (card/panel backgrounds)
@@ -500,10 +500,10 @@
   - `--primary-hover: #8B5CF6` (violet-500)
   - `--primary-soft: rgba(167,139,250,0.15)` (active nav, icon bgs)
   - `--primary-foreground: #1C171C` (text on primary buttons)
-- [ ] Register all tokens in `@theme inline` for Tailwind v4 (enables `bg-surface`, `text-muted`, `border-border`, etc.)
-- [ ] Define rainbow gradient: `linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #A78BFA)`
-- [ ] Add subtle radial gradient pattern on `body::before` for depth (no image files)
-- [ ] Set body font-family and background
+- [x] Register all tokens in `@theme inline` for Tailwind v4 (enables `bg-surface`, `text-muted`, `border-border`, etc.)
+- [x] Define rainbow gradient: `linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #A78BFA)`
+- [x] Add subtle radial gradient pattern on `body::before` for depth (no image files)
+- [x] Set body font-family and background
 
 **Scope:** Rewrite `src/app/globals.css`
 **AC:** Background is `#1C171C`, text is warm off-white, Tailwind utility classes like `bg-surface` and `text-primary` work
@@ -511,12 +511,12 @@
 **Files:** `src/app/globals.css`
 
 #### Task 6.1.2: Swap Geist font for Quicksand
-- [ ] Replace `Geist` + `Geist_Mono` imports with `Quicksand` from `next/font/google`
-- [ ] Configure weights 300, 400, 500, 600, 700
-- [ ] Set CSS variable `--font-quicksand`
-- [ ] Apply variable class to `<body>`
-- [ ] Update `@theme inline` to use `--font-quicksand` as `--font-sans`
-- [ ] Fix root metadata title from "Create Next App" to "Holigay Events YYC"
+- [x] Replace `Geist` + `Geist_Mono` imports with `Quicksand` from `next/font/google`
+- [x] Configure weights 300, 400, 500, 600, 700
+- [x] Set CSS variable `--font-quicksand`
+- [x] Apply variable class to `<body>`
+- [x] Update `@theme inline` to use `--font-quicksand` as `--font-sans`
+- [x] Fix root metadata title from "Create Next App" to "Holigay Events YYC"
 
 **Scope:** Modify root layout
 **AC:** All text renders in Quicksand (rounded letterforms); page title is correct

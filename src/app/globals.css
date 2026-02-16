@@ -1,26 +1,68 @@
 @import 'tailwindcss';
 
+/* ── Brand color system for Holigay Events YYC ──
+   Dark-only design: no light/dark media query.
+   Reference: holigayeventsyyc.carrd.co
+   ────────────────────────────────────────────── */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --background: #1C171C;        /* warm near-black from brand */
+  --foreground: #F5F0F5;        /* warm off-white, ~13:1 contrast */
+  --surface: #2A2230;           /* card/panel backgrounds */
+  --surface-bright: #352D3B;    /* elevated surfaces, hover states */
+
+  /* Borders */
+  --border: #4A3F52;            /* input borders */
+  --border-subtle: #3A3142;     /* card borders, dividers */
+
+  /* Muted text */
+  --muted: #A89BB2;             /* secondary text, ~5.1:1 contrast */
+  --muted-foreground: #8B7D96;  /* placeholders, tertiary text */
+
+  /* Primary (violet) */
+  --primary: #A78BFA;           /* violet-400, replaces generic blue */
+  --primary-hover: #8B5CF6;     /* violet-500 */
+  --primary-soft: rgba(167, 139, 250, 0.15); /* active nav, icon backgrounds */
+  --primary-foreground: #1C171C;/* text on primary buttons */
+
+  /* Rainbow gradient (pride-inclusive brand accent) */
+  --rainbow: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #A78BFA);
 }
 
+/* Register all tokens for Tailwind v4 utility classes
+   e.g. bg-surface, text-muted, border-border-subtle, etc. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: var(--surface);
+  --color-surface-bright: var(--surface-bright);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-foreground: var(--primary-foreground);
+  --font-sans: var(--font-quicksand);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Subtle radial gradient overlay for depth (no image files) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(167, 139, 250, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
+  pointer-events: none;
 }
