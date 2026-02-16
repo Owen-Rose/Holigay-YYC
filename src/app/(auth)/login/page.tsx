@@ -39,14 +39,14 @@ function LoginContent() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="mt-2 text-sm text-gray-600">Sign in to access your organizer dashboard</p>
+        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
+        <p className="mt-2 text-sm text-muted">Sign in to access your organizer dashboard</p>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="rounded-md bg-red-500/10 p-4">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
@@ -55,8 +55,8 @@ function LoginContent() {
 
       {/* Links */}
       <div className="text-center text-sm">
-        <span className="text-gray-600">Don&apos;t have an account? </span>
-        <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+        <span className="text-muted">Don&apos;t have an account? </span>
+        <Link href="/signup" className="font-medium text-primary hover:text-primary-hover">
           Sign up
         </Link>
       </div>
@@ -68,13 +68,13 @@ function LoginFallback() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-        <p className="mt-2 text-sm text-gray-600">Sign in to access your organizer dashboard</p>
+        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
+        <p className="mt-2 text-sm text-muted">Sign in to access your organizer dashboard</p>
       </div>
       <div className="animate-pulse space-y-4">
-        <div className="h-10 rounded bg-gray-200" />
-        <div className="h-10 rounded bg-gray-200" />
-        <div className="h-10 rounded bg-gray-200" />
+        <div className="h-10 rounded bg-surface-bright" />
+        <div className="h-10 rounded bg-surface-bright" />
+        <div className="h-10 rounded bg-surface-bright" />
       </div>
     </div>
   );

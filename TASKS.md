@@ -714,11 +714,11 @@
 **Files:** `src/components/auth/signup-form.tsx`
 
 #### Task 6.4.3: Re-skin login page
-- [ ] `text-gray-900` → `text-foreground`
-- [ ] `text-gray-600` → `text-muted`
-- [ ] Error state: `bg-red-500/10 text-red-400` (replaces `bg-red-50 text-red-700`)
-- [ ] Links: `text-primary hover:text-primary-hover`
-- [ ] Loading skeleton: `bg-surface-bright` (replaces `bg-gray-200`)
+- [x] `text-gray-900` → `text-foreground`
+- [x] `text-gray-600` → `text-muted`
+- [x] Error state: `bg-red-500/10 text-red-400` (replaces `bg-red-50 text-red-700`)
+- [x] Links: `text-primary hover:text-primary-hover`
+- [x] Loading skeleton: `bg-surface-bright` (replaces `bg-gray-200`)
 
 **Scope:** Update page-level classes
 **AC:** Login page is fully dark with no white elements
