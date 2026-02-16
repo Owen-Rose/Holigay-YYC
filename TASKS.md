@@ -511,12 +511,12 @@
 **Files:** `src/app/globals.css`
 
 #### Task 6.1.2: Swap Geist font for Quicksand
-- [ ] Replace `Geist` + `Geist_Mono` imports with `Quicksand` from `next/font/google`
-- [ ] Configure weights 300, 400, 500, 600, 700
-- [ ] Set CSS variable `--font-quicksand`
-- [ ] Apply variable class to `<body>`
-- [ ] Update `@theme inline` to use `--font-quicksand` as `--font-sans`
-- [ ] Fix root metadata title from "Create Next App" to "Holigay Events YYC"
+- [x] Replace `Geist` + `Geist_Mono` imports with `Quicksand` from `next/font/google`
+- [x] Configure weights 300, 400, 500, 600, 700
+- [x] Set CSS variable `--font-quicksand`
+- [x] Apply variable class to `<body>`
+- [x] Update `@theme inline` to use `--font-quicksand` as `--font-sans`
+- [x] Fix root metadata title from "Create Next App" to "Holigay Events YYC"
 
 **Scope:** Modify root layout
 **AC:** All text renders in Quicksand (rounded letterforms); page title is correct
