@@ -890,20 +890,20 @@
 
 ### Story 6.8: Toast Notifications
 
-#### Task 6.8.1: Install toast library
-- [ ] Add react-hot-toast or sonner
-- [ ] Set up Toaster in root layout
-- [ ] Configure dark theme styling to match brand
+#### Task 6.8.1: Install toast library ✅
+- [x] Add sonner
+- [x] Set up Toaster in root layout
+- [x] Configure dark theme styling to match brand
 
 **Scope:** Package install + layout change
 **AC:** Toast function available globally, toasts render with dark styling
 **Files:** `package.json`, `src/app/layout.tsx`
 
-#### Task 6.8.2: Add toasts to key actions
-- [ ] Application status update
-- [ ] Event create/update/delete
-- [ ] Profile save
-- [ ] Error states
+#### Task 6.8.2: Add toasts to key actions ✅
+- [x] Application status update
+- [x] Event create/update/delete
+- [x] Profile save
+- [x] Error states
 
 **Scope:** Update components that call server actions
 **AC:** User gets visual feedback on all key actions
