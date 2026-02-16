@@ -36,8 +36,8 @@ function StatusFilterTabs({ activeStatus }: { activeStatus: string }) {
             href={href}
             className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               isActive
-                ? 'bg-teal-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-teal-500 text-white'
+                : 'bg-surface-bright text-muted hover:bg-surface-bright/80 hover:text-foreground'
             }`}
           >
             {tab.label}
@@ -62,27 +62,27 @@ function formatDate(dateString: string): string {
 
 function ApplicationsList({ applications }: { applications: VendorApplication[] }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
-      <ul className="divide-y divide-gray-200">
+    <div className="rounded-lg border border-border-subtle bg-surface">
+      <ul className="divide-y divide-border-subtle">
         {applications.map((application) => (
           <li key={application.id}>
             <Link
               href={`/vendor-dashboard/applications/${application.id}`}
-              className="block px-6 py-4 hover:bg-gray-50"
+              className="block px-6 py-4 hover:bg-surface-bright"
             >
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {application.event.name}
                   </p>
-                  <p className="mt-1 truncate text-sm text-gray-500">
+                  <p className="mt-1 truncate text-sm text-muted">
                     {formatDate(application.event.event_date)} &middot;{' '}
                     {application.event.location}
                   </p>
                 </div>
                 <div className="ml-4 flex flex-shrink-0 items-center gap-3">
                   <StatusBadge status={application.status} />
-                  <span className="hidden text-xs text-gray-500 sm:inline">
+                  <span className="hidden text-xs text-muted-foreground sm:inline">
                     Submitted {formatDate(application.submitted_at)}
                   </span>
                 </div>
@@ -101,16 +101,16 @@ function ApplicationsList({ applications }: { applications: VendorApplication[] 
 
 function EmptyState({ isFiltered }: { isFiltered: boolean }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-      <ClipboardIcon className="mx-auto h-12 w-12 text-gray-400" />
+    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
+      <ClipboardIcon className="mx-auto h-12 w-12 text-muted-foreground" />
       {isFiltered ? (
         <>
-          <p className="mt-4 text-sm font-medium text-gray-900">No matching applications</p>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-4 text-sm font-medium text-foreground">No matching applications</p>
+          <p className="mt-1 text-sm text-muted">
             Try a different filter or{' '}
             <Link
               href="/vendor-dashboard/applications"
-              className="text-teal-600 hover:text-teal-500"
+              className="text-teal-400 hover:text-teal-300"
             >
               view all applications
             </Link>
@@ -119,9 +119,9 @@ function EmptyState({ isFiltered }: { isFiltered: boolean }) {
         </>
       ) : (
         <>
-          <p className="mt-4 text-sm font-medium text-gray-900">No applications yet</p>
-          <p className="mt-1 text-sm text-gray-500">
-            <Link href="/apply" className="text-teal-600 hover:text-teal-500">
+          <p className="mt-4 text-sm font-medium text-foreground">No applications yet</p>
+          <p className="mt-1 text-sm text-muted">
+            <Link href="/apply" className="text-teal-400 hover:text-teal-300">
               Apply to an event
             </Link>{' '}
             to get started.
@@ -138,12 +138,12 @@ function EmptyState({ isFiltered }: { isFiltered: boolean }) {
 
 function NoVendorProfile() {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-      <ClipboardIcon className="mx-auto h-12 w-12 text-gray-400" />
-      <h2 className="mt-4 text-lg font-medium text-gray-900">No vendor profile linked</h2>
-      <p className="mt-2 text-sm text-gray-500">
+    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
+      <ClipboardIcon className="mx-auto h-12 w-12 text-muted-foreground" />
+      <h2 className="mt-4 text-lg font-medium text-foreground">No vendor profile linked</h2>
+      <p className="mt-2 text-sm text-muted">
         Your account isn&apos;t linked to a vendor yet.{' '}
-        <Link href="/apply" className="text-teal-600 hover:text-teal-500">
+        <Link href="/apply" className="text-teal-400 hover:text-teal-300">
           Submit an application
         </Link>{' '}
         to create your vendor profile.
@@ -158,11 +158,11 @@ function NoVendorProfile() {
 
 function ErrorState() {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-12 text-center">
-      <p className="text-sm font-medium text-red-800">
+    <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-12 text-center">
+      <p className="text-sm font-medium text-red-400">
         Something went wrong loading your applications.
       </p>
-      <p className="mt-1 text-sm text-red-600">Please try again later.</p>
+      <p className="mt-1 text-sm text-red-400/80">Please try again later.</p>
     </div>
   )
 }
@@ -207,8 +207,8 @@ export default async function VendorApplicationsPage({
     <div>
       {/* Page Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Applications</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground">My Applications</h1>
+        <p className="mt-1 text-sm text-muted">
           View and track all your event applications.
         </p>
       </div>

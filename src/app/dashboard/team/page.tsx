@@ -11,9 +11,9 @@ import type { Role } from '@/lib/constants/roles';
 
 function RoleBadge({ role }: { role: Role }) {
   const config: Record<Role, { bg: string; text: string }> = {
-    admin: { bg: 'bg-purple-100', text: 'text-purple-700' },
-    organizer: { bg: 'bg-blue-100', text: 'text-blue-700' },
-    vendor: { bg: 'bg-gray-100', text: 'text-gray-700' },
+    admin: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
+    organizer: { bg: 'bg-primary/15', text: 'text-primary' },
+    vendor: { bg: 'bg-foreground/10', text: 'text-foreground' },
   };
 
   const { bg, text } = config[role];
@@ -46,20 +46,20 @@ function formatDate(dateString: string): string {
 function TableSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="rounded-lg border border-gray-200 bg-white">
-        <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
+      <div className="rounded-lg border border-border-subtle bg-surface">
+        <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
           <div className="grid grid-cols-3 gap-4">
-            <div className="h-4 w-16 rounded bg-gray-200" />
-            <div className="h-4 w-12 rounded bg-gray-200" />
-            <div className="h-4 w-20 rounded bg-gray-200" />
+            <div className="h-4 w-16 rounded bg-surface-bright" />
+            <div className="h-4 w-12 rounded bg-surface-bright" />
+            <div className="h-4 w-20 rounded bg-surface-bright" />
           </div>
         </div>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="border-b border-gray-100 px-6 py-4 last:border-0">
+          <div key={i} className="border-b border-border-subtle px-6 py-4 last:border-0">
             <div className="grid grid-cols-3 items-center gap-4">
-              <div className="h-4 w-48 rounded bg-gray-200" />
-              <div className="h-6 w-20 rounded-full bg-gray-200" />
-              <div className="h-4 w-24 rounded bg-gray-200" />
+              <div className="h-4 w-48 rounded bg-surface-bright" />
+              <div className="h-6 w-20 rounded-full bg-surface-bright" />
+              <div className="h-4 w-24 rounded bg-surface-bright" />
             </div>
           </div>
         ))}
@@ -74,12 +74,12 @@ function TableSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-        <UsersIcon className="h-6 w-6 text-gray-400" />
+    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-bright">
+        <UsersIcon className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h3 className="mt-4 text-sm font-medium text-gray-900">No team members yet</h3>
-      <p className="mt-1 text-sm text-gray-500">
+      <h3 className="mt-4 text-sm font-medium text-foreground">No team members yet</h3>
+      <p className="mt-1 text-sm text-muted">
         Invite organizers to help manage your events.
       </p>
     </div>
@@ -92,15 +92,15 @@ function EmptyState() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+    <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-6">
       <div className="flex items-start gap-3">
         <ExclamationIcon className="h-5 w-5 flex-shrink-0 text-red-400" />
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-red-800">Failed to load team</h3>
-          <p className="mt-1 text-sm text-red-700">{message}</p>
+          <h3 className="text-sm font-medium text-red-400">Failed to load team</h3>
+          <p className="mt-1 text-sm text-red-400/80">{message}</p>
           <button
             onClick={onRetry}
-            className="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
+            className="mt-3 text-sm font-medium text-red-400 hover:text-red-300"
           >
             Try again
           </button>
@@ -179,8 +179,8 @@ export default function TeamPage() {
     <div>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground">Team Management</h1>
+        <p className="mt-1 text-sm text-muted">
           View your team and invite new organizers.
         </p>
       </div>
@@ -193,19 +193,19 @@ export default function TeamPage() {
       {/* Stats */}
       {!isLoading && !error && teamMembers.length > 0 && (
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-sm font-medium text-gray-500">Team Members</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{teamMembers.length}</p>
+          <div className="rounded-lg border border-border-subtle bg-surface p-4">
+            <p className="text-sm font-medium text-muted">Team Members</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{teamMembers.length}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-sm font-medium text-gray-500">Organizers</p>
-            <p className="mt-1 text-2xl font-bold text-blue-600">
+          <div className="rounded-lg border border-border-subtle bg-surface p-4">
+            <p className="text-sm font-medium text-muted">Organizers</p>
+            <p className="mt-1 text-2xl font-bold text-primary">
               {teamMembers.filter((u) => u.role === 'organizer').length}
             </p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-sm font-medium text-gray-500">Admins</p>
-            <p className="mt-1 text-2xl font-bold text-purple-600">
+          <div className="rounded-lg border border-border-subtle bg-surface p-4">
+            <p className="text-sm font-medium text-muted">Admins</p>
+            <p className="mt-1 text-2xl font-bold text-purple-400">
               {teamMembers.filter((u) => u.role === 'admin').length}
             </p>
           </div>
@@ -220,10 +220,10 @@ export default function TeamPage() {
       ) : teamMembers.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
           {/* Table Header */}
-          <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
-            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+          <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
+            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-muted">
               <div className="col-span-6">Email</div>
               <div className="col-span-3">Role</div>
               <div className="col-span-3">Joined</div>
@@ -231,12 +231,12 @@ export default function TeamPage() {
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border-subtle">
             {teamMembers.map((member) => (
-              <div key={member.id} className="px-6 py-4 hover:bg-gray-50">
+              <div key={member.id} className="px-6 py-4 hover:bg-surface-bright">
                 <div className="grid grid-cols-12 items-center gap-4">
                   <div className="col-span-6">
-                    <p className="truncate text-sm font-medium text-gray-900">
+                    <p className="truncate text-sm font-medium text-foreground">
                       {member.email}
                     </p>
                   </div>
@@ -244,7 +244,7 @@ export default function TeamPage() {
                     <RoleBadge role={member.role} />
                   </div>
                   <div className="col-span-3">
-                    <p className="text-sm text-gray-500">{formatDate(member.createdAt)}</p>
+                    <p className="text-sm text-muted">{formatDate(member.createdAt)}</p>
                   </div>
                 </div>
               </div>

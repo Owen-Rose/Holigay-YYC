@@ -22,9 +22,9 @@ import type { Role } from '@/lib/constants/roles';
 
 function RoleBadge({ role }: { role: Role }) {
   const config: Record<Role, { bg: string; text: string }> = {
-    admin: { bg: 'bg-purple-100', text: 'text-purple-700' },
-    organizer: { bg: 'bg-blue-100', text: 'text-blue-700' },
-    vendor: { bg: 'bg-gray-100', text: 'text-gray-700' },
+    admin: { bg: 'bg-purple-500/15', text: 'text-purple-400' },
+    organizer: { bg: 'bg-primary/15', text: 'text-primary' },
+    vendor: { bg: 'bg-foreground/10', text: 'text-foreground' },
   };
 
   const { bg, text } = config[role];
@@ -55,24 +55,24 @@ function formatDate(dateString: string): string {
 function TableSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="rounded-lg border border-gray-200 bg-white">
+      <div className="rounded-lg border border-border-subtle bg-surface">
         {/* Header skeleton */}
-        <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
+        <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
           <div className="grid grid-cols-4 gap-4">
-            <div className="h-4 w-16 rounded bg-gray-200" />
-            <div className="h-4 w-12 rounded bg-gray-200" />
-            <div className="h-4 w-20 rounded bg-gray-200" />
-            <div className="h-4 w-16 rounded bg-gray-200" />
+            <div className="h-4 w-16 rounded bg-surface-bright" />
+            <div className="h-4 w-12 rounded bg-surface-bright" />
+            <div className="h-4 w-20 rounded bg-surface-bright" />
+            <div className="h-4 w-16 rounded bg-surface-bright" />
           </div>
         </div>
         {/* Row skeletons */}
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="border-b border-gray-100 px-6 py-4 last:border-0">
+          <div key={i} className="border-b border-border-subtle px-6 py-4 last:border-0">
             <div className="grid grid-cols-4 items-center gap-4">
-              <div className="h-4 w-48 rounded bg-gray-200" />
-              <div className="h-6 w-20 rounded-full bg-gray-200" />
-              <div className="h-4 w-24 rounded bg-gray-200" />
-              <div className="h-8 w-28 rounded bg-gray-200" />
+              <div className="h-4 w-48 rounded bg-surface-bright" />
+              <div className="h-6 w-20 rounded-full bg-surface-bright" />
+              <div className="h-4 w-24 rounded bg-surface-bright" />
+              <div className="h-8 w-28 rounded bg-surface-bright" />
             </div>
           </div>
         ))}
@@ -87,12 +87,12 @@ function TableSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-        <UsersIcon className="h-6 w-6 text-gray-400" />
+    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-bright">
+        <UsersIcon className="h-6 w-6 text-muted-foreground" />
       </div>
-      <h3 className="mt-4 text-sm font-medium text-gray-900">No users found</h3>
-      <p className="mt-1 text-sm text-gray-500">
+      <h3 className="mt-4 text-sm font-medium text-foreground">No users found</h3>
+      <p className="mt-1 text-sm text-muted">
         Users will appear here once they sign up.
       </p>
     </div>
@@ -105,19 +105,19 @@ function EmptyState() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+    <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-6">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
           <ExclamationIcon className="h-5 w-5 text-red-400" />
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-medium text-red-800">Failed to load users</h3>
-          <p className="mt-1 text-sm text-red-700">{message}</p>
+          <h3 className="text-sm font-medium text-red-400">Failed to load users</h3>
+          <p className="mt-1 text-sm text-red-400/80">{message}</p>
           <button
             onClick={onRetry}
-            className="mt-3 text-sm font-medium text-red-600 hover:text-red-500"
+            className="mt-3 text-sm font-medium text-red-400 hover:text-red-300"
           >
-            Try again →
+            Try again
           </button>
         </div>
       </div>
@@ -136,11 +136,11 @@ function SuccessToast({ message, onClose }: { message: string; onClose: () => vo
   }, [onClose]);
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 rounded-lg bg-green-50 p-4 shadow-lg">
+    <div className="fixed bottom-4 right-4 z-50 rounded-lg border border-green-500/20 bg-green-500/10 p-4 shadow-lg">
       <div className="flex items-center gap-3">
         <CheckIcon className="h-5 w-5 text-green-400" />
-        <p className="text-sm font-medium text-green-800">{message}</p>
-        <button onClick={onClose} className="text-green-400 hover:text-green-500">
+        <p className="text-sm font-medium text-green-400">{message}</p>
+        <button onClick={onClose} className="text-green-400 hover:text-green-300">
           <CloseIcon className="h-4 w-4" />
         </button>
       </div>
@@ -242,8 +242,8 @@ export default function AdminUsersPage() {
     <div>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+        <p className="mt-1 text-sm text-muted">
           View all users and manage their roles. Changes take effect immediately.
         </p>
       </div>
@@ -251,19 +251,19 @@ export default function AdminUsersPage() {
       {/* Stats Summary */}
       {!isLoading && !error && users.length > 0 && (
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-sm font-medium text-gray-500">Total Users</p>
-            <p className="mt-1 text-2xl font-bold text-gray-900">{users.length}</p>
+          <div className="rounded-lg border border-border-subtle bg-surface p-4">
+            <p className="text-sm font-medium text-muted">Total Users</p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{users.length}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-sm font-medium text-gray-500">Organizers</p>
-            <p className="mt-1 text-2xl font-bold text-blue-600">
+          <div className="rounded-lg border border-border-subtle bg-surface p-4">
+            <p className="text-sm font-medium text-muted">Organizers</p>
+            <p className="mt-1 text-2xl font-bold text-primary">
               {users.filter((u) => u.role === 'organizer').length}
             </p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-sm font-medium text-gray-500">Admins</p>
-            <p className="mt-1 text-2xl font-bold text-purple-600">
+          <div className="rounded-lg border border-border-subtle bg-surface p-4">
+            <p className="text-sm font-medium text-muted">Admins</p>
+            <p className="mt-1 text-2xl font-bold text-purple-400">
               {users.filter((u) => u.role === 'admin').length}
             </p>
           </div>
@@ -278,10 +278,10 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
           {/* Table Header */}
-          <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
-            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+          <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
+            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-muted">
               <div className="col-span-5">Email</div>
               <div className="col-span-2">Current Role</div>
               <div className="col-span-2">Joined</div>
@@ -290,16 +290,16 @@ export default function AdminUsersPage() {
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-border-subtle">
             {users.map((user) => (
-              <div key={user.id} className="px-6 py-4 hover:bg-gray-50">
+              <div key={user.id} className="px-6 py-4 hover:bg-surface-bright">
                 <div className="grid grid-cols-12 items-center gap-4">
                   {/* Email */}
                   <div className="col-span-5">
-                    <p className="truncate text-sm font-medium text-gray-900">
+                    <p className="truncate text-sm font-medium text-foreground">
                       {user.email}
                     </p>
-                    <p className="truncate text-xs text-gray-500">
+                    <p className="truncate text-xs text-muted-foreground">
                       ID: {user.id.slice(0, 8)}...
                     </p>
                   </div>
@@ -311,7 +311,7 @@ export default function AdminUsersPage() {
 
                   {/* Joined Date */}
                   <div className="col-span-2">
-                    <p className="text-sm text-gray-500">{formatDate(user.createdAt)}</p>
+                    <p className="text-sm text-muted">{formatDate(user.createdAt)}</p>
                   </div>
 
                   {/* Role Selector */}

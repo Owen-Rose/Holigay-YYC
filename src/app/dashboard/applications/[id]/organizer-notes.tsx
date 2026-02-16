@@ -51,13 +51,13 @@ export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesPr
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div className="rounded-lg border border-border-subtle bg-surface p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Organizer Notes</h2>
-        {hasChanges && <span className="text-xs text-amber-600">Unsaved changes</span>}
+        <h2 className="text-lg font-semibold text-foreground">Organizer Notes</h2>
+        {hasChanges && <span className="text-xs text-amber-400">Unsaved changes</span>}
       </div>
 
-      <p className="mb-3 text-sm text-gray-600">
+      <p className="mb-3 text-sm text-muted">
         Add private notes about this application. Only organizers can see these notes.
       </p>
 
@@ -67,18 +67,18 @@ export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesPr
         disabled={isPending}
         placeholder="Add notes about this application..."
         rows={4}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50"
+        className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-bright disabled:text-muted-foreground"
       />
 
       <div className="mt-4 flex items-center justify-between">
         <div>
           {error && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-red-400" role="alert">
               {error}
             </p>
           )}
           {success && (
-            <p className="text-sm text-green-600" role="status">
+            <p className="text-sm text-green-400" role="status">
               Notes saved successfully
             </p>
           )}
@@ -87,7 +87,7 @@ export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesPr
         <button
           onClick={handleSave}
           disabled={isPending || !hasChanges}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-bright disabled:text-muted-foreground"
         >
           {isPending ? 'Saving...' : 'Save Notes'}
         </button>

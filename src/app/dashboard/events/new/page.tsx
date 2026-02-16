@@ -26,21 +26,21 @@ export default function NewEventPage() {
       <div className="mb-8">
         <Link
           href="/dashboard/events"
-          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
           Back to Events
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Create Event</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-foreground">Create Event</h1>
+        <p className="mt-1 text-sm text-muted">
           Set up a new market event for vendors to apply to.
         </p>
       </div>
 
       {/* Event Form */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-border-subtle bg-surface p-6">
         <EventForm mode="create" onSubmit={handleSubmit} />
       </div>
     </div>
