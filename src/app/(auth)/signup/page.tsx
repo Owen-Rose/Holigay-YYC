@@ -34,21 +34,21 @@ export default function SignupPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Create an account</h1>
-        <p className="mt-2 text-sm text-gray-600">Sign up to manage vendor applications</p>
+        <h1 className="text-2xl font-bold text-foreground">Create an account</h1>
+        <p className="mt-2 text-sm text-muted">Sign up to manage vendor applications</p>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="rounded-md bg-red-500/10 p-4">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
 
       {/* Success Message */}
       {success && (
-        <div className="rounded-md bg-green-50 p-4">
-          <p className="text-sm text-green-700">
+        <div className="rounded-md bg-green-500/10 p-4">
+          <p className="text-sm text-green-400">
             Account created successfully! Please check your email to verify your account, then{' '}
             <Link href="/login" className="font-medium underline">
               sign in
@@ -63,8 +63,8 @@ export default function SignupPage() {
 
       {/* Links */}
       <div className="text-center text-sm">
-        <span className="text-gray-600">Already have an account? </span>
-        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+        <span className="text-muted">Already have an account? </span>
+        <Link href="/login" className="font-medium text-primary hover:text-primary-hover">
           Sign in
         </Link>
       </div>

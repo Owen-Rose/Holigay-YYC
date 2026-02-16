@@ -725,8 +725,8 @@
 **Files:** `src/app/(auth)/login/page.tsx`
 
 #### Task 6.4.4: Re-skin signup page
-- [ ] Same as 6.4.3
-- [ ] Success state: `bg-green-500/10 text-green-400` (replaces `bg-green-50 text-green-700`)
+- [x] Same as 6.4.3
+- [x] Success state: `bg-green-500/10 text-green-400` (replaces `bg-green-50 text-green-700`)
 
 **Scope:** Update page-level classes
 **AC:** Signup page is fully dark
