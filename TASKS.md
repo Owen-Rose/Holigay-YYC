@@ -554,14 +554,14 @@
 **Files:** `src/app/(auth)/layout.tsx`
 
 #### Task 6.2.3: Re-skin organizer dashboard layout
-- [ ] Sidebar/header: `bg-surface` (replaces `bg-white`)
-- [ ] All borders: `border-border-subtle` (replaces `border-gray-200`)
-- [ ] Active nav: `bg-primary-soft text-primary` (replaces `bg-blue-50 text-blue-700`)
-- [ ] Admin nav items: `bg-purple-500/15 text-purple-400`
-- [ ] Hover states: `hover:bg-surface-bright` (replaces `hover:bg-gray-100`)
-- [ ] Text: `text-foreground` / `text-muted` / `text-muted-foreground` (replaces gray scale)
-- [ ] Overlay: `bg-black/60` (replaces `bg-gray-900/50`)
-- [ ] Logout: `hover:bg-red-500/10 hover:text-red-400`
+- [x] Sidebar/header: `bg-surface` (replaces `bg-white`)
+- [x] All borders: `border-border-subtle` (replaces `border-gray-200`)
+- [x] Active nav: `bg-primary-soft text-primary` (replaces `bg-blue-50 text-blue-700`)
+- [x] Admin nav items: `bg-purple-500/15 text-purple-400`
+- [x] Hover states: `hover:bg-surface-bright` (replaces `hover:bg-gray-100`)
+- [x] Text: `text-foreground` / `text-muted` / `text-muted-foreground` (replaces gray scale)
+- [x] Overlay: `bg-black/60` (replaces `bg-gray-900/50`)
+- [x] Logout: `hover:bg-red-500/10 hover:text-red-400`
 
 **Scope:** Systematic class replacement in organizer dashboard layout
 **AC:** Sidebar and header are dark with violet accent on active nav

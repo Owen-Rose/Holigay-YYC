@@ -68,18 +68,18 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const isTeamActive = pathname.startsWith('/dashboard/team');
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen">
       {/* Mobile Header */}
-      <header className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 lg:hidden">
+      <header className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b border-border-subtle bg-surface px-4 lg:hidden">
         <button
           onClick={() => setIsSidebarOpen(true)}
-          className="flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-bright hover:text-foreground"
           aria-label="Open navigation menu"
         >
           <MenuIcon className="h-6 w-6" />
         </button>
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-bold text-gray-900">Holigay Market</h1>
+          <h1 className="text-lg font-bold text-foreground">Holigay Market</h1>
           <RoleBadge />
         </div>
         {/* Spacer for centering */}
@@ -89,7 +89,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-gray-900/50 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -97,19 +97,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-white shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo/Brand */}
-        <div className="flex h-14 items-center justify-between border-b border-gray-200 px-4 lg:h-16 lg:px-4">
+        <div className="flex h-14 items-center justify-between border-b border-border-subtle px-4 lg:h-16 lg:px-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-gray-900">Holigay Market</h1>
+            <h1 className="text-xl font-bold text-foreground">Holigay Market</h1>
             <RoleBadge />
           </div>
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className="flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-bright hover:text-foreground lg:hidden"
             aria-label="Close navigation menu"
           >
             <CloseIcon className="h-6 w-6" />
@@ -126,12 +126,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-primary-soft text-primary'
+                    : 'text-muted hover:bg-surface-bright hover:text-foreground'
                 }`}
               >
                 <item.icon
-                  className={`h-5 w-5 ${isActive ? 'text-blue-700' : 'text-gray-400'}`}
+                  className={`h-5 w-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
                 />
                 {item.name}
               </Link>
@@ -142,18 +142,18 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {isAdmin && (
             <>
               {/* Separator */}
-              <div className="my-2 border-t border-gray-200" />
+              <div className="my-2 border-t border-border-subtle" />
 
               <Link
                 href="/dashboard/admin"
                 className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isAdminActive
-                    ? 'bg-purple-50 text-purple-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-purple-500/15 text-purple-400'
+                    : 'text-muted hover:bg-surface-bright hover:text-foreground'
                 }`}
               >
                 <ShieldIcon
-                  className={`h-5 w-5 ${isAdminActive ? 'text-purple-700' : 'text-gray-400'}`}
+                  className={`h-5 w-5 ${isAdminActive ? 'text-purple-400' : 'text-muted-foreground'}`}
                 />
                 User Management
               </Link>
@@ -162,12 +162,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                 href="/dashboard/team"
                 className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isTeamActive
-                    ? 'bg-purple-50 text-purple-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-purple-500/15 text-purple-400'
+                    : 'text-muted hover:bg-surface-bright hover:text-foreground'
                 }`}
               >
                 <TeamIcon
-                  className={`h-5 w-5 ${isTeamActive ? 'text-purple-700' : 'text-gray-400'}`}
+                  className={`h-5 w-5 ${isTeamActive ? 'text-purple-400' : 'text-muted-foreground'}`}
                 />
                 Team
               </Link>
@@ -176,13 +176,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Logout Button */}
-        <div className="border-t border-gray-200 p-3">
+        <div className="border-t border-border-subtle p-3">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <LogoutIcon className="h-5 w-5 text-gray-400" />
+            <LogoutIcon className="h-5 w-5 text-muted-foreground" />
             {isLoggingOut ? 'Signing out...' : 'Sign Out'}
           </button>
         </div>
