@@ -604,14 +604,14 @@
 **Files:** `src/components/ui/button.tsx`
 
 #### Task 6.3.2: Re-skin Card component
-- [ ] Base styles: `rounded-xl border bg-surface/80 backdrop-blur-sm`
-- [ ] Default variant: `border-border-subtle`
-- [ ] Interactive variant: `hover:shadow-lg hover:shadow-primary/5 hover:border-border`
-- [ ] Outlined variant: `border-border`
-- [ ] Add new `glass` variant: `border-border-subtle/50 bg-surface/50 backdrop-blur-lg`
-- [ ] CardTitle: `text-foreground` (replaces `text-gray-900`)
-- [ ] CardDescription: `text-muted` (replaces `text-gray-500`)
-- [ ] CardHeader/CardFooter borders: `border-border-subtle`
+- [x] Base styles: `rounded-xl border bg-surface/80 backdrop-blur-sm`
+- [x] Default variant: `border-border-subtle`
+- [x] Interactive variant: `hover:shadow-lg hover:shadow-primary/5 hover:border-border`
+- [x] Outlined variant: `border-border`
+- [x] Add new `glass` variant: `border-border-subtle/50 bg-surface/50 backdrop-blur-lg`
+- [x] CardTitle: `text-foreground` (replaces `text-gray-900`)
+- [x] CardDescription: `text-muted` (replaces `text-gray-500`)
+- [x] CardHeader/CardFooter borders: `border-border-subtle`
 
 **Scope:** Update styles in Card component
 **AC:** Cards have dark semi-transparent background with blur; glass variant available
