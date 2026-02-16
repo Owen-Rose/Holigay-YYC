@@ -15,7 +15,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
       <label
         htmlFor={checkboxId}
         className={cn(
-          '-mx-2 flex min-h-[44px] cursor-pointer items-center rounded-md px-2 py-2 hover:bg-gray-50',
+          '-mx-2 flex min-h-[44px] cursor-pointer items-center rounded-md px-2 py-2 hover:bg-surface-bright',
           props.disabled && 'cursor-not-allowed opacity-50 hover:bg-transparent'
         )}
       >
@@ -23,8 +23,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           type="checkbox"
           id={checkboxId}
           className={cn(
-            'h-5 w-5 shrink-0 rounded border-gray-300',
-            'text-blue-600 focus:ring-blue-500 focus:ring-offset-0',
+            'h-5 w-5 shrink-0 rounded border-border',
+            'text-primary focus:ring-primary/50 focus:ring-offset-0',
             'disabled:cursor-not-allowed disabled:opacity-50',
             className
           )}
@@ -32,8 +32,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           {...props}
         />
         <div className="ml-3 text-sm">
-          <span className="font-medium text-gray-700">{label}</span>
-          {description && <p className="text-gray-500">{description}</p>}
+          <span className="font-medium text-foreground">{label}</span>
+          {description && <p className="text-muted">{description}</p>}
         </div>
       </label>
     );

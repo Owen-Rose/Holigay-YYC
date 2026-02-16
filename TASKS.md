@@ -666,11 +666,11 @@
 **Files:** `src/components/ui/badge.tsx`
 
 #### Task 6.3.7: Re-skin Checkbox component
-- [ ] Hover: `hover:bg-surface-bright` (replaces `hover:bg-gray-50`)
-- [ ] Border: `border-border` (replaces `border-gray-300`)
-- [ ] Checked: `text-primary focus:ring-primary/50` (replaces blue)
-- [ ] Label: `text-foreground`
-- [ ] Description: `text-muted`
+- [x] Hover: `hover:bg-surface-bright` (replaces `hover:bg-gray-50`)
+- [x] Border: `border-border` (replaces `border-gray-300`)
+- [x] Checked: `text-primary focus:ring-primary/50` (replaces blue)
+- [x] Label: `text-foreground`
+- [x] Description: `text-muted`
 
 **Scope:** Update styles in Checkbox component
 **AC:** Checkboxes are visible on dark bg with violet check color
