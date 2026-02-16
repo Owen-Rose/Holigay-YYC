@@ -78,7 +78,7 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Event Details */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Event Details</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Event Details</h2>
         <div className="space-y-4">
           <Input
             label="Event Name"
@@ -106,7 +106,7 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
 
       {/* Dates */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Dates</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Dates</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             label="Event Date"
@@ -127,7 +127,7 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
 
       {/* Settings */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Settings</h2>
+        <h2 className="mb-4 text-lg font-semibold text-foreground">Settings</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Select
             label="Status"
@@ -154,8 +154,8 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
           role="alert"
           className={`rounded-md p-3 text-sm ${
             submitResult.type === 'success'
-              ? 'bg-green-50 text-green-800'
-              : 'bg-red-50 text-red-800'
+              ? 'bg-green-500/10 text-green-400'
+              : 'bg-red-500/10 text-red-400'
           }`}
         >
           {submitResult.message}
@@ -163,7 +163,7 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
       )}
 
       {/* Submit button */}
-      <div className="flex justify-end border-t border-gray-200 pt-4">
+      <div className="flex justify-end border-t border-border-subtle pt-4">
         <Button type="submit" isLoading={isSubmitting} disabled={mode === 'edit' && !isDirty}>
           {isSubmitting
             ? mode === 'create'

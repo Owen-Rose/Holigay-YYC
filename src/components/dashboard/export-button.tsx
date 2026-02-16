@@ -64,14 +64,14 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-bright focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Export applications to CSV"
       >
         {isExporting ? (
           <>
             {/* Loading spinner */}
             <svg
-              className="h-4 w-4 animate-spin text-gray-500"
+              className="h-4 w-4 animate-spin text-muted"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -118,7 +118,7 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
 
       {/* Error message */}
       {error && (
-        <span className="text-sm text-red-600" role="alert">
+        <span className="text-sm text-red-400" role="alert">
           {error}
         </span>
       )}
