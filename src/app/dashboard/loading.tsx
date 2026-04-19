@@ -12,7 +12,7 @@ function StatCardSkeleton() {
         <div className="h-12 w-12 rounded-full bg-gray-200" />
       </div>
     </div>
-  )
+  );
 }
 
 function RecentApplicationsSkeleton() {
@@ -39,7 +39,7 @@ function RecentApplicationsSkeleton() {
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
 function QuickActionsSkeleton() {
@@ -61,7 +61,7 @@ function QuickActionsSkeleton() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export default function DashboardLoading() {
@@ -91,5 +91,5 @@ export default function DashboardLoading() {
         <QuickActionsSkeleton />
       </div>
     </div>
-  )
+  );
 }

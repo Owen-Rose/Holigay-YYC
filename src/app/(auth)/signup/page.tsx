@@ -1,32 +1,32 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { SignupForm } from '@/components/auth/signup-form'
-import { signUp } from '@/lib/actions/auth'
-import type { SignupInput } from '@/lib/validations/auth'
+import { useState } from 'react';
+import Link from 'next/link';
+import { SignupForm } from '@/components/auth/signup-form';
+import { signUp } from '@/lib/actions/auth';
+import type { SignupInput } from '@/lib/validations/auth';
 
 export default function SignupPage() {
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(data: SignupInput) {
-    setError(null)
-    setSuccess(false)
+    setError(null);
+    setSuccess(false);
 
     try {
-      const result = await signUp(data)
+      const result = await signUp(data);
 
       if (result.error) {
-        setError(result.error)
-        return
+        setError(result.error);
+        return;
       }
 
       // Show success message - user may need to verify email
-      setSuccess(true)
+      setSuccess(true);
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
-      console.error('Signup error:', err)
+      setError('An unexpected error occurred. Please try again.');
+      console.error('Signup error:', err);
     }
   }
 
@@ -35,9 +35,7 @@ export default function SignupPage() {
       {/* Page Header */}
       <div className="text-center">
         <h1 className="text-2xl font-bold text-gray-900">Create an account</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Sign up to manage vendor applications
-        </p>
+        <p className="mt-2 text-sm text-gray-600">Sign up to manage vendor applications</p>
       </div>
 
       {/* Error Message */}
@@ -51,8 +49,7 @@ export default function SignupPage() {
       {success && (
         <div className="rounded-md bg-green-50 p-4">
           <p className="text-sm text-green-700">
-            Account created successfully! Please check your email to verify your
-            account, then{' '}
+            Account created successfully! Please check your email to verify your account, then{' '}
             <Link href="/login" className="font-medium underline">
               sign in
             </Link>
@@ -67,13 +64,10 @@ export default function SignupPage() {
       {/* Links */}
       <div className="text-center text-sm">
         <span className="text-gray-600">Already have an account? </span>
-        <Link
-          href="/login"
-          className="font-medium text-blue-600 hover:text-blue-500"
-        >
+        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
           Sign in
         </Link>
       </div>
     </div>
-  )
+  );
 }

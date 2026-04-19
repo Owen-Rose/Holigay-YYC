@@ -35,9 +35,6 @@ export {
   applicationReceivedEmail,
   type ApplicationReceivedEmailData,
   type EmailContent,
-} from './application-received'
+} from './application-received';
 
-export {
-  statusUpdateEmail,
-  type StatusUpdateEmailData,
-} from './status-update'
+export { statusUpdateEmail, type StatusUpdateEmailData } from './status-update';

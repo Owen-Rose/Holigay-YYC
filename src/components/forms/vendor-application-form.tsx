@@ -1,34 +1,34 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import * as React from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   applicationFormSchema,
   type ApplicationFormInput,
   PRODUCT_CATEGORIES,
   CATEGORY_LABELS,
-} from '@/lib/validations/application'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, type SelectOption } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { FileUpload } from '@/components/ui/file-upload'
+} from '@/lib/validations/application';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, type SelectOption } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FileUpload } from '@/components/ui/file-upload';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export interface Event {
-  id: string
-  name: string
-  date: string
+  id: string;
+  name: string;
+  date: string;
 }
 
 export interface VendorApplicationFormProps {
-  events: Event[]
-  onSubmit: (data: ApplicationFormInput, files: File[]) => Promise<void>
+  events: Event[];
+  onSubmit: (data: ApplicationFormInput, files: File[]) => Promise<void>;
 }
 
 // =============================================================================
@@ -39,7 +39,7 @@ const boothOptions: SelectOption[] = [
   { value: 'indoor', label: 'Indoor' },
   { value: 'outdoor', label: 'Outdoor' },
   { value: 'no_preference', label: 'No Preference' },
-]
+];
 
 // =============================================================================
 // Component
@@ -47,7 +47,7 @@ const boothOptions: SelectOption[] = [
 
 export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFormProps) {
   // Files managed separately from form state (not in Zod schema)
-  const [files, setFiles] = React.useState<File[]>([])
+  const [files, setFiles] = React.useState<File[]>([]);
 
   const {
     register,
@@ -69,26 +69,24 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
       productCategories: [],
       specialRequirements: '',
     },
-  })
+  });
 
-  const selectedCategories = watch('productCategories') || []
+  const selectedCategories = watch('productCategories') || [];
 
   const eventOptions: SelectOption[] = events.map((event) => ({
     value: event.id,
     label: `${event.name} - ${new Date(event.date).toLocaleDateString()}`,
-  }))
+  }));
 
   const handleFormSubmit = async (data: ApplicationFormInput) => {
-    await onSubmit(data, files)
-  }
+    await onSubmit(data, files);
+  };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Vendor Information Section */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Business Information
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Business Information</h2>
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input
@@ -144,9 +142,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
       {/* Event Selection Section */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Event Details
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Event Details</h2>
         <div className="space-y-4">
           <Select
             label="Select Event"
@@ -168,10 +164,8 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
       {/* Product Categories Section */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          Product Categories
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
+        <h2 className="mb-2 text-lg font-semibold text-gray-900">Product Categories</h2>
+        <p className="mb-4 text-sm text-gray-500">
           Select 1-5 categories that best describe your products.
         </p>
         {errors.productCategories && (
@@ -190,11 +184,11 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
                   label={CATEGORY_LABELS[category]}
                   checked={field.value?.includes(category)}
                   onChange={(e) => {
-                    const checked = e.target.checked
+                    const checked = e.target.checked;
                     const newValue = checked
                       ? [...(field.value || []), category]
-                      : (field.value || []).filter((v) => v !== category)
-                    field.onChange(newValue)
+                      : (field.value || []).filter((v) => v !== category);
+                    field.onChange(newValue);
                   }}
                   disabled={
                     !selectedCategories.includes(category) && selectedCategories.length >= 5
@@ -211,9 +205,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
       {/* Special Requirements Section */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Additional Information
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Additional Information</h2>
         <Textarea
           label="Special Requirements (optional)"
           placeholder="Let us know if you have any special requirements, such as electrical outlets, extra space, etc."
@@ -225,9 +217,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
       {/* File Upload Section */}
       <section>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Product Photos
-        </h2>
+        <h2 className="mb-4 text-lg font-semibold text-gray-900">Product Photos</h2>
         <FileUpload
           label="Upload product photos (optional)"
           hint="Upload photos of your products to help us review your application"
@@ -237,15 +227,11 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
       </section>
 
       {/* Submit Button */}
-      <div className="flex justify-end pt-4 border-t border-gray-200">
-        <Button
-          type="submit"
-          size="lg"
-          isLoading={isSubmitting}
-        >
+      <div className="flex justify-end border-t border-gray-200 pt-4">
+        <Button type="submit" size="lg" isLoading={isSubmitting}>
           {isSubmitting ? 'Submitting...' : 'Submit Application'}
         </Button>
       </div>
     </form>
-  )
+  );
 }

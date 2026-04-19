@@ -1,25 +1,25 @@
-import Link from 'next/link'
+import Link from 'next/link';
 import {
   getApplicationCounts,
   getApplications,
   type ApplicationWithVendor,
-} from '@/lib/actions/applications'
-import { Card } from '@/components/ui/card'
-import { StatusBadge } from '@/components/ui/badge'
+} from '@/lib/actions/applications';
+import { Card } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/badge';
 
 // =============================================================================
 // Stat Card Components
 // =============================================================================
 
 interface StatCardProps {
-  title: string
-  value: number | string
-  icon: React.ReactNode
-  href?: string
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  href?: string;
   trend?: {
-    value: number
-    label: string
-  }
+    value: number;
+    label: string;
+  };
 }
 
 function StatCard({ title, value, icon, href, trend }: StatCardProps) {
@@ -41,17 +41,17 @@ function StatCard({ title, value, icon, href, trend }: StatCardProps) {
         </div>
       </div>
     </Card>
-  )
+  );
 
   if (href) {
     return (
       <Link href={href} className="block">
         {content}
       </Link>
-    )
+    );
   }
 
-  return content
+  return content;
 }
 
 // =============================================================================
@@ -59,12 +59,12 @@ function StatCard({ title, value, icon, href, trend }: StatCardProps) {
 // =============================================================================
 
 function formatDate(dateString: string): string {
-  const date = new Date(dateString)
+  const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+  });
 }
 
 function RecentApplications({ applications }: { applications: ApplicationWithVendor[] }) {
@@ -92,7 +92,7 @@ function RecentApplications({ applications }: { applications: ApplicationWithVen
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -134,7 +134,7 @@ function RecentApplications({ applications }: { applications: ApplicationWithVen
         ))}
       </ul>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -203,7 +203,7 @@ function QuickActions() {
         </svg>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
@@ -228,7 +228,7 @@ function QuickActions() {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -237,50 +237,74 @@ function QuickActions() {
 
 function ClockIcon() {
   return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
       />
     </svg>
-  )
+  );
 }
 
 function CheckCircleIcon() {
   return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
       />
     </svg>
-  )
+  );
 }
 
 function XCircleIcon() {
   return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
       />
     </svg>
-  )
+  );
 }
 
 function UsersIcon() {
   return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className="h-6 w-6"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
       />
     </svg>
-  )
+  );
 }
 
 // =============================================================================
@@ -289,11 +313,11 @@ function UsersIcon() {
 
 export default async function DashboardPage() {
   // Fetch application counts for summary cards
-  const counts = await getApplicationCounts()
+  const counts = await getApplicationCounts();
 
   // Fetch recent 5 applications
-  const recentResult = await getApplications({}, { page: 1, pageSize: 5 })
-  const recentApplications = recentResult.data?.applications ?? []
+  const recentResult = await getApplications({}, { page: 1, pageSize: 5 });
+  const recentApplications = recentResult.data?.applications ?? [];
 
   return (
     <div>
@@ -344,5 +368,5 @@ export default async function DashboardPage() {
         <QuickActions />
       </div>
     </div>
-  )
+  );
 }

@@ -1,32 +1,32 @@
-'use server'
+'use server';
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export type VendorApplication = {
-  id: string
-  status: string
-  submitted_at: string
+  id: string;
+  status: string;
+  submitted_at: string;
   event: {
-    id: string
-    name: string
-    event_date: string
-    location: string
-  }
-}
+    id: string;
+    name: string;
+    event_date: string;
+    location: string;
+  };
+};
 
 export type VendorDashboardData = {
   counts: {
-    pending: number
-    approved: number
-    rejected: number
-    total: number
-  }
-  recentApplications: VendorApplication[]
-}
+    pending: number;
+    approved: number;
+    rejected: number;
+    total: number;
+  };
+  recentApplications: VendorApplication[];
+};
 
 // =============================================================================
 // Server Actions
@@ -38,42 +38,42 @@ export type VendorDashboardData = {
  * Returns null if the user has no linked vendor profile.
  */
 export async function getVendorDashboardData(): Promise<VendorDashboardData | null> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Get current user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) return null
+  if (!user) return null;
 
   // Get vendor_id from user_profiles
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('vendor_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
-  if (!profile?.vendor_id) return null
+  if (!profile?.vendor_id) return null;
 
-  const vendorId = profile.vendor_id
+  const vendorId = profile.vendor_id;
 
   // Fetch all applications for this vendor (status only, for counts)
   const { data: allApps, error: countError } = await supabase
     .from('applications')
     .select('status')
-    .eq('vendor_id', vendorId)
+    .eq('vendor_id', vendorId);
 
   if (countError) {
-    console.error('Error fetching vendor application counts:', countError)
+    console.error('Error fetching vendor application counts:', countError);
   }
 
-  const counts = { pending: 0, approved: 0, rejected: 0, total: 0 }
+  const counts = { pending: 0, approved: 0, rejected: 0, total: 0 };
   for (const app of allApps || []) {
-    counts.total++
-    if (app.status === 'pending') counts.pending++
-    else if (app.status === 'approved') counts.approved++
-    else if (app.status === 'rejected') counts.rejected++
+    counts.total++;
+    if (app.status === 'pending') counts.pending++;
+    else if (app.status === 'approved') counts.approved++;
+    else if (app.status === 'rejected') counts.rejected++;
   }
 
   // Fetch recent 5 applications with event info
@@ -94,10 +94,10 @@ export async function getVendorDashboardData(): Promise<VendorDashboardData | nu
     )
     .eq('vendor_id', vendorId)
     .order('submitted_at', { ascending: false })
-    .limit(5)
+    .limit(5);
 
   if (recentError) {
-    console.error('Error fetching vendor recent applications:', recentError)
+    console.error('Error fetching vendor recent applications:', recentError);
   }
 
   // Filter out any applications with missing event data
@@ -108,7 +108,7 @@ export async function getVendorDashboardData(): Promise<VendorDashboardData | nu
       status: app.status,
       submitted_at: app.submitted_at,
       event: app.event as VendorApplication['event'],
-    }))
+    }));
 
-  return { counts, recentApplications }
+  return { counts, recentApplications };
 }

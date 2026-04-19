@@ -1,10 +1,6 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -15,10 +11,7 @@ export default function PublicLayout({
               Holigay Vendor Market
             </Link>
             <nav className="flex gap-4">
-              <Link
-                href="/login"
-                className="text-sm text-gray-600 hover:text-blue-600"
-              >
+              <Link href="/login" className="text-sm text-gray-600 hover:text-blue-600">
                 Sign In
               </Link>
             </nav>
@@ -27,9 +20,7 @@ export default function PublicLayout({
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        {children}
-      </main>
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
 
       {/* Footer */}
       <footer className="mt-auto border-t border-gray-200 bg-white">
@@ -40,5 +31,5 @@ export default function PublicLayout({
         </div>
       </footer>
     </div>
-  )
+  );
 }

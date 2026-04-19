@@ -1,8 +1,8 @@
-import { Suspense } from 'react'
-import { getApplications, type ApplicationFilters } from '@/lib/actions/applications'
-import { ApplicationsTable } from '@/components/dashboard/applications-table'
-import { ApplicationsFilter } from '@/components/dashboard/applications-filter'
-import { ExportButton } from '@/components/dashboard/export-button'
+import { Suspense } from 'react';
+import { getApplications, type ApplicationFilters } from '@/lib/actions/applications';
+import { ApplicationsTable } from '@/components/dashboard/applications-table';
+import { ApplicationsFilter } from '@/components/dashboard/applications-filter';
+import { ExportButton } from '@/components/dashboard/export-button';
 
 // =============================================================================
 // Types
@@ -10,10 +10,10 @@ import { ExportButton } from '@/components/dashboard/export-button'
 
 interface ApplicationsPageProps {
   searchParams: Promise<{
-    status?: string
-    search?: string
-    page?: string
-  }>
+    status?: string;
+    search?: string;
+    page?: string;
+  }>;
 }
 
 // =============================================================================
@@ -21,7 +21,7 @@ interface ApplicationsPageProps {
 // =============================================================================
 
 interface PageHeaderProps {
-  filters?: ApplicationFilters
+  filters?: ApplicationFilters;
 }
 
 function PageHeader({ filters }: PageHeaderProps) {
@@ -37,7 +37,7 @@ function PageHeader({ filters }: PageHeaderProps) {
         <ExportButton filters={filters} />
       </div>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -58,7 +58,7 @@ function FilterSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -66,24 +66,24 @@ function FilterSkeleton() {
 // =============================================================================
 
 interface PaginationProps {
-  currentPage: number
-  totalPages: number
-  totalCount: number
-  pageSize: number
-  baseUrl: string
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  pageSize: number;
+  baseUrl: string;
 }
 
 function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: PaginationProps) {
-  if (totalPages <= 1) return null
+  if (totalPages <= 1) return null;
 
-  const startItem = (currentPage - 1) * pageSize + 1
-  const endItem = Math.min(currentPage * pageSize, totalCount)
+  const startItem = (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalCount);
 
   // Build URL with existing params
   function getPageUrl(page: number) {
-    const url = new URL(baseUrl, 'http://localhost')
-    url.searchParams.set('page', page.toString())
-    return `${url.pathname}${url.search}`
+    const url = new URL(baseUrl, 'http://localhost');
+    url.searchParams.set('page', page.toString());
+    return `${url.pathname}${url.search}`;
   }
 
   return (
@@ -126,23 +126,34 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
           </p>
         </div>
         <div>
-          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+          <nav
+            className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+            aria-label="Pagination"
+          >
             {/* Previous button */}
             {currentPage > 1 ? (
               <a
                 href={getPageUrl(currentPage - 1)}
-                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
               >
                 <span className="sr-only">Previous</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </a>
             ) : (
-              <span className="relative inline-flex cursor-not-allowed items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300">
+              <span className="relative inline-flex cursor-not-allowed items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-gray-300 ring-inset">
                 <span className="sr-only">Previous</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </span>
             )}
@@ -155,7 +166,7 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
                 className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                   pageNum === currentPage
                     ? 'z-10 bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                    : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                    : 'text-gray-900 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
                 }`}
               >
                 {pageNum}
@@ -166,18 +177,26 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
             {currentPage < totalPages ? (
               <a
                 href={getPageUrl(currentPage + 1)}
-                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
               >
                 <span className="sr-only">Next</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </a>
             ) : (
-              <span className="relative inline-flex cursor-not-allowed items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300">
+              <span className="relative inline-flex cursor-not-allowed items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-gray-300 ring-inset">
                 <span className="sr-only">Next</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </span>
             )}
@@ -185,7 +204,7 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -194,20 +213,20 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
 
 export default async function ApplicationsPage({ searchParams }: ApplicationsPageProps) {
   // Await searchParams (Next.js 15+ async params)
-  const params = await searchParams
+  const params = await searchParams;
 
   // Extract filter parameters
   const filters: ApplicationFilters = {
     status: params.status || null,
     search: params.search || null,
-  }
+  };
 
   // Parse pagination
-  const page = parseInt(params.page || '1', 10)
-  const pageSize = 10
+  const page = parseInt(params.page || '1', 10);
+  const pageSize = 10;
 
   // Fetch applications server-side
-  const result = await getApplications(filters, { page, pageSize })
+  const result = await getApplications(filters, { page, pageSize });
 
   // Handle error state
   if (!result.success || !result.data) {
@@ -220,16 +239,16 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
           </p>
         </div>
       </div>
-    )
+    );
   }
 
-  const { applications, pagination } = result.data
+  const { applications, pagination } = result.data;
 
   // Build base URL for pagination links (preserving filters)
-  const searchParamsStr = new URLSearchParams()
-  if (filters.status) searchParamsStr.set('status', filters.status)
-  if (filters.search) searchParamsStr.set('search', filters.search)
-  const baseUrl = `/dashboard/applications${searchParamsStr.toString() ? `?${searchParamsStr.toString()}` : ''}`
+  const searchParamsStr = new URLSearchParams();
+  if (filters.status) searchParamsStr.set('status', filters.status);
+  if (filters.search) searchParamsStr.set('search', filters.search);
+  const baseUrl = `/dashboard/applications${searchParamsStr.toString() ? `?${searchParamsStr.toString()}` : ''}`;
 
   return (
     <div>
@@ -252,5 +271,5 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
         baseUrl={baseUrl}
       />
     </div>
-  )
+  );
 }

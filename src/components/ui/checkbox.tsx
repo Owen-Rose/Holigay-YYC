@@ -1,21 +1,21 @@
-import * as React from 'react'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 
 export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  label: string
-  description?: string
+  label: string;
+  description?: string;
 }
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, label, description, id, ...props }, ref) => {
-    const generatedId = React.useId()
-    const checkboxId = id ?? generatedId
+    const generatedId = React.useId();
+    const checkboxId = id ?? generatedId;
 
     return (
       <label
         htmlFor={checkboxId}
         className={cn(
-          'flex min-h-[44px] cursor-pointer items-center rounded-md px-2 py-2 -mx-2 hover:bg-gray-50',
+          '-mx-2 flex min-h-[44px] cursor-pointer items-center rounded-md px-2 py-2 hover:bg-gray-50',
           props.disabled && 'cursor-not-allowed opacity-50 hover:bg-transparent'
         )}
       >
@@ -33,15 +33,13 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         />
         <div className="ml-3 text-sm">
           <span className="font-medium text-gray-700">{label}</span>
-          {description && (
-            <p className="text-gray-500">{description}</p>
-          )}
+          {description && <p className="text-gray-500">{description}</p>}
         </div>
       </label>
-    )
+    );
   }
-)
+);
 
-Checkbox.displayName = 'Checkbox'
+Checkbox.displayName = 'Checkbox';
 
-export { Checkbox }
+export { Checkbox };
