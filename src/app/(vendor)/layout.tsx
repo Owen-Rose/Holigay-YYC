@@ -76,16 +76,16 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
     <RoleProvider>
       <div className="flex min-h-screen">
         {/* Mobile Header */}
-        <header className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b border-border-subtle bg-surface px-4 lg:hidden">
+        <header className="border-border-subtle bg-surface fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b px-4 lg:hidden">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-bright hover:text-foreground"
+            className="text-muted hover:bg-surface-bright hover:text-foreground flex h-11 w-11 items-center justify-center rounded-md"
             aria-label="Open navigation menu"
           >
             <MenuIcon className="h-6 w-6" />
           </button>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-foreground">Vendor Portal</h1>
+            <h1 className="text-foreground text-lg font-bold">Vendor Portal</h1>
             <RoleBadge />
           </div>
           {/* Spacer for centering */}
@@ -103,21 +103,21 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
 
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
+          className={`bg-surface fixed inset-y-0 left-0 z-40 flex w-64 flex-col shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           {/* Logo/Brand - Teal accent for vendor portal */}
-          <div className="flex h-14 items-center justify-between border-b border-border-subtle px-4 lg:h-16 lg:px-4">
+          <div className="border-border-subtle flex h-14 items-center justify-between border-b px-4 lg:h-16 lg:px-4">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-teal-600">
                 <StoreIcon className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-foreground">Vendor Portal</h1>
+              <h1 className="text-foreground text-lg font-bold">Vendor Portal</h1>
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-bright hover:text-foreground lg:hidden"
+              className="text-muted hover:bg-surface-bright hover:text-foreground flex h-11 w-11 items-center justify-center rounded-md lg:hidden"
               aria-label="Close navigation menu"
             >
               <CloseIcon className="h-6 w-6" />
@@ -125,7 +125,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
           </div>
 
           {/* Role Badge (desktop only - visible below brand) */}
-          <div className="hidden border-b border-border-subtle px-4 py-2 lg:block">
+          <div className="border-border-subtle hidden border-b px-4 py-2 lg:block">
             <RoleBadge />
           </div>
 
@@ -134,9 +134,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
             {navigation.map((item) => {
               // Check for exact match or if pathname starts with the href (for nested routes)
               const isActive =
-                item.href === '/vendor'
-                  ? pathname === '/vendor'
-                  : pathname.startsWith(item.href);
+                item.href === '/vendor' ? pathname === '/vendor' : pathname.startsWith(item.href);
 
               return (
                 <Link
@@ -158,7 +156,7 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
           </nav>
 
           {/* Quick Actions */}
-          <div className="border-t border-border-subtle p-3">
+          <div className="border-border-subtle border-t p-3">
             <Link
               href="/apply"
               className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md bg-teal-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-teal-500"
@@ -169,13 +167,13 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
           </div>
 
           {/* Logout Button */}
-          <div className="border-t border-border-subtle p-3">
+          <div className="border-border-subtle border-t p-3">
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="text-muted flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <LogoutIcon className="h-5 w-5 text-muted-foreground" />
+              <LogoutIcon className="text-muted-foreground h-5 w-5" />
               {isLoggingOut ? 'Signing out...' : 'Sign Out'}
             </button>
           </div>
@@ -196,15 +194,31 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
 
 function MenuIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+      />
     </svg>
   );
 }
 
 function CloseIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
   );
@@ -212,7 +226,13 @@ function CloseIcon({ className }: { className?: string }) {
 
 function HomeIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -224,7 +244,13 @@ function HomeIcon({ className }: { className?: string }) {
 
 function ClipboardIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -236,7 +262,13 @@ function ClipboardIcon({ className }: { className?: string }) {
 
 function UserIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -248,7 +280,13 @@ function UserIcon({ className }: { className?: string }) {
 
 function StoreIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -260,7 +298,13 @@ function StoreIcon({ className }: { className?: string }) {
 
 function PlusIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
   );
@@ -268,7 +312,13 @@ function PlusIcon({ className }: { className?: string }) {
 
 function LogoutIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

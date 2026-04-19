@@ -1,15 +1,13 @@
-'use server'
+'use server';
 
-import { createClient } from '@/lib/supabase/server'
-import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/vendor'
+import { createClient } from '@/lib/supabase/server';
+import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/vendor';
 
 // =============================================================================
 // Types
 // =============================================================================
 
-type UpdateVendorProfileResult =
-  | { success: true }
-  | { success: false; error: string }
+type UpdateVendorProfileResult = { success: true } | { success: false; error: string };
 
 // =============================================================================
 // Server Actions
@@ -23,22 +21,22 @@ export async function updateVendorProfile(
   data: VendorProfileInput
 ): Promise<UpdateVendorProfileResult> {
   // Validate input
-  const parsed = vendorProfileSchema.safeParse(data)
+  const parsed = vendorProfileSchema.safeParse(data);
   if (!parsed.success) {
     return {
       success: false,
       error: parsed.error.issues[0]?.message || 'Invalid input',
-    }
+    };
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return { success: false, error: 'Not authenticated' }
+    return { success: false, error: 'Not authenticated' };
   }
 
   // Get vendor_id from user_profiles to scope the update
@@ -46,10 +44,10 @@ export async function updateVendorProfile(
     .from('user_profiles')
     .select('vendor_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (!profile?.vendor_id) {
-    return { success: false, error: 'No vendor profile linked to your account' }
+    return { success: false, error: 'No vendor profile linked to your account' };
   }
 
   const { error } = await supabase
@@ -62,12 +60,12 @@ export async function updateVendorProfile(
       description: parsed.data.description || null,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', profile.vendor_id)
+    .eq('id', profile.vendor_id);
 
   if (error) {
-    console.error('Error updating vendor profile:', error)
-    return { success: false, error: 'Failed to update profile' }
+    console.error('Error updating vendor profile:', error);
+    return { success: false, error: 'Failed to update profile' };
   }
 
-  return { success: true }
+  return { success: true };
 }

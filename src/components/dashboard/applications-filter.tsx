@@ -162,12 +162,12 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         {/* Search Input */}
         <div className="flex-1">
-          <label htmlFor="search" className="mb-1 block text-sm font-medium text-foreground">
+          <label htmlFor="search" className="text-foreground mb-1 block text-sm font-medium">
             Search
           </label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <SearchIcon className="h-5 w-5 text-muted-foreground" />
+              <SearchIcon className="text-muted-foreground h-5 w-5" />
             </div>
             <input
               type="text"
@@ -177,9 +177,9 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
               onChange={handleSearchChange}
               placeholder="Search by business name or email..."
               className={cn(
-                'block w-full rounded-md border border-border bg-surface py-2 pr-10 pl-10 text-foreground',
+                'border-border bg-surface text-foreground block w-full rounded-md border py-2 pr-10 pl-10',
                 'placeholder:text-muted-foreground',
-                'focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none',
+                'focus:border-primary focus:ring-primary/50 focus:ring-1 focus:outline-none',
                 isPending && 'opacity-70'
               )}
             />
@@ -187,7 +187,7 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
                 aria-label="Clear search"
               >
                 <ClearIcon className="h-5 w-5" />
@@ -198,7 +198,7 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
 
         {/* Status Filter */}
         <div className="w-full sm:w-48">
-          <label htmlFor="status" className="mb-1 block text-sm font-medium text-foreground">
+          <label htmlFor="status" className="text-foreground mb-1 block text-sm font-medium">
             Status
           </label>
           <select
@@ -207,8 +207,8 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
             value={currentStatus}
             onChange={handleStatusChange}
             className={cn(
-              'block w-full appearance-none rounded-md border border-border bg-surface py-2 pr-10 pl-3 text-foreground',
-              'focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none',
+              'border-border bg-surface text-foreground block w-full appearance-none rounded-md border py-2 pr-10 pl-3',
+              'focus:border-primary focus:ring-primary/50 focus:ring-1 focus:outline-none',
               // Custom dropdown arrow (muted color for dark bg)
               'bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23A89BB2%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E")]',
               'bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat',
@@ -230,8 +230,8 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
             onClick={handleClearFilters}
             className={cn(
               'inline-flex items-center justify-center rounded-md px-4 py-2',
-              'border border-border bg-surface text-sm font-medium text-foreground',
-              'hover:bg-surface-bright focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none',
+              'border-border bg-surface text-foreground border text-sm font-medium',
+              'hover:bg-surface-bright focus:ring-primary/50 focus:ring-offset-background focus:ring-2 focus:ring-offset-2 focus:outline-none',
               'transition-colors',
               isPending && 'opacity-70'
             )}
@@ -245,14 +245,14 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
       {/* Active Filters Summary */}
       {hasActiveFilters && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">Active filters:</span>
+          <span className="text-muted-foreground text-sm">Active filters:</span>
           {currentSearch && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary">
+            <span className="bg-primary/15 text-primary inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium">
               Search: &quot;{currentSearch}&quot;
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="ml-0.5 rounded-full p-0.5 hover:bg-primary/25"
+                className="hover:bg-primary/25 ml-0.5 rounded-full p-0.5"
                 aria-label="Remove search filter"
               >
                 <ClearIcon className="h-3 w-3" />
@@ -260,12 +260,12 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
             </span>
           )}
           {currentStatus && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary">
+            <span className="bg-primary/15 text-primary inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium">
               Status: {STATUS_OPTIONS.find((o) => o.value === currentStatus)?.label}
               <button
                 type="button"
                 onClick={() => updateUrl({ status: null })}
-                className="ml-0.5 rounded-full p-0.5 hover:bg-primary/25"
+                className="hover:bg-primary/25 ml-0.5 rounded-full p-0.5"
                 aria-label="Remove status filter"
               >
                 <ClearIcon className="h-3 w-3" />
@@ -277,10 +277,10 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
 
       {/* Loading indicator */}
       {isPending && (
-        <div className="mt-2 text-sm text-muted">
+        <div className="text-muted mt-2 text-sm">
           <span className="inline-flex items-center">
             <svg
-              className="mr-2 -ml-1 h-4 w-4 animate-spin text-primary"
+              className="text-primary mr-2 -ml-1 h-4 w-4 animate-spin"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"

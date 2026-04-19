@@ -16,7 +16,8 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     const variantStyles = {
       default: 'border-border-subtle',
-      interactive: 'border-border-subtle transition-shadow hover:shadow-lg hover:shadow-primary/5 hover:border-border',
+      interactive:
+        'border-border-subtle transition-shadow hover:shadow-lg hover:shadow-primary/5 hover:border-border',
       outlined: 'border-border',
       glass: 'border-border-subtle/50 bg-surface/50 backdrop-blur-lg',
     };
@@ -58,7 +59,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
         ref={ref}
         className={cn(
           'flex items-center justify-between',
-          bordered && 'border-b border-border-subtle pb-4',
+          bordered && 'border-border-subtle border-b pb-4',
           className
         )}
         {...props}
@@ -84,7 +85,7 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
     return (
       <Component
         ref={ref}
-        className={cn('text-lg font-medium text-foreground', className)}
+        className={cn('text-foreground text-lg font-medium', className)}
         {...props}
       >
         {children}
@@ -104,7 +105,7 @@ const CardDescription = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   return (
-    <p ref={ref} className={cn('text-sm text-muted', className)} {...props}>
+    <p ref={ref} className={cn('text-muted text-sm', className)} {...props}>
       {children}
     </p>
   );
@@ -142,7 +143,11 @@ const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
     return (
       <div
         ref={ref}
-        className={cn('flex items-center', bordered && 'border-t border-border-subtle pt-4', className)}
+        className={cn(
+          'flex items-center',
+          bordered && 'border-border-subtle border-t pt-4',
+          className
+        )}
         {...props}
       >
         {children}

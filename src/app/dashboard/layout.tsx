@@ -70,16 +70,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
       {/* Mobile Header */}
-      <header className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b border-border-subtle bg-surface px-4 lg:hidden">
+      <header className="border-border-subtle bg-surface fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b px-4 lg:hidden">
         <button
           onClick={() => setIsSidebarOpen(true)}
-          className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-bright hover:text-foreground"
+          className="text-muted hover:bg-surface-bright hover:text-foreground flex h-11 w-11 items-center justify-center rounded-md"
           aria-label="Open navigation menu"
         >
           <MenuIcon className="h-6 w-6" />
         </button>
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-bold text-foreground">Holigay Market</h1>
+          <h1 className="text-foreground text-lg font-bold">Holigay Market</h1>
           <RoleBadge />
         </div>
         {/* Spacer for centering */}
@@ -97,19 +97,19 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-surface shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
+        className={`bg-surface fixed inset-y-0 left-0 z-40 flex w-64 flex-col shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo/Brand */}
-        <div className="flex h-14 items-center justify-between border-b border-border-subtle px-4 lg:h-16 lg:px-4">
+        <div className="border-border-subtle flex h-14 items-center justify-between border-b px-4 lg:h-16 lg:px-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-foreground">Holigay Market</h1>
+            <h1 className="text-foreground text-xl font-bold">Holigay Market</h1>
             <RoleBadge />
           </div>
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className="flex h-11 w-11 items-center justify-center rounded-md text-muted hover:bg-surface-bright hover:text-foreground lg:hidden"
+            className="text-muted hover:bg-surface-bright hover:text-foreground flex h-11 w-11 items-center justify-center rounded-md lg:hidden"
             aria-label="Close navigation menu"
           >
             <CloseIcon className="h-6 w-6" />
@@ -142,7 +142,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {isAdmin && (
             <>
               {/* Separator */}
-              <div className="my-2 border-t border-border-subtle" />
+              <div className="border-border-subtle my-2 border-t" />
 
               <Link
                 href="/dashboard/admin"
@@ -176,13 +176,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Logout Button */}
-        <div className="border-t border-border-subtle p-3">
+        <div className="border-border-subtle border-t p-3">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-muted flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <LogoutIcon className="h-5 w-5 text-muted-foreground" />
+            <LogoutIcon className="text-muted-foreground h-5 w-5" />
             {isLoggingOut ? 'Signing out...' : 'Sign Out'}
           </button>
         </div>

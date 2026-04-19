@@ -109,7 +109,7 @@ export function UserRoleSelect({
         value={currentRole}
         onChange={handleSelectChange}
         disabled={isUpdating}
-        className="min-h-[36px] w-full rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-border bg-surface text-foreground focus:border-primary focus:ring-primary/50 min-h-[36px] w-full rounded-md border px-3 py-1.5 text-sm font-medium focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       >
         {ROLES.map((role) => (
           <option key={role} value={role}>
@@ -121,30 +121,28 @@ export function UserRoleSelect({
       {/* Confirmation Dialog */}
       {showConfirm && pendingRole && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="mx-4 w-full max-w-md rounded-lg border border-border-subtle bg-surface p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-foreground">Confirm Role Change</h3>
+          <div className="border-border-subtle bg-surface mx-4 w-full max-w-md rounded-lg border p-6 shadow-xl">
+            <h3 className="text-foreground text-lg font-semibold">Confirm Role Change</h3>
 
-            <p className="mt-2 text-sm text-muted">
+            <p className="text-muted mt-2 text-sm">
               Are you sure you want to change the role for{' '}
-              <span className="font-medium text-foreground">{userEmail}</span>?
+              <span className="text-foreground font-medium">{userEmail}</span>?
             </p>
 
-            <div className="mt-4 rounded-md bg-surface-bright p-3">
+            <div className="bg-surface-bright mt-4 rounded-md p-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted">Current:</span>
-                <span className="font-medium text-foreground">
+                <span className="text-foreground font-medium">
                   {ROLE_CONFIG[currentRole].label}
                 </span>
               </div>
               <div className="mt-1 flex items-center justify-between text-sm">
                 <span className="text-muted">New:</span>
-                <span className="font-medium text-primary">
-                  {ROLE_CONFIG[pendingRole].label}
-                </span>
+                <span className="text-primary font-medium">{ROLE_CONFIG[pendingRole].label}</span>
               </div>
             </div>
 
-            <p className="mt-3 text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-3 text-xs">
               {ROLE_CONFIG[pendingRole].description}
             </p>
 
@@ -161,7 +159,7 @@ export function UserRoleSelect({
                 type="button"
                 onClick={handleCancel}
                 disabled={isUpdating}
-                className="flex-1 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-bright focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:opacity-50"
+                className="border-border bg-surface text-foreground hover:bg-surface-bright focus:ring-primary/50 focus:ring-offset-background flex-1 rounded-md border px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -169,7 +167,7 @@ export function UserRoleSelect({
                 type="button"
                 onClick={handleConfirm}
                 disabled={isUpdating}
-                className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:opacity-50"
+                className="bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50 focus:ring-offset-background flex-1 rounded-md px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
               >
                 {isUpdating ? 'Updating...' : 'Confirm Change'}
               </button>

@@ -15,7 +15,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={inputId} className="mb-1 block text-sm font-medium text-foreground">
+          <label htmlFor={inputId} className="text-foreground mb-1 block text-sm font-medium">
             {label}
           </label>
         )}
@@ -23,12 +23,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           id={inputId}
           className={cn(
-            'block min-h-[44px] w-full rounded-md border bg-surface text-foreground px-3 py-2.5 shadow-sm transition-colors',
+            'bg-surface text-foreground block min-h-[44px] w-full rounded-md border px-3 py-2.5 shadow-sm transition-colors',
             'focus:ring-1 focus:outline-none',
             error
               ? 'border-red-500/60 focus:border-red-400 focus:ring-red-400/50'
               : 'border-border focus:border-primary focus:ring-primary/50',
-            'disabled:cursor-not-allowed disabled:bg-surface-bright disabled:text-muted-foreground',
+            'disabled:bg-surface-bright disabled:text-muted-foreground disabled:cursor-not-allowed',
             'placeholder:text-muted-foreground',
             className
           )}
@@ -38,7 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {hint && !error && (
-          <p id={`${inputId}-hint`} className="mt-1 text-sm text-muted">
+          <p id={`${inputId}-hint`} className="text-muted mt-1 text-sm">
             {hint}
           </p>
         )}

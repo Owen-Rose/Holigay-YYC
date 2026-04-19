@@ -19,7 +19,13 @@ interface InviteFormProps {
 
 function EnvelopeIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -31,7 +37,13 @@ function EnvelopeIcon({ className }: { className?: string }) {
 
 function ExclamationIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -87,12 +99,12 @@ export function InviteForm({ onInvited }: InviteFormProps) {
   }
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-6">
+    <div className="border-border-subtle bg-surface rounded-lg border p-6">
       <div className="flex items-center gap-2">
-        <EnvelopeIcon className="h-5 w-5 text-muted-foreground" />
-        <h2 className="text-lg font-semibold text-foreground">Invite Organizer</h2>
+        <EnvelopeIcon className="text-muted-foreground h-5 w-5" />
+        <h2 className="text-foreground text-lg font-semibold">Invite Organizer</h2>
       </div>
-      <p className="mt-1 text-sm text-muted">
+      <p className="text-muted mt-1 text-sm">
         Send an invitation email to add a new organizer to your team.
       </p>
 
@@ -108,12 +120,12 @@ export function InviteForm({ onInvited }: InviteFormProps) {
           placeholder="organizer@example.com"
           required
           disabled={isSubmitting}
-          className="min-h-[44px] flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/50 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-bright disabled:opacity-60"
+          className="border-border bg-surface text-foreground placeholder-muted-foreground focus:border-primary focus:ring-primary/50 disabled:bg-surface-bright min-h-[44px] flex-1 rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={isSubmitting}
-          className="min-h-[44px] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50 focus:ring-offset-background min-h-[44px] rounded-md px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting ? 'Sending...' : 'Send Invite'}
         </button>
@@ -126,7 +138,6 @@ export function InviteForm({ onInvited }: InviteFormProps) {
           <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
-
     </div>
   );
 }

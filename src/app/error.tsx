@@ -37,11 +37,13 @@ export default function Error({
           </svg>
         </div>
 
-        <h1 className="text-2xl font-bold text-foreground">Something went wrong</h1>
-        <p className="mt-2 text-muted">We encountered an unexpected error. Please try again.</p>
+        <h1 className="text-foreground text-2xl font-bold">Something went wrong</h1>
+        <p className="text-muted mt-2">We encountered an unexpected error. Please try again.</p>
 
         {/* Show error digest in development for debugging */}
-        {error.digest && <p className="mt-2 text-xs text-muted-foreground">Error ID: {error.digest}</p>}
+        {error.digest && (
+          <p className="text-muted-foreground mt-2 text-xs">Error ID: {error.digest}</p>
+        )}
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button onClick={reset}>Try again</Button>

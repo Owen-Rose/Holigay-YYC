@@ -21,8 +21,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary: 'bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50',
-      secondary: 'bg-surface-bright text-foreground hover:bg-surface-bright/80 focus:ring-primary/50',
-      outline: 'border border-border bg-transparent text-foreground hover:bg-surface-bright focus:ring-primary/50',
+      secondary:
+        'bg-surface-bright text-foreground hover:bg-surface-bright/80 focus:ring-primary/50',
+      outline:
+        'border border-border bg-transparent text-foreground hover:bg-surface-bright focus:ring-primary/50',
       ghost: 'text-muted hover:bg-surface-bright hover:text-foreground focus:ring-primary/50',
       danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/50',
     };

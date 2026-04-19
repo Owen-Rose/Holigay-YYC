@@ -27,16 +27,16 @@ function StatCard({ title, value, icon, href, trend }: StatCardProps) {
     <Card variant="interactive">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-muted">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-foreground">{value}</p>
+          <p className="text-muted text-sm font-medium">{title}</p>
+          <p className="text-foreground mt-2 text-3xl font-bold">{value}</p>
           {trend && (
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-xs">
               {trend.value > 0 ? '+' : ''}
               {trend.value} {trend.label}
             </p>
           )}
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary">
+        <div className="bg-primary-soft text-primary flex h-12 w-12 items-center justify-center rounded-full">
           {icon}
         </div>
       </div>
@@ -70,11 +70,11 @@ function formatDate(dateString: string): string {
 function RecentApplications({ applications }: { applications: ApplicationWithVendor[] }) {
   if (applications.length === 0) {
     return (
-      <div className="rounded-lg border border-border-subtle bg-surface p-6">
-        <h2 className="text-lg font-medium text-foreground">Recent Applications</h2>
+      <div className="border-border-subtle bg-surface rounded-lg border p-6">
+        <h2 className="text-foreground text-lg font-medium">Recent Applications</h2>
         <div className="mt-6 text-center">
           <svg
-            className="mx-auto h-12 w-12 text-muted-foreground"
+            className="text-muted-foreground mx-auto h-12 w-12"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={1.5}
@@ -86,8 +86,8 @@ function RecentApplications({ applications }: { applications: ApplicationWithVen
               d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"
             />
           </svg>
-          <p className="mt-4 text-sm text-muted">No applications yet.</p>
-          <p className="mt-1 text-sm text-muted">
+          <p className="text-muted mt-4 text-sm">No applications yet.</p>
+          <p className="text-muted mt-1 text-sm">
             Applications will appear here once vendors start applying.
           </p>
         </div>
@@ -96,35 +96,35 @@ function RecentApplications({ applications }: { applications: ApplicationWithVen
   }
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface">
-      <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
-        <h2 className="text-lg font-medium text-foreground">Recent Applications</h2>
+    <div className="border-border-subtle bg-surface rounded-lg border">
+      <div className="border-border-subtle flex items-center justify-between border-b px-6 py-4">
+        <h2 className="text-foreground text-lg font-medium">Recent Applications</h2>
         <Link
           href="/dashboard/applications"
-          className="text-sm font-medium text-primary hover:text-primary-hover"
+          className="text-primary hover:text-primary-hover text-sm font-medium"
         >
           View all
         </Link>
       </div>
-      <ul className="divide-y divide-border-subtle">
+      <ul className="divide-border-subtle divide-y">
         {applications.map((application) => (
           <li key={application.id}>
             <Link
               href={`/dashboard/applications/${application.id}`}
-              className="block px-6 py-4 hover:bg-surface-bright"
+              className="hover:bg-surface-bright block px-6 py-4"
             >
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">
+                  <p className="text-foreground truncate text-sm font-medium">
                     {application.vendor.business_name}
                   </p>
-                  <p className="mt-1 truncate text-sm text-muted">
+                  <p className="text-muted mt-1 truncate text-sm">
                     {application.vendor.contact_name} &middot; {application.vendor.email}
                   </p>
                 </div>
                 <div className="ml-4 flex flex-shrink-0 items-center gap-3">
                   <StatusBadge status={application.status} />
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-muted-foreground text-xs">
                     {formatDate(application.submitted_at)}
                   </span>
                 </div>
@@ -206,23 +206,23 @@ function QuickActions() {
   ];
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-6">
-      <h2 className="text-lg font-medium text-foreground">Quick Actions</h2>
+    <div className="border-border-subtle bg-surface rounded-lg border p-6">
+      <h2 className="text-foreground text-lg font-medium">Quick Actions</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {actions.map((action) => (
           <Link
             key={action.title}
             href={action.href}
-            className="group relative flex items-center gap-4 rounded-lg border border-border-subtle bg-surface p-4 transition-all hover:border-primary/50 hover:shadow-md hover:shadow-primary/5"
+            className="group border-border-subtle bg-surface hover:border-primary/50 hover:shadow-primary/5 relative flex items-center gap-4 rounded-lg border p-4 transition-all hover:shadow-md"
           >
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary group-hover:bg-primary/20">
+            <div className="bg-primary-soft text-primary group-hover:bg-primary/20 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
               {action.icon}
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground group-hover:text-primary">
+              <p className="text-foreground group-hover:text-primary text-sm font-medium">
                 {action.title}
               </p>
-              <p className="mt-0.5 text-xs text-muted">{action.description}</p>
+              <p className="text-muted mt-0.5 text-xs">{action.description}</p>
             </div>
           </Link>
         ))}
@@ -323,8 +323,8 @@ export default async function DashboardPage() {
     <div>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-foreground text-2xl font-bold">Dashboard</h1>
+        <p className="text-muted mt-1 text-sm">
           Welcome to your event organizer dashboard. Here&apos;s an overview of your vendor
           applications.
         </p>

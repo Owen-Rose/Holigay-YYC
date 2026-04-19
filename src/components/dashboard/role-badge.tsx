@@ -31,7 +31,7 @@ export function RoleBadge() {
 
   // Show subtle loading indicator
   if (isLoading) {
-    return <span className="inline-flex h-5 w-16 animate-pulse rounded-full bg-surface-bright" />;
+    return <span className="bg-surface-bright inline-flex h-5 w-16 animate-pulse rounded-full" />;
   }
 
   // Don't show anything if there's an error or no role

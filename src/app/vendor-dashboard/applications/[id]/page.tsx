@@ -1,19 +1,19 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import {
   getVendorApplicationDetail,
   type VendorApplicationDetail,
-} from '@/lib/actions/vendor-dashboard'
-import { AttachmentsList } from '@/app/dashboard/applications/[id]/attachments-list'
-import { Card, CardTitle } from '@/components/ui/card'
-import { StatusBadge } from '@/components/ui/badge'
+} from '@/lib/actions/vendor-dashboard';
+import { AttachmentsList } from '@/app/dashboard/applications/[id]/attachments-list';
+import { Card, CardTitle } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/badge';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface VendorApplicationDetailPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 // =============================================================================
@@ -26,7 +26,7 @@ function formatDate(dateString: string): string {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+  });
 }
 
 function formatDateTime(dateString: string): string {
@@ -36,7 +36,7 @@ function formatDateTime(dateString: string): string {
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-  })
+  });
 }
 
 // =============================================================================
@@ -49,16 +49,16 @@ function InfoSection({ title, children }: { title: string; children: React.React
       <CardTitle className="mb-4 font-semibold">{title}</CardTitle>
       {children}
     </Card>
-  )
+  );
 }
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="py-2">
-      <dt className="text-sm font-medium text-muted">{label}</dt>
-      <dd className="mt-1 text-sm text-foreground">{value || '—'}</dd>
+      <dt className="text-muted text-sm font-medium">{label}</dt>
+      <dd className="text-foreground mt-1 text-sm">{value || '—'}</dd>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -68,7 +68,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 function EventInfo({ event }: { event: VendorApplicationDetail['event'] }) {
   return (
     <InfoSection title="Event Details">
-      <dl className="divide-y divide-border-subtle">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Event Name" value={event.name} />
         <InfoRow label="Date" value={formatDate(event.event_date)} />
         <InfoRow label="Location" value={event.location} />
@@ -80,7 +80,7 @@ function EventInfo({ event }: { event: VendorApplicationDetail['event'] }) {
         <InfoRow label="Max Vendors" value={event.max_vendors?.toString() || 'Unlimited'} />
       </dl>
     </InfoSection>
-  )
+  );
 }
 
 // =============================================================================
@@ -90,7 +90,7 @@ function EventInfo({ event }: { event: VendorApplicationDetail['event'] }) {
 function ApplicationDetails({ application }: { application: VendorApplicationDetail }) {
   return (
     <InfoSection title="Application Details">
-      <dl className="divide-y divide-border-subtle">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Booth Preference" value={application.booth_preference} />
         <InfoRow
           label="Product Categories"
@@ -100,7 +100,7 @@ function ApplicationDetails({ application }: { application: VendorApplicationDet
                 {application.product_categories.map((category) => (
                   <span
                     key={category}
-                    className="inline-flex items-center rounded-full bg-foreground/10 px-2.5 py-0.5 text-xs font-medium text-foreground"
+                    className="bg-foreground/10 text-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                   >
                     {category}
                   </span>
@@ -114,7 +114,7 @@ function ApplicationDetails({ application }: { application: VendorApplicationDet
         <InfoRow label="Last Updated" value={formatDateTime(application.updated_at)} />
       </dl>
     </InfoSection>
-  )
+  );
 }
 
 // =============================================================================
@@ -124,7 +124,7 @@ function ApplicationDetails({ application }: { application: VendorApplicationDet
 function BusinessInfo({ vendor }: { vendor: VendorApplicationDetail['vendor'] }) {
   return (
     <InfoSection title="Your Business Info">
-      <dl className="divide-y divide-border-subtle">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Business Name" value={vendor.business_name} />
         <InfoRow label="Contact Name" value={vendor.contact_name} />
         <InfoRow
@@ -154,7 +154,7 @@ function BusinessInfo({ vendor }: { vendor: VendorApplicationDetail['vendor'] })
         <InfoRow label="Description" value={vendor.description} />
       </dl>
     </InfoSection>
-  )
+  );
 }
 
 // =============================================================================
@@ -163,9 +163,9 @@ function BusinessInfo({ vendor }: { vendor: VendorApplicationDetail['vendor'] })
 
 function NoVendorProfile() {
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
-      <p className="text-sm font-medium text-foreground">No vendor profile linked</p>
-      <p className="mt-2 text-sm text-muted">
+    <div className="border-border-subtle bg-surface rounded-lg border p-12 text-center">
+      <p className="text-foreground text-sm font-medium">No vendor profile linked</p>
+      <p className="text-muted mt-2 text-sm">
         Your account isn&apos;t linked to a vendor yet.{' '}
         <Link href="/apply" className="text-teal-400 hover:text-teal-300">
           Submit an application
@@ -173,7 +173,7 @@ function NoVendorProfile() {
         to create your vendor profile.
       </p>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -183,22 +183,22 @@ function NoVendorProfile() {
 export default async function VendorApplicationDetailPage({
   params,
 }: VendorApplicationDetailPageProps) {
-  const { id } = await params
+  const { id } = await params;
 
-  const result = await getVendorApplicationDetail(id)
+  const result = await getVendorApplicationDetail(id);
 
   // Handle error states
   if (!result.success) {
     if (result.error === 'no_vendor_profile') {
-      return <NoVendorProfile />
+      return <NoVendorProfile />;
     }
     if (result.error === 'not_found') {
-      notFound()
+      notFound();
     }
-    notFound()
+    notFound();
   }
 
-  const application = result.data
+  const application = result.data;
 
   return (
     <div>
@@ -206,7 +206,7 @@ export default async function VendorApplicationDetailPage({
       <div className="mb-6">
         <Link
           href="/vendor-dashboard/applications"
-          className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
+          className="text-muted hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <svg
             className="h-4 w-4"
@@ -228,10 +228,10 @@ export default async function VendorApplicationDetailPage({
       {/* Page Title and Status */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-foreground text-2xl font-bold">
             Application for {application.event.name}
           </h1>
-          <p className="mt-1 text-sm text-muted">
+          <p className="text-muted mt-1 text-sm">
             Submitted {formatDateTime(application.submitted_at)}
           </p>
         </div>
@@ -255,5 +255,5 @@ export default async function VendorApplicationDetailPage({
         </div>
       )}
     </div>
-  )
+  );
 }

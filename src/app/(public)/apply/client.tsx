@@ -98,21 +98,21 @@ export function ApplicationPageClient({ events }: ApplicationPageClientProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Application Submitted!</h2>
-        <p className="mt-2 text-muted">
+        <h2 className="text-foreground text-2xl font-bold">Application Submitted!</h2>
+        <p className="text-muted mt-2">
           Thank you for your application. We&apos;ll review it and get back to you soon.
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">Application ID: {state.applicationId}</p>
+        <p className="text-muted-foreground mt-1 text-sm">Application ID: {state.applicationId}</p>
         <div className="mt-6 flex justify-center gap-4">
           <Link
             href="/"
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50 focus:ring-offset-background rounded-md px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none"
           >
             Back to Home
           </Link>
           <button
             onClick={() => setState({ status: 'idle' })}
-            className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-bright focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
+            className="border-border bg-surface text-foreground hover:bg-surface-bright focus:ring-primary/50 focus:ring-offset-background rounded-md border px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none"
           >
             Submit Another Application
           </button>

@@ -34,8 +34,8 @@ export default function SignupPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">Create an account</h1>
-        <p className="mt-2 text-sm text-muted">Sign up to manage vendor applications</p>
+        <h1 className="text-foreground text-2xl font-bold">Create an account</h1>
+        <p className="text-muted mt-2 text-sm">Sign up to manage vendor applications</p>
       </div>
 
       {/* Error Message */}
@@ -64,7 +64,7 @@ export default function SignupPage() {
       {/* Links */}
       <div className="text-center text-sm">
         <span className="text-muted">Already have an account? </span>
-        <Link href="/login" className="font-medium text-primary hover:text-primary-hover">
+        <Link href="/login" className="text-primary hover:text-primary-hover font-medium">
           Sign in
         </Link>
       </div>

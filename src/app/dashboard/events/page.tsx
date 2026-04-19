@@ -9,7 +9,10 @@ import { EventStatusActions } from './event-status-actions';
 
 type EventStatus = 'draft' | 'active' | 'closed';
 
-const eventStatusConfig: Record<EventStatus, { label: string; variant: 'default' | 'success' | 'secondary' }> = {
+const eventStatusConfig: Record<
+  EventStatus,
+  { label: string; variant: 'default' | 'success' | 'secondary' }
+> = {
   draft: { label: 'Draft', variant: 'default' },
   active: { label: 'Active', variant: 'success' },
   closed: { label: 'Closed', variant: 'secondary' },
@@ -42,7 +45,13 @@ function formatDate(dateString: string): string {
 
 function CalendarIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -54,7 +63,13 @@ function CalendarIcon({ className }: { className?: string }) {
 
 function PlusIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
   );
@@ -62,7 +77,13 @@ function PlusIcon({ className }: { className?: string }) {
 
 function MapPinIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -83,18 +104,16 @@ function MapPinIcon({ className }: { className?: string }) {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-bright">
-        <CalendarIcon className="h-6 w-6 text-muted-foreground" />
+    <div className="border-border-subtle bg-surface rounded-lg border p-12 text-center">
+      <div className="bg-surface-bright mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+        <CalendarIcon className="text-muted-foreground h-6 w-6" />
       </div>
-      <h3 className="mt-4 text-sm font-medium text-foreground">No events yet</h3>
-      <p className="mt-1 text-sm text-muted">
-        Get started by creating your first market event.
-      </p>
+      <h3 className="text-foreground mt-4 text-sm font-medium">No events yet</h3>
+      <p className="text-muted mt-1 text-sm">Get started by creating your first market event.</p>
       <div className="mt-6">
         <Link
           href="/dashboard/events/new"
-          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
+          className="bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50 focus:ring-offset-background inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
         >
           <PlusIcon className="h-4 w-4" />
           Create Event
@@ -115,13 +134,13 @@ function EventRow({ event }: { event: EventWithCount }) {
   return (
     <Link
       href={`/dashboard/events/${event.id}`}
-      className="block px-6 py-4 hover:bg-surface-bright"
+      className="hover:bg-surface-bright block px-6 py-4"
     >
       <div className="grid grid-cols-12 items-center gap-4">
         {/* Name and location */}
         <div className="col-span-12 sm:col-span-3">
-          <p className="truncate text-sm font-medium text-foreground">{event.name}</p>
-          <div className="mt-1 flex items-center gap-1 text-xs text-muted">
+          <p className="text-foreground truncate text-sm font-medium">{event.name}</p>
+          <div className="text-muted mt-1 flex items-center gap-1 text-xs">
             <MapPinIcon className="h-3.5 w-3.5 flex-shrink-0" />
             <span className="truncate">{event.location}</span>
           </div>
@@ -129,7 +148,7 @@ function EventRow({ event }: { event: EventWithCount }) {
 
         {/* Event date */}
         <div className="col-span-4 sm:col-span-2">
-          <p className="text-sm text-foreground">{formatDate(event.event_date)}</p>
+          <p className="text-foreground text-sm">{formatDate(event.event_date)}</p>
         </div>
 
         {/* Deadline */}
@@ -139,7 +158,7 @@ function EventRow({ event }: { event: EventWithCount }) {
               {formatDate(event.application_deadline)}
             </p>
           ) : (
-            <p className="text-sm text-muted-foreground">No deadline</p>
+            <p className="text-muted-foreground text-sm">No deadline</p>
           )}
         </div>
 
@@ -149,15 +168,15 @@ function EventRow({ event }: { event: EventWithCount }) {
         </div>
 
         {/* Application count */}
-        <div className="col-span-2 sm:col-span-2 text-right">
-          <span className="text-sm font-medium text-foreground">{event.application_count}</span>
-          <span className="ml-1 text-sm text-muted">
+        <div className="col-span-2 text-right sm:col-span-2">
+          <span className="text-foreground text-sm font-medium">{event.application_count}</span>
+          <span className="text-muted ml-1 text-sm">
             {event.application_count === 1 ? 'app' : 'apps'}
           </span>
         </div>
 
         {/* Status actions */}
-        <div className="col-span-4 sm:col-span-2 text-right">
+        <div className="col-span-4 text-right sm:col-span-2">
           <EventStatusActions eventId={event.id} status={event.status} />
         </div>
       </div>
@@ -177,8 +196,8 @@ export default async function EventsPage() {
     return (
       <div>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Events</h1>
-          <p className="mt-1 text-sm text-muted">Create and manage your market events.</p>
+          <h1 className="text-foreground text-2xl font-bold">Events</h1>
+          <p className="text-muted mt-1 text-sm">Create and manage your market events.</p>
         </div>
         <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-6 text-center">
           <p className="text-sm text-red-400">
@@ -196,13 +215,13 @@ export default async function EventsPage() {
       {/* Page Header */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Events</h1>
-          <p className="mt-1 text-sm text-muted">Create and manage your market events.</p>
+          <h1 className="text-foreground text-2xl font-bold">Events</h1>
+          <p className="text-muted mt-1 text-sm">Create and manage your market events.</p>
         </div>
         <div className="flex-shrink-0">
           <Link
             href="/dashboard/events/new"
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50 focus:ring-offset-background inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none"
           >
             <PlusIcon className="h-4 w-4" />
             Create Event
@@ -214,21 +233,21 @@ export default async function EventsPage() {
       {events.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+        <div className="border-border-subtle bg-surface overflow-hidden rounded-lg border">
           {/* Table Header */}
-          <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
-            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-muted">
+          <div className="border-border-subtle bg-surface-bright border-b px-6 py-3">
+            <div className="text-muted grid grid-cols-12 gap-4 text-xs font-medium tracking-wider uppercase">
               <div className="col-span-12 sm:col-span-3">Event</div>
               <div className="col-span-4 sm:col-span-2">Date</div>
               <div className="col-span-4 sm:col-span-2">Deadline</div>
               <div className="col-span-2 sm:col-span-1">Status</div>
-              <div className="col-span-2 sm:col-span-2 text-right">Applications</div>
-              <div className="col-span-4 sm:col-span-2 text-right">Actions</div>
+              <div className="col-span-2 text-right sm:col-span-2">Applications</div>
+              <div className="col-span-4 text-right sm:col-span-2">Actions</div>
             </div>
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-border-subtle">
+          <div className="divide-border-subtle divide-y">
             {events.map((event) => (
               <EventRow key={event.id} event={event} />
             ))}

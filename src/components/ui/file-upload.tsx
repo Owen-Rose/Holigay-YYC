@@ -138,7 +138,7 @@ export function FileUpload({
 
   return (
     <div className={cn('w-full', className)}>
-      {label && <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>}
+      {label && <label className="text-foreground mb-1 block text-sm font-medium">{label}</label>}
 
       {/* Drop zone */}
       <div
@@ -170,7 +170,7 @@ export function FileUpload({
 
         <div className="text-center">
           <svg
-            className="mx-auto h-12 w-12 text-muted-foreground"
+            className="text-muted-foreground mx-auto h-12 w-12"
             stroke="currentColor"
             fill="none"
             viewBox="0 0 48 48"
@@ -184,13 +184,13 @@ export function FileUpload({
             />
           </svg>
 
-          <div className="mt-4 flex text-sm text-muted">
+          <div className="text-muted mt-4 flex text-sm">
             <label
               htmlFor={id}
               className={cn(
-                'relative cursor-pointer rounded-md font-medium text-primary',
-                'focus-within:ring-2 focus-within:outline-none hover:text-primary-hover',
-                'focus-within:ring-primary/50 focus-within:ring-offset-2 focus-within:ring-offset-background',
+                'text-primary relative cursor-pointer rounded-md font-medium',
+                'hover:text-primary-hover focus-within:ring-2 focus-within:outline-none',
+                'focus-within:ring-primary/50 focus-within:ring-offset-background focus-within:ring-offset-2',
                 disabled && 'cursor-not-allowed'
               )}
             >
@@ -199,10 +199,10 @@ export function FileUpload({
             <p className="pl-1">or drag and drop</p>
           </div>
 
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-xs">
             {acceptedFileTypes} up to {maxSize / 1024 / 1024}MB each
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {value.length}/{maxFiles} files
           </p>
         </div>
@@ -210,7 +210,7 @@ export function FileUpload({
 
       {/* File list */}
       {value.length > 0 && (
-        <ul className="mt-3 divide-y divide-border-subtle rounded-md border border-border-subtle">
+        <ul className="divide-border-subtle border-border-subtle mt-3 divide-y rounded-md border">
           {value.map((file, index) => (
             <li
               key={`${file.name}-${file.size}-${index}`}
@@ -218,7 +218,7 @@ export function FileUpload({
             >
               <div className="flex w-0 flex-1 items-center">
                 <svg
-                  className="h-5 w-5 flex-shrink-0 text-muted-foreground"
+                  className="text-muted-foreground h-5 w-5 flex-shrink-0"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   aria-hidden="true"
@@ -229,7 +229,7 @@ export function FileUpload({
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="ml-2 w-0 flex-1 truncate text-foreground">{file.name}</span>
+                <span className="text-foreground ml-2 w-0 flex-1 truncate">{file.name}</span>
               </div>
               <div className="ml-4 flex items-center gap-3">
                 <span className="text-muted">{formatFileSize(file.size)}</span>
@@ -239,7 +239,7 @@ export function FileUpload({
                   disabled={disabled}
                   className={cn(
                     'font-medium text-red-400 hover:text-red-300',
-                    'rounded focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none',
+                    'focus:ring-offset-background rounded focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2 focus:outline-none',
                     disabled && 'cursor-not-allowed opacity-50'
                   )}
                 >
@@ -252,7 +252,7 @@ export function FileUpload({
       )}
 
       {hint && !error && (
-        <p id={`${id}-hint`} className="mt-2 text-sm text-muted">
+        <p id={`${id}-hint`} className="text-muted mt-2 text-sm">
           {hint}
         </p>
       )}

@@ -74,8 +74,8 @@ export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpda
   const availableStatuses = APPLICATION_STATUSES.filter((status) => status !== currentStatus);
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-4">
-      <h3 className="mb-3 text-sm font-medium text-muted">Update Application Status</h3>
+    <div className="border-border-subtle bg-surface rounded-lg border p-4">
+      <h3 className="text-muted mb-3 text-sm font-medium">Update Application Status</h3>
 
       <div className="flex flex-wrap gap-2">
         {availableStatuses.map((status) => {

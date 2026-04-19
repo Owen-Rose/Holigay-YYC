@@ -32,9 +32,7 @@ export default async function VendorHomePage() {
     <div className="space-y-8">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Welcome back, {displayName}!
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {displayName}!</h1>
         <p className="mt-1 text-gray-600">
           {vendor
             ? `Manage your applications for ${vendor.businessName}`
@@ -44,26 +42,10 @@ export default async function VendorHomePage() {
 
       {/* Application Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard
-          label="Total Applications"
-          value={counts.total}
-          color="gray"
-        />
-        <SummaryCard
-          label="Pending"
-          value={counts.pending}
-          color="amber"
-        />
-        <SummaryCard
-          label="Approved"
-          value={counts.approved}
-          color="green"
-        />
-        <SummaryCard
-          label="Waitlisted"
-          value={counts.waitlisted}
-          color="blue"
-        />
+        <SummaryCard label="Total Applications" value={counts.total} color="gray" />
+        <SummaryCard label="Pending" value={counts.pending} color="amber" />
+        <SummaryCard label="Approved" value={counts.approved} color="green" />
+        <SummaryCard label="Waitlisted" value={counts.waitlisted} color="blue" />
       </div>
 
       {/* Quick Actions */}
@@ -150,9 +132,7 @@ function SummaryCard({
   return (
     <div className={`rounded-lg border p-4 ${colorClasses[color]}`}>
       <p className="text-sm font-medium text-gray-600">{label}</p>
-      <p className={`mt-1 text-3xl font-bold ${valueColorClasses[color]}`}>
-        {value}
-      </p>
+      <p className={`mt-1 text-3xl font-bold ${valueColorClasses[color]}`}>{value}</p>
     </div>
   );
 }
@@ -235,9 +215,7 @@ function EmptyState() {
         <ClipboardIcon className="h-6 w-6 text-gray-400" />
       </div>
       <h3 className="mt-3 text-sm font-medium text-gray-900">No applications yet</h3>
-      <p className="mt-1 text-sm text-gray-500">
-        Get started by applying to your first event.
-      </p>
+      <p className="mt-1 text-sm text-gray-500">Get started by applying to your first event.</p>
       <div className="mt-4">
         <Link
           href="/apply"
@@ -257,7 +235,13 @@ function EmptyState() {
 
 function PlusIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
   );
@@ -265,7 +249,13 @@ function PlusIcon({ className }: { className?: string }) {
 
 function ClipboardIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

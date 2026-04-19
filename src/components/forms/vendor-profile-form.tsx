@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
-import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/vendor'
-import { updateVendorProfile } from '@/lib/actions/vendors'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/vendor';
+import { updateVendorProfile } from '@/lib/actions/vendors';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface VendorProfileFormProps {
-  defaultValues: VendorProfileInput
-  email: string // displayed read-only
+  defaultValues: VendorProfileInput;
+  email: string; // displayed read-only
 }
 
 // =============================================================================
@@ -30,15 +30,15 @@ export function VendorProfileForm({ defaultValues, email }: VendorProfileFormPro
   } = useForm<VendorProfileInput>({
     resolver: zodResolver(vendorProfileSchema),
     defaultValues,
-  })
+  });
 
   async function onSubmit(data: VendorProfileInput) {
-    const result = await updateVendorProfile(data)
+    const result = await updateVendorProfile(data);
 
     if (result.success) {
-      toast.success('Profile updated')
+      toast.success('Profile updated');
     } else {
-      toast.error(result.error)
+      toast.error(result.error);
     }
   }
 
@@ -92,5 +92,5 @@ export function VendorProfileForm({ defaultValues, email }: VendorProfileFormPro
         </Button>
       </div>
     </form>
-  )
+  );
 }

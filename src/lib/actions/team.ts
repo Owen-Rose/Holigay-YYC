@@ -37,6 +37,7 @@ export async function inviteOrganizer(email: string): Promise<InviteResponse> {
   // Placeholder until Supabase Admin client is set up (Task 4.2.1/4.2.2)
   return {
     success: false,
-    error: 'Email service is not configured yet. This feature requires the Supabase service role key.',
+    error:
+      'Email service is not configured yet. This feature requires the Supabase service role key.',
   };
 }

@@ -39,8 +39,8 @@ function LoginContent() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-        <p className="mt-2 text-sm text-muted">Sign in to access your organizer dashboard</p>
+        <h1 className="text-foreground text-2xl font-bold">Welcome back</h1>
+        <p className="text-muted mt-2 text-sm">Sign in to access your organizer dashboard</p>
       </div>
 
       {/* Error Message */}
@@ -56,7 +56,7 @@ function LoginContent() {
       {/* Links */}
       <div className="text-center text-sm">
         <span className="text-muted">Don&apos;t have an account? </span>
-        <Link href="/signup" className="font-medium text-primary hover:text-primary-hover">
+        <Link href="/signup" className="text-primary hover:text-primary-hover font-medium">
           Sign up
         </Link>
       </div>
@@ -68,13 +68,13 @@ function LoginFallback() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
-        <p className="mt-2 text-sm text-muted">Sign in to access your organizer dashboard</p>
+        <h1 className="text-foreground text-2xl font-bold">Welcome back</h1>
+        <p className="text-muted mt-2 text-sm">Sign in to access your organizer dashboard</p>
       </div>
       <div className="animate-pulse space-y-4">
-        <div className="h-10 rounded bg-surface-bright" />
-        <div className="h-10 rounded bg-surface-bright" />
-        <div className="h-10 rounded bg-surface-bright" />
+        <div className="bg-surface-bright h-10 rounded" />
+        <div className="bg-surface-bright h-10 rounded" />
+        <div className="bg-surface-bright h-10 rounded" />
       </div>
     </div>
   );

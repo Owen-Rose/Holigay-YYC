@@ -15,26 +15,26 @@ export default async function LandingPage() {
     <div className="space-y-16 pb-16">
       {/* Hero Section */}
       <section className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+        <h1 className="text-foreground text-4xl font-bold tracking-tight sm:text-5xl">
           Showcase Your Products at
-          <span className="block bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 via-blue-500 to-primary bg-clip-text text-transparent">
+          <span className="to-primary block bg-gradient-to-r from-red-500 via-blue-500 via-green-500 via-yellow-400 bg-clip-text text-transparent">
             Holigay Vendor Market
           </span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg text-muted">
+        <p className="text-muted mx-auto mt-6 max-w-2xl text-lg">
           Connect with enthusiastic shoppers, grow your customer base, and be part of a vibrant
           community marketplace. We&apos;re looking for talented vendors like you!
         </p>
         <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
             href="/apply"
-            className="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-violet-600 via-pink-500 to-orange-400 px-8 py-3 text-base font-medium text-white shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 hover:brightness-110 focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
+            className="shadow-primary/25 hover:shadow-primary/30 focus:ring-primary/50 focus:ring-offset-background inline-flex items-center justify-center rounded-md bg-gradient-to-r from-violet-600 via-pink-500 to-orange-400 px-8 py-3 text-base font-medium text-white shadow-lg transition-all hover:shadow-xl hover:brightness-110 focus:ring-2 focus:ring-offset-2 focus:outline-none"
           >
             Apply Now
           </Link>
           <a
             href="#events"
-            className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-8 py-3 text-base font-medium text-foreground shadow-sm transition-colors hover:bg-surface-bright"
+            className="border-border bg-surface text-foreground hover:bg-surface-bright inline-flex items-center justify-center rounded-md border px-8 py-3 text-base font-medium shadow-sm transition-colors"
           >
             View Events
           </a>
@@ -44,15 +44,15 @@ export default async function LandingPage() {
       {/* Benefits Section */}
       <section>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
+          <h2 className="text-foreground text-2xl font-bold sm:text-3xl">
             Why Vendors Love Our Markets
           </h2>
-          <p className="mt-2 text-muted">Join a supportive community and grow your business</p>
+          <p className="text-muted mt-2">Join a supportive community and grow your business</p>
         </div>
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {/* Benefit 1: High Foot Traffic */}
-          <div className="rounded-lg border border-border-subtle bg-surface/60 p-6 backdrop-blur-sm">
+          <div className="border-border-subtle bg-surface/60 rounded-lg border p-6 backdrop-blur-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/15 text-blue-400">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -63,15 +63,15 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-foreground">High Foot Traffic</h3>
-            <p className="mt-2 text-muted">
+            <h3 className="text-foreground text-lg font-semibold">High Foot Traffic</h3>
+            <p className="text-muted mt-2">
               Our events attract hundreds of eager shoppers looking for unique products and local
               finds.
             </p>
           </div>
 
           {/* Benefit 2: Community Support */}
-          <div className="rounded-lg border border-border-subtle bg-surface/60 p-6 backdrop-blur-sm">
+          <div className="border-border-subtle bg-surface/60 rounded-lg border p-6 backdrop-blur-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15 text-green-400">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -82,15 +82,15 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Supportive Community</h3>
-            <p className="mt-2 text-muted">
+            <h3 className="text-foreground text-lg font-semibold">Supportive Community</h3>
+            <p className="text-muted mt-2">
               Join a welcoming network of vendors who collaborate, share tips, and support each
               other&apos;s success.
             </p>
           </div>
 
           {/* Benefit 3: Easy Setup */}
-          <div className="rounded-lg border border-border-subtle bg-surface/60 p-6 backdrop-blur-sm">
+          <div className="border-border-subtle bg-surface/60 rounded-lg border p-6 backdrop-blur-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-500/15 text-purple-400">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -101,14 +101,14 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Hassle-Free Setup</h3>
-            <p className="mt-2 text-muted">
+            <h3 className="text-foreground text-lg font-semibold">Hassle-Free Setup</h3>
+            <p className="text-muted mt-2">
               We provide tables, chairs, and support. Just bring your products and creativity!
             </p>
           </div>
 
           {/* Benefit 4: Marketing Support */}
-          <div className="rounded-lg border border-border-subtle bg-surface/60 p-6 backdrop-blur-sm">
+          <div className="border-border-subtle bg-surface/60 rounded-lg border p-6 backdrop-blur-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-500/15 text-orange-400">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -119,15 +119,15 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Marketing Exposure</h3>
-            <p className="mt-2 text-muted">
+            <h3 className="text-foreground text-lg font-semibold">Marketing Exposure</h3>
+            <p className="text-muted mt-2">
               Get featured in our promotions, social media, and email campaigns to reach new
               customers.
             </p>
           </div>
 
           {/* Benefit 5: Affordable Rates */}
-          <div className="rounded-lg border border-border-subtle bg-surface/60 p-6 backdrop-blur-sm">
+          <div className="border-border-subtle bg-surface/60 rounded-lg border p-6 backdrop-blur-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/15 text-teal-400">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -138,15 +138,15 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Affordable Booth Rates</h3>
-            <p className="mt-2 text-muted">
+            <h3 className="text-foreground text-lg font-semibold">Affordable Booth Rates</h3>
+            <p className="text-muted mt-2">
               Competitive pricing designed with small businesses in mind. Great value for the
               exposure you&apos;ll receive.
             </p>
           </div>
 
           {/* Benefit 6: Prime Location */}
-          <div className="rounded-lg border border-border-subtle bg-surface/60 p-6 backdrop-blur-sm">
+          <div className="border-border-subtle bg-surface/60 rounded-lg border p-6 backdrop-blur-sm">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-pink-500/15 text-pink-400">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -163,8 +163,8 @@ export default async function LandingPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Prime Locations</h3>
-            <p className="mt-2 text-muted">
+            <h3 className="text-foreground text-lg font-semibold">Prime Locations</h3>
+            <p className="text-muted mt-2">
               Our venues are easily accessible with ample parking and high visibility in the
               community.
             </p>
@@ -175,8 +175,8 @@ export default async function LandingPage() {
       {/* Upcoming Events Section */}
       <section id="events" className="scroll-mt-8">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-foreground sm:text-3xl">Upcoming Events</h2>
-          <p className="mt-2 text-muted">Apply now to secure your spot at our next market</p>
+          <h2 className="text-foreground text-2xl font-bold sm:text-3xl">Upcoming Events</h2>
+          <p className="text-muted mt-2">Apply now to secure your spot at our next market</p>
         </div>
 
         <div className="mt-10">
@@ -187,8 +187,8 @@ export default async function LandingPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-border-subtle bg-surface p-8 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface-bright text-muted-foreground">
+            <div className="border-border-subtle bg-surface rounded-lg border p-8 text-center">
+              <div className="bg-surface-bright text-muted-foreground mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -198,8 +198,8 @@ export default async function LandingPage() {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-foreground">No Upcoming Events</h3>
-              <p className="mt-2 text-muted">
+              <h3 className="text-foreground text-lg font-semibold">No Upcoming Events</h3>
+              <p className="text-muted mt-2">
                 Check back soon! We&apos;re planning exciting new markets.
               </p>
             </div>
@@ -216,7 +216,7 @@ export default async function LandingPage() {
         </p>
         <Link
           href="/apply"
-          className="mt-6 inline-flex items-center justify-center rounded-md bg-white px-8 py-3 text-base font-medium text-primary-foreground shadow-sm transition-colors hover:bg-white/90"
+          className="text-primary-foreground mt-6 inline-flex items-center justify-center rounded-md bg-white px-8 py-3 text-base font-medium shadow-sm transition-colors hover:bg-white/90"
         >
           Start Your Application
         </Link>
@@ -254,9 +254,9 @@ function EventCard({ event }: { event: Event }) {
     : null;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-border-subtle bg-surface sm:flex-row">
+    <div className="border-border-subtle bg-surface flex flex-col overflow-hidden rounded-lg border sm:flex-row">
       {/* Date badge - visible on left for desktop, top for mobile */}
-      <div className="flex shrink-0 flex-col items-center justify-center bg-primary p-4 text-primary-foreground sm:w-32">
+      <div className="bg-primary text-primary-foreground flex shrink-0 flex-col items-center justify-center p-4 sm:w-32">
         <span className="text-sm font-medium uppercase">
           {new Date(event.event_date).toLocaleDateString('en-US', {
             month: 'short',
@@ -269,8 +269,8 @@ function EventCard({ event }: { event: Event }) {
       {/* Event details */}
       <div className="flex flex-1 flex-col justify-between p-6">
         <div>
-          <h3 className="text-xl font-semibold text-foreground">{event.name}</h3>
-          <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted">
+          <h3 className="text-foreground text-xl font-semibold">{event.name}</h3>
+          <div className="text-muted mt-2 flex flex-wrap gap-4 text-sm">
             <span className="flex items-center gap-1">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -300,18 +300,18 @@ function EventCard({ event }: { event: Event }) {
               {event.location}
             </span>
           </div>
-          {event.description && <p className="mt-3 text-muted">{event.description}</p>}
+          {event.description && <p className="text-muted mt-3">{event.description}</p>}
         </div>
 
         <div className="mt-4 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           {deadline && (
-            <span className="text-sm text-muted-foreground">
-              Apply by <span className="font-medium text-foreground">{deadline}</span>
+            <span className="text-muted-foreground text-sm">
+              Apply by <span className="text-foreground font-medium">{deadline}</span>
             </span>
           )}
           <Link
             href="/apply"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
           >
             Apply for this Event
           </Link>

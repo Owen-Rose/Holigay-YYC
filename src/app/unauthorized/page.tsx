@@ -31,10 +31,10 @@ export default function UnauthorizedPage() {
         </div>
 
         {/* Main heading */}
-        <h1 className="text-2xl font-bold text-foreground">Access Denied</h1>
+        <h1 className="text-foreground text-2xl font-bold">Access Denied</h1>
 
         {/* Friendly explanation */}
-        <p className="mt-2 max-w-md text-muted">
+        <p className="text-muted mt-2 max-w-md">
           You don&apos;t have permission to access this page. This area is restricted to authorized
           users only.
         </p>
@@ -44,7 +44,7 @@ export default function UnauthorizedPage() {
           {/* Primary action: Go to homepage */}
           <Link
             href="/"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50 focus:ring-offset-background inline-flex min-h-[44px] items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
           >
             Go to homepage
           </Link>
@@ -52,14 +52,14 @@ export default function UnauthorizedPage() {
           {/* Secondary action: Vendor portal (for vendors who hit dashboard routes) */}
           <Link
             href="/vendor"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-md border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-bright focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background focus:outline-none"
+            className="border-border bg-surface text-foreground hover:bg-surface-bright focus:ring-primary/50 focus:ring-offset-background inline-flex min-h-[44px] items-center justify-center rounded-md border px-4 py-2.5 text-sm font-medium transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none"
           >
             Go to vendor portal
           </Link>
         </div>
 
         {/* Help text for users who believe they should have access */}
-        <p className="mt-8 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-8 text-sm">
           If you believe you should have access, please contact the event organizer.
         </p>
       </div>

@@ -31,7 +31,9 @@ function RoleBadge({ role }: { role: Role }) {
   const { bg, text } = config[role];
 
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${bg} ${text}`}>
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${bg} ${text}`}
+    >
       {role.charAt(0).toUpperCase() + role.slice(1)}
     </span>
   );
@@ -56,24 +58,24 @@ function formatDate(dateString: string): string {
 function TableSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="rounded-lg border border-border-subtle bg-surface">
+      <div className="border-border-subtle bg-surface rounded-lg border">
         {/* Header skeleton */}
-        <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
+        <div className="border-border-subtle bg-surface-bright border-b px-6 py-3">
           <div className="grid grid-cols-4 gap-4">
-            <div className="h-4 w-16 rounded bg-surface-bright" />
-            <div className="h-4 w-12 rounded bg-surface-bright" />
-            <div className="h-4 w-20 rounded bg-surface-bright" />
-            <div className="h-4 w-16 rounded bg-surface-bright" />
+            <div className="bg-surface-bright h-4 w-16 rounded" />
+            <div className="bg-surface-bright h-4 w-12 rounded" />
+            <div className="bg-surface-bright h-4 w-20 rounded" />
+            <div className="bg-surface-bright h-4 w-16 rounded" />
           </div>
         </div>
         {/* Row skeletons */}
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="border-b border-border-subtle px-6 py-4 last:border-0">
+          <div key={i} className="border-border-subtle border-b px-6 py-4 last:border-0">
             <div className="grid grid-cols-4 items-center gap-4">
-              <div className="h-4 w-48 rounded bg-surface-bright" />
-              <div className="h-6 w-20 rounded-full bg-surface-bright" />
-              <div className="h-4 w-24 rounded bg-surface-bright" />
-              <div className="h-8 w-28 rounded bg-surface-bright" />
+              <div className="bg-surface-bright h-4 w-48 rounded" />
+              <div className="bg-surface-bright h-6 w-20 rounded-full" />
+              <div className="bg-surface-bright h-4 w-24 rounded" />
+              <div className="bg-surface-bright h-8 w-28 rounded" />
             </div>
           </div>
         ))}
@@ -88,14 +90,12 @@ function TableSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-12 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-surface-bright">
-        <UsersIcon className="h-6 w-6 text-muted-foreground" />
+    <div className="border-border-subtle bg-surface rounded-lg border p-12 text-center">
+      <div className="bg-surface-bright mx-auto flex h-12 w-12 items-center justify-center rounded-full">
+        <UsersIcon className="text-muted-foreground h-6 w-6" />
       </div>
-      <h3 className="mt-4 text-sm font-medium text-foreground">No users found</h3>
-      <p className="mt-1 text-sm text-muted">
-        Users will appear here once they sign up.
-      </p>
+      <h3 className="text-foreground mt-4 text-sm font-medium">No users found</h3>
+      <p className="text-muted mt-1 text-sm">Users will appear here once they sign up.</p>
     </div>
   );
 }
@@ -132,7 +132,13 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 
 function UsersIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -144,7 +150,13 @@ function UsersIcon({ className }: { className?: string }) {
 
 function ExclamationIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -192,9 +204,7 @@ export default function AdminUsersPage() {
   // Handle role change - update local state and show success
   function handleRoleChange(userId: string, newRole: Role) {
     setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.id === userId ? { ...user, role: newRole } : user
-      )
+      prevUsers.map((user) => (user.id === userId ? { ...user, role: newRole } : user))
     );
     toast.success('User role updated');
   }
@@ -203,8 +213,8 @@ export default function AdminUsersPage() {
     <div>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">User Management</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-foreground text-2xl font-bold">User Management</h1>
+        <p className="text-muted mt-1 text-sm">
           View all users and manage their roles. Changes take effect immediately.
         </p>
       </div>
@@ -212,18 +222,18 @@ export default function AdminUsersPage() {
       {/* Stats Summary */}
       {!isLoading && !error && users.length > 0 && (
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-border-subtle bg-surface p-4">
-            <p className="text-sm font-medium text-muted">Total Users</p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{users.length}</p>
+          <div className="border-border-subtle bg-surface rounded-lg border p-4">
+            <p className="text-muted text-sm font-medium">Total Users</p>
+            <p className="text-foreground mt-1 text-2xl font-bold">{users.length}</p>
           </div>
-          <div className="rounded-lg border border-border-subtle bg-surface p-4">
-            <p className="text-sm font-medium text-muted">Organizers</p>
-            <p className="mt-1 text-2xl font-bold text-primary">
+          <div className="border-border-subtle bg-surface rounded-lg border p-4">
+            <p className="text-muted text-sm font-medium">Organizers</p>
+            <p className="text-primary mt-1 text-2xl font-bold">
               {users.filter((u) => u.role === 'organizer').length}
             </p>
           </div>
-          <div className="rounded-lg border border-border-subtle bg-surface p-4">
-            <p className="text-sm font-medium text-muted">Admins</p>
+          <div className="border-border-subtle bg-surface rounded-lg border p-4">
+            <p className="text-muted text-sm font-medium">Admins</p>
             <p className="mt-1 text-2xl font-bold text-purple-400">
               {users.filter((u) => u.role === 'admin').length}
             </p>
@@ -239,10 +249,10 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
+        <div className="border-border-subtle bg-surface overflow-hidden rounded-lg border">
           {/* Table Header */}
-          <div className="border-b border-border-subtle bg-surface-bright px-6 py-3">
-            <div className="grid grid-cols-12 gap-4 text-xs font-medium uppercase tracking-wider text-muted">
+          <div className="border-border-subtle bg-surface-bright border-b px-6 py-3">
+            <div className="text-muted grid grid-cols-12 gap-4 text-xs font-medium tracking-wider uppercase">
               <div className="col-span-5">Email</div>
               <div className="col-span-2">Current Role</div>
               <div className="col-span-2">Joined</div>
@@ -251,16 +261,14 @@ export default function AdminUsersPage() {
           </div>
 
           {/* Table Body */}
-          <div className="divide-y divide-border-subtle">
+          <div className="divide-border-subtle divide-y">
             {users.map((user) => (
-              <div key={user.id} className="px-6 py-4 hover:bg-surface-bright">
+              <div key={user.id} className="hover:bg-surface-bright px-6 py-4">
                 <div className="grid grid-cols-12 items-center gap-4">
                   {/* Email */}
                   <div className="col-span-5">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {user.email}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="text-foreground truncate text-sm font-medium">{user.email}</p>
+                    <p className="text-muted-foreground truncate text-xs">
                       ID: {user.id.slice(0, 8)}...
                     </p>
                   </div>
@@ -272,7 +280,7 @@ export default function AdminUsersPage() {
 
                   {/* Joined Date */}
                   <div className="col-span-2">
-                    <p className="text-sm text-muted">{formatDate(user.createdAt)}</p>
+                    <p className="text-muted text-sm">{formatDate(user.createdAt)}</p>
                   </div>
 
                   {/* Role Selector */}
@@ -290,7 +298,6 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

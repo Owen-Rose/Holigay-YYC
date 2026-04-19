@@ -28,8 +28,8 @@ function PageHeader({ filters }: PageHeaderProps) {
   return (
     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Applications</h1>
-        <p className="mt-1 text-sm text-muted">
+        <h1 className="text-foreground text-2xl font-bold">Applications</h1>
+        <p className="text-muted mt-1 text-sm">
           View and manage all vendor applications for your events.
         </p>
       </div>
@@ -49,12 +49,12 @@ function FilterSkeleton() {
     <div className="mb-6 animate-pulse">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1">
-          <div className="mb-1 h-5 w-16 rounded bg-surface-bright" />
-          <div className="h-10 w-full rounded-md bg-surface-bright" />
+          <div className="bg-surface-bright mb-1 h-5 w-16 rounded" />
+          <div className="bg-surface-bright h-10 w-full rounded-md" />
         </div>
         <div className="w-full sm:w-48">
-          <div className="mb-1 h-5 w-12 rounded bg-surface-bright" />
-          <div className="h-10 w-full rounded-md bg-surface-bright" />
+          <div className="bg-surface-bright mb-1 h-5 w-12 rounded" />
+          <div className="bg-surface-bright h-10 w-full rounded-md" />
         </div>
       </div>
     </div>
@@ -87,30 +87,30 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
   }
 
   return (
-    <div className="mt-6 flex items-center justify-between border-t border-border-subtle bg-surface px-4 py-3 sm:px-6">
+    <div className="border-border-subtle bg-surface mt-6 flex items-center justify-between border-t px-4 py-3 sm:px-6">
       {/* Mobile pagination */}
       <div className="flex flex-1 justify-between sm:hidden">
         {currentPage > 1 ? (
           <a
             href={getPageUrl(currentPage - 1)}
-            className="relative inline-flex items-center rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-bright"
+            className="border-border bg-surface text-foreground hover:bg-surface-bright relative inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium"
           >
             Previous
           </a>
         ) : (
-          <span className="relative inline-flex cursor-not-allowed items-center rounded-md border border-border bg-surface-bright px-4 py-2 text-sm font-medium text-muted-foreground">
+          <span className="border-border bg-surface-bright text-muted-foreground relative inline-flex cursor-not-allowed items-center rounded-md border px-4 py-2 text-sm font-medium">
             Previous
           </span>
         )}
         {currentPage < totalPages ? (
           <a
             href={getPageUrl(currentPage + 1)}
-            className="relative ml-3 inline-flex items-center rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-surface-bright"
+            className="border-border bg-surface text-foreground hover:bg-surface-bright relative ml-3 inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium"
           >
             Next
           </a>
         ) : (
-          <span className="relative ml-3 inline-flex cursor-not-allowed items-center rounded-md border border-border bg-surface-bright px-4 py-2 text-sm font-medium text-muted-foreground">
+          <span className="border-border bg-surface-bright text-muted-foreground relative ml-3 inline-flex cursor-not-allowed items-center rounded-md border px-4 py-2 text-sm font-medium">
             Next
           </span>
         )}
@@ -119,7 +119,7 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
       {/* Desktop pagination */}
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-muted">
+          <p className="text-muted text-sm">
             Showing <span className="font-medium">{startItem}</span> to{' '}
             <span className="font-medium">{endItem}</span> of{' '}
             <span className="font-medium">{totalCount}</span> results
@@ -134,7 +134,7 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
             {currentPage > 1 ? (
               <a
                 href={getPageUrl(currentPage - 1)}
-                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-muted-foreground ring-1 ring-border ring-inset hover:bg-surface-bright focus:z-20 focus:outline-offset-0"
+                className="text-muted-foreground ring-border hover:bg-surface-bright relative inline-flex items-center rounded-l-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0"
               >
                 <span className="sr-only">Previous</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -146,7 +146,7 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
                 </svg>
               </a>
             ) : (
-              <span className="relative inline-flex cursor-not-allowed items-center rounded-l-md px-2 py-2 text-muted-foreground/50 ring-1 ring-border ring-inset">
+              <span className="text-muted-foreground/50 ring-border relative inline-flex cursor-not-allowed items-center rounded-l-md px-2 py-2 ring-1 ring-inset">
                 <span className="sr-only">Previous</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path
@@ -165,8 +165,8 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
                 href={getPageUrl(pageNum)}
                 className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                   pageNum === currentPage
-                    ? 'z-10 bg-primary text-primary-foreground focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
-                    : 'text-foreground ring-1 ring-border ring-inset hover:bg-surface-bright focus:z-20 focus:outline-offset-0'
+                    ? 'bg-primary text-primary-foreground focus-visible:outline-primary z-10 focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2'
+                    : 'text-foreground ring-border hover:bg-surface-bright ring-1 ring-inset focus:z-20 focus:outline-offset-0'
                 }`}
               >
                 {pageNum}
@@ -177,7 +177,7 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
             {currentPage < totalPages ? (
               <a
                 href={getPageUrl(currentPage + 1)}
-                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-muted-foreground ring-1 ring-border ring-inset hover:bg-surface-bright focus:z-20 focus:outline-offset-0"
+                className="text-muted-foreground ring-border hover:bg-surface-bright relative inline-flex items-center rounded-r-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0"
               >
                 <span className="sr-only">Next</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -189,7 +189,7 @@ function Pagination({ currentPage, totalPages, totalCount, pageSize, baseUrl }: 
                 </svg>
               </a>
             ) : (
-              <span className="relative inline-flex cursor-not-allowed items-center rounded-r-md px-2 py-2 text-muted-foreground/50 ring-1 ring-border ring-inset">
+              <span className="text-muted-foreground/50 ring-border relative inline-flex cursor-not-allowed items-center rounded-r-md px-2 py-2 ring-1 ring-inset">
                 <span className="sr-only">Next</span>
                 <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                   <path

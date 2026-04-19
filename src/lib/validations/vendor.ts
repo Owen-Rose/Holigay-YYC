@@ -1,12 +1,12 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 // =============================================================================
 // Custom Validators (same as application.ts for consistency)
 // =============================================================================
 
-const phoneRegex = /^(\+1)?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/
+const phoneRegex = /^(\+1)?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
 const websiteRegex =
-  /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/
+  /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
 
 // =============================================================================
 // Vendor Profile Schema
@@ -40,10 +40,10 @@ export const vendorProfileSchema = z.object({
     .max(1000, 'Description must be less than 1000 characters')
     .optional()
     .or(z.literal('')),
-})
+});
 
 // =============================================================================
 // TypeScript Types
 // =============================================================================
 
-export type VendorProfileInput = z.infer<typeof vendorProfileSchema>
+export type VendorProfileInput = z.infer<typeof vendorProfileSchema>;

@@ -7,27 +7,27 @@
 
 :root {
   /* Backgrounds */
-  --background: #1C171C;        /* warm near-black from brand */
-  --foreground: #F5F0F5;        /* warm off-white, ~13:1 contrast */
-  --surface: #2A2230;           /* card/panel backgrounds */
-  --surface-bright: #352D3B;    /* elevated surfaces, hover states */
+  --background: #1c171c; /* warm near-black from brand */
+  --foreground: #f5f0f5; /* warm off-white, ~13:1 contrast */
+  --surface: #2a2230; /* card/panel backgrounds */
+  --surface-bright: #352d3b; /* elevated surfaces, hover states */
 
   /* Borders */
-  --border: #4A3F52;            /* input borders */
-  --border-subtle: #3A3142;     /* card borders, dividers */
+  --border: #4a3f52; /* input borders */
+  --border-subtle: #3a3142; /* card borders, dividers */
 
   /* Muted text */
-  --muted: #A89BB2;             /* secondary text, ~5.1:1 contrast */
-  --muted-foreground: #8B7D96;  /* placeholders, tertiary text */
+  --muted: #a89bb2; /* secondary text, ~5.1:1 contrast */
+  --muted-foreground: #8b7d96; /* placeholders, tertiary text */
 
   /* Primary (violet) */
-  --primary: #A78BFA;           /* violet-400, replaces generic blue */
-  --primary-hover: #8B5CF6;     /* violet-500 */
+  --primary: #a78bfa; /* violet-400, replaces generic blue */
+  --primary-hover: #8b5cf6; /* violet-500 */
   --primary-soft: rgba(167, 139, 250, 0.15); /* active nav, icon backgrounds */
-  --primary-foreground: #1C171C;/* text on primary buttons */
+  --primary-foreground: #1c171c; /* text on primary buttons */
 
   /* Rainbow gradient (pride-inclusive brand accent) */
-  --rainbow: linear-gradient(135deg, #EF4444, #F97316, #EAB308, #22C55E, #3B82F6, #A78BFA);
+  --rainbow: linear-gradient(135deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a78bfa);
 }
 
 /* Register all tokens for Tailwind v4 utility classes

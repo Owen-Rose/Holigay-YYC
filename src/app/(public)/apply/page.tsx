@@ -22,8 +22,8 @@ export default async function ApplyPage() {
     <div>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Vendor Application</h1>
-        <p className="mt-2 text-muted">
+        <h1 className="text-foreground text-3xl font-bold">Vendor Application</h1>
+        <p className="text-muted mt-2">
           Apply to be a vendor at our upcoming market events. Fill out the form below and we&apos;ll
           review your application.
         </p>
@@ -31,12 +31,12 @@ export default async function ApplyPage() {
 
       {/* Application Form or No Events Message */}
       {formattedEvents.length > 0 ? (
-        <div className="rounded-lg border border-border-subtle bg-surface p-6 sm:p-8">
+        <div className="border-border-subtle bg-surface rounded-lg border p-6 sm:p-8">
           <ApplicationPageClient events={formattedEvents} />
         </div>
       ) : (
-        <div className="rounded-lg border border-border-subtle bg-surface p-8 text-center">
-          <div className="mx-auto mb-4 h-12 w-12 text-muted-foreground">
+        <div className="border-border-subtle bg-surface rounded-lg border p-8 text-center">
+          <div className="text-muted-foreground mx-auto mb-4 h-12 w-12">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="h-12 w-12">
               <path
                 strokeLinecap="round"
@@ -46,8 +46,8 @@ export default async function ApplyPage() {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-foreground">No Events Available</h2>
-          <p className="mt-2 text-muted">
+          <h2 className="text-foreground text-xl font-semibold">No Events Available</h2>
+          <p className="text-muted mt-2">
             There are currently no events accepting vendor applications. Please check back later!
           </p>
         </div>

@@ -56,8 +56,8 @@ function InfoSection({ title, children }: { title: string; children: React.React
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="py-2">
-      <dt className="text-sm font-medium text-muted">{label}</dt>
-      <dd className="mt-1 text-sm text-foreground">{value || '—'}</dd>
+      <dt className="text-muted text-sm font-medium">{label}</dt>
+      <dd className="text-foreground mt-1 text-sm">{value || '—'}</dd>
     </div>
   );
 }
@@ -69,7 +69,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 function VendorInfo({ vendor }: { vendor: ApplicationDetail['vendor'] }) {
   return (
     <InfoSection title="Vendor Information">
-      <dl className="divide-y divide-border-subtle">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Business Name" value={vendor.business_name} />
         <InfoRow label="Contact Name" value={vendor.contact_name} />
         <InfoRow
@@ -109,7 +109,7 @@ function VendorInfo({ vendor }: { vendor: ApplicationDetail['vendor'] }) {
 function EventInfo({ event }: { event: ApplicationDetail['event'] }) {
   return (
     <InfoSection title="Event Details">
-      <dl className="divide-y divide-border-subtle">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Event Name" value={event.name} />
         <InfoRow label="Date" value={formatDate(event.event_date)} />
         <InfoRow label="Location" value={event.location} />
@@ -130,7 +130,7 @@ function EventInfo({ event }: { event: ApplicationDetail['event'] }) {
 function ApplicationDetails({ application }: { application: ApplicationDetail }) {
   return (
     <InfoSection title="Application Details">
-      <dl className="divide-y divide-border-subtle">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Booth Preference" value={application.booth_preference} />
         <InfoRow
           label="Product Categories"
@@ -140,7 +140,7 @@ function ApplicationDetails({ application }: { application: ApplicationDetail })
                 {application.product_categories.map((category) => (
                   <span
                     key={category}
-                    className="inline-flex items-center rounded-full bg-foreground/10 px-2.5 py-0.5 text-xs font-medium text-foreground"
+                    className="bg-foreground/10 text-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                   >
                     {category}
                   </span>
@@ -178,7 +178,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       <div className="mb-6">
         <Link
           href="/dashboard/applications"
-          className="inline-flex items-center gap-1 text-sm text-muted hover:text-foreground"
+          className="text-muted hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <svg
             className="h-4 w-4"
@@ -200,8 +200,8 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       {/* Page Title and Status */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{application.vendor.business_name}</h1>
-          <p className="mt-1 text-sm text-muted">Application for {application.event.name}</p>
+          <h1 className="text-foreground text-2xl font-bold">{application.vendor.business_name}</h1>
+          <p className="text-muted mt-1 text-sm">Application for {application.event.name}</p>
         </div>
         <StatusBadge status={application.status} />
       </div>

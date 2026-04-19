@@ -126,10 +126,7 @@ export async function getUsers(): Promise<GetUsersResponse> {
  * @param newRole - The new role to assign
  * @returns Success/error response
  */
-export async function updateUserRole(
-  userId: string,
-  newRole: Role
-): Promise<UpdateRoleResponse> {
+export async function updateUserRole(userId: string, newRole: Role): Promise<UpdateRoleResponse> {
   // ---------------------------------------------------------------------------
   // Authorization: Require admin role
   // ---------------------------------------------------------------------------
@@ -167,10 +164,7 @@ export async function updateUserRole(
   // ---------------------------------------------------------------------------
   // Update role in user_profiles (the table middleware and auth checks read from)
   // ---------------------------------------------------------------------------
-  const { error } = await supabase
-    .from('user_profiles')
-    .update({ role: newRole })
-    .eq('id', userId);
+  const { error } = await supabase.from('user_profiles').update({ role: newRole }).eq('id', userId);
 
   if (error) {
     console.error('Failed to update user role:', error.message);

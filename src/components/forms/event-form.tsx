@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import {
   eventFormSchema,
   EVENT_STATUSES,
   EVENT_STATUS_LABELS,
   type EventFormInput,
-} from '@/lib/validations/event'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
+} from '@/lib/validations/event';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 // =============================================================================
 // Types
@@ -20,11 +20,11 @@ import { Button } from '@/components/ui/button'
 
 interface EventFormProps {
   /** Pre-filled values for edit mode */
-  defaultValues?: EventFormInput
+  defaultValues?: EventFormInput;
   /** Called with validated data on submit */
-  onSubmit: (data: EventFormInput) => Promise<{ success: boolean; error?: string }>
+  onSubmit: (data: EventFormInput) => Promise<{ success: boolean; error?: string }>;
   /** Controls button label and heading */
-  mode?: 'create' | 'edit'
+  mode?: 'create' | 'edit';
 }
 
 // =============================================================================
@@ -47,28 +47,28 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
       status: 'draft',
       maxVendors: '',
     },
-  })
+  });
 
   async function handleFormSubmit(data: EventFormInput) {
-    const result = await onSubmit(data)
+    const result = await onSubmit(data);
 
     if (result.success) {
-      toast.success(mode === 'create' ? 'Event created' : 'Event updated')
+      toast.success(mode === 'create' ? 'Event created' : 'Event updated');
     } else {
-      toast.error(result.error || 'Something went wrong')
+      toast.error(result.error || 'Something went wrong');
     }
   }
 
   const statusOptions = EVENT_STATUSES.map((s) => ({
     value: s,
     label: EVENT_STATUS_LABELS[s],
-  }))
+  }));
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
       {/* Event Details */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Event Details</h2>
+        <h2 className="text-foreground mb-4 text-lg font-semibold">Event Details</h2>
         <div className="space-y-4">
           <Input
             label="Event Name"
@@ -96,7 +96,7 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
 
       {/* Dates */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Dates</h2>
+        <h2 className="text-foreground mb-4 text-lg font-semibold">Dates</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Input
             label="Event Date"
@@ -117,7 +117,7 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
 
       {/* Settings */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">Settings</h2>
+        <h2 className="text-foreground mb-4 text-lg font-semibold">Settings</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Select
             label="Status"
@@ -139,7 +139,7 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
       </section>
 
       {/* Submit button */}
-      <div className="flex justify-end border-t border-border-subtle pt-4">
+      <div className="border-border-subtle flex justify-end border-t pt-4">
         <Button type="submit" isLoading={isSubmitting} disabled={mode === 'edit' && !isDirty}>
           {isSubmitting
             ? mode === 'create'
@@ -151,5 +151,5 @@ export function EventForm({ defaultValues, onSubmit, mode = 'create' }: EventFor
         </Button>
       </div>
     </form>
-  )
+  );
 }

@@ -1,32 +1,32 @@
-'use server'
+'use server';
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 export type VendorApplication = {
-  id: string
-  status: string
-  submitted_at: string
+  id: string;
+  status: string;
+  submitted_at: string;
   event: {
-    id: string
-    name: string
-    event_date: string
-    location: string
-  }
-}
+    id: string;
+    name: string;
+    event_date: string;
+    location: string;
+  };
+};
 
 export type VendorDashboardData = {
   counts: {
-    pending: number
-    approved: number
-    rejected: number
-    total: number
-  }
-  recentApplications: VendorApplication[]
-}
+    pending: number;
+    approved: number;
+    rejected: number;
+    total: number;
+  };
+  recentApplications: VendorApplication[];
+};
 
 // =============================================================================
 // Server Actions
@@ -38,42 +38,42 @@ export type VendorDashboardData = {
  * Returns null if the user has no linked vendor profile.
  */
 export async function getVendorDashboardData(): Promise<VendorDashboardData | null> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Get current user
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
-  if (!user) return null
+  if (!user) return null;
 
   // Get vendor_id from user_profiles
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('vendor_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
-  if (!profile?.vendor_id) return null
+  if (!profile?.vendor_id) return null;
 
-  const vendorId = profile.vendor_id
+  const vendorId = profile.vendor_id;
 
   // Fetch all applications for this vendor (status only, for counts)
   const { data: allApps, error: countError } = await supabase
     .from('applications')
     .select('status')
-    .eq('vendor_id', vendorId)
+    .eq('vendor_id', vendorId);
 
   if (countError) {
-    console.error('Error fetching vendor application counts:', countError)
+    console.error('Error fetching vendor application counts:', countError);
   }
 
-  const counts = { pending: 0, approved: 0, rejected: 0, total: 0 }
+  const counts = { pending: 0, approved: 0, rejected: 0, total: 0 };
   for (const app of allApps || []) {
-    counts.total++
-    if (app.status === 'pending') counts.pending++
-    else if (app.status === 'approved') counts.approved++
-    else if (app.status === 'rejected') counts.rejected++
+    counts.total++;
+    if (app.status === 'pending') counts.pending++;
+    else if (app.status === 'approved') counts.approved++;
+    else if (app.status === 'rejected') counts.rejected++;
   }
 
   // Fetch recent 5 applications with event info
@@ -94,10 +94,10 @@ export async function getVendorDashboardData(): Promise<VendorDashboardData | nu
     )
     .eq('vendor_id', vendorId)
     .order('submitted_at', { ascending: false })
-    .limit(5)
+    .limit(5);
 
   if (recentError) {
-    console.error('Error fetching vendor recent applications:', recentError)
+    console.error('Error fetching vendor recent applications:', recentError);
   }
 
   // Filter out any applications with missing event data
@@ -108,20 +108,20 @@ export async function getVendorDashboardData(): Promise<VendorDashboardData | nu
       status: app.status,
       submitted_at: app.submitted_at,
       event: app.event as VendorApplication['event'],
-    }))
+    }));
 
-  return { counts, recentApplications }
+  return { counts, recentApplications };
 }
 
 // =============================================================================
 // Vendor Applications List
 // =============================================================================
 
-const VALID_STATUSES = ['pending', 'approved', 'rejected', 'waitlisted']
+const VALID_STATUSES = ['pending', 'approved', 'rejected', 'waitlisted'];
 
 type VendorApplicationsListResult =
   | { success: true; data: VendorApplication[] }
-  | { success: false; error: string; data: null }
+  | { success: false; error: string; data: null };
 
 /**
  * Fetches all applications for the current vendor, optionally filtered by status.
@@ -130,24 +130,24 @@ type VendorApplicationsListResult =
 export async function getVendorApplicationsList(
   status?: string | null
 ): Promise<VendorApplicationsListResult> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return { success: false, error: 'not_authenticated', data: null }
+    return { success: false, error: 'not_authenticated', data: null };
   }
 
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('vendor_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (!profile?.vendor_id) {
-    return { success: false, error: 'no_vendor_profile', data: null }
+    return { success: false, error: 'no_vendor_profile', data: null };
   }
 
   let query = supabase
@@ -166,17 +166,17 @@ export async function getVendorApplicationsList(
     `
     )
     .eq('vendor_id', profile.vendor_id)
-    .order('submitted_at', { ascending: false })
+    .order('submitted_at', { ascending: false });
 
   if (status && VALID_STATUSES.includes(status)) {
-    query = query.eq('status', status)
+    query = query.eq('status', status);
   }
 
-  const { data, error } = await query
+  const { data, error } = await query;
 
   if (error) {
-    console.error('Error fetching vendor applications list:', error)
-    return { success: false, error: 'fetch_failed', data: null }
+    console.error('Error fetching vendor applications list:', error);
+    return { success: false, error: 'fetch_failed', data: null };
   }
 
   const applications: VendorApplication[] = (data || [])
@@ -186,9 +186,9 @@ export async function getVendorApplicationsList(
       status: app.status,
       submitted_at: app.submitted_at,
       event: app.event as VendorApplication['event'],
-    }))
+    }));
 
-  return { success: true, data: applications }
+  return { success: true, data: applications };
 }
 
 // =============================================================================
@@ -196,31 +196,35 @@ export async function getVendorApplicationsList(
 // =============================================================================
 
 export type VendorProfile = {
-  id: string
-  business_name: string
-  contact_name: string
-  email: string
-  phone: string | null
-  website: string | null
-  description: string | null
-}
+  id: string;
+  business_name: string;
+  contact_name: string;
+  email: string;
+  phone: string | null;
+  website: string | null;
+  description: string | null;
+};
 
 type GetVendorProfileResult =
   | { success: true; data: VendorProfile }
-  | { success: false; error: 'not_authenticated' | 'no_vendor_profile' | 'fetch_failed'; data: null }
+  | {
+      success: false;
+      error: 'not_authenticated' | 'no_vendor_profile' | 'fetch_failed';
+      data: null;
+    };
 
 /**
  * Fetches the current vendor's profile, scoped to the authenticated user.
  */
 export async function getVendorProfile(): Promise<GetVendorProfileResult> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return { success: false, error: 'not_authenticated', data: null }
+    return { success: false, error: 'not_authenticated', data: null };
   }
 
   // Get vendor_id from user_profiles
@@ -228,28 +232,28 @@ export async function getVendorProfile(): Promise<GetVendorProfileResult> {
     .from('user_profiles')
     .select('vendor_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (profileError) {
-    console.error('[VendorProfile] Error fetching user_profiles:', profileError)
+    console.error('[VendorProfile] Error fetching user_profiles:', profileError);
   }
 
   if (!profile?.vendor_id) {
-    return { success: false, error: 'no_vendor_profile', data: null }
+    return { success: false, error: 'no_vendor_profile', data: null };
   }
 
   const { data: vendor, error } = await supabase
     .from('vendors')
     .select('id, business_name, contact_name, email, phone, website, description')
     .eq('id', profile.vendor_id)
-    .single()
+    .single();
 
   if (error || !vendor) {
-    console.error('[VendorProfile] Error fetching vendor:', error)
-    return { success: false, error: 'fetch_failed', data: null }
+    console.error('[VendorProfile] Error fetching vendor:', error);
+    return { success: false, error: 'fetch_failed', data: null };
   }
 
-  return { success: true, data: vendor }
+  return { success: true, data: vendor };
 }
 
 // =============================================================================
@@ -257,44 +261,48 @@ export async function getVendorProfile(): Promise<GetVendorProfileResult> {
 // =============================================================================
 
 export type VendorApplicationDetail = {
-  id: string
-  status: string
-  submitted_at: string
-  updated_at: string
-  booth_preference: string | null
-  product_categories: string[] | null
-  special_requirements: string | null
+  id: string;
+  status: string;
+  submitted_at: string;
+  updated_at: string;
+  booth_preference: string | null;
+  product_categories: string[] | null;
+  special_requirements: string | null;
   vendor: {
-    business_name: string
-    contact_name: string
-    email: string
-    phone: string | null
-    website: string | null
-    description: string | null
-  }
+    business_name: string;
+    contact_name: string;
+    email: string;
+    phone: string | null;
+    website: string | null;
+    description: string | null;
+  };
   event: {
-    id: string
-    name: string
-    event_date: string
-    location: string
-    description: string | null
-    application_deadline: string | null
-    max_vendors: number | null
-    status: string
-  }
+    id: string;
+    name: string;
+    event_date: string;
+    location: string;
+    description: string | null;
+    application_deadline: string | null;
+    max_vendors: number | null;
+    status: string;
+  };
   attachments: {
-    id: string
-    file_name: string
-    file_path: string
-    file_type: string
-    file_size: number | null
-    uploaded_at: string
-  }[]
-}
+    id: string;
+    file_name: string;
+    file_path: string;
+    file_type: string;
+    file_size: number | null;
+    uploaded_at: string;
+  }[];
+};
 
 type VendorApplicationDetailResult =
   | { success: true; data: VendorApplicationDetail }
-  | { success: false; error: 'not_authenticated' | 'no_vendor_profile' | 'not_found' | 'fetch_failed'; data: null }
+  | {
+      success: false;
+      error: 'not_authenticated' | 'no_vendor_profile' | 'not_found' | 'fetch_failed';
+      data: null;
+    };
 
 /**
  * Fetches a single application with full details, scoped to the current vendor.
@@ -304,24 +312,24 @@ type VendorApplicationDetailResult =
 export async function getVendorApplicationDetail(
   applicationId: string
 ): Promise<VendorApplicationDetailResult> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return { success: false, error: 'not_authenticated', data: null }
+    return { success: false, error: 'not_authenticated', data: null };
   }
 
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('vendor_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (!profile?.vendor_id) {
-    return { success: false, error: 'no_vendor_profile', data: null }
+    return { success: false, error: 'no_vendor_profile', data: null };
   }
 
   // Fetch application with vendor and event data, scoped to this vendor
@@ -358,18 +366,18 @@ export async function getVendorApplicationDetail(
     )
     .eq('id', applicationId)
     .eq('vendor_id', profile.vendor_id)
-    .single()
+    .single();
 
   if (appError) {
     if (appError.code === 'PGRST116') {
-      return { success: false, error: 'not_found', data: null }
+      return { success: false, error: 'not_found', data: null };
     }
-    console.error('Error fetching vendor application detail:', appError)
-    return { success: false, error: 'fetch_failed', data: null }
+    console.error('Error fetching vendor application detail:', appError);
+    return { success: false, error: 'fetch_failed', data: null };
   }
 
   if (!application?.vendor || !application?.event) {
-    return { success: false, error: 'not_found', data: null }
+    return { success: false, error: 'not_found', data: null };
   }
 
   // Fetch attachments for this application
@@ -377,10 +385,10 @@ export async function getVendorApplicationDetail(
     .from('attachments')
     .select('id, file_name, file_path, file_type, file_size, uploaded_at')
     .eq('application_id', applicationId)
-    .order('uploaded_at', { ascending: true })
+    .order('uploaded_at', { ascending: true });
 
   if (attachError) {
-    console.error('Error fetching attachments:', attachError)
+    console.error('Error fetching attachments:', attachError);
   }
 
   return {
@@ -397,5 +405,5 @@ export async function getVendorApplicationDetail(
       event: application.event as VendorApplicationDetail['event'],
       attachments: attachments || [],
     },
-  }
+  };
 }

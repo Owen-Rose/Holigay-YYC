@@ -165,7 +165,12 @@ export async function getVendorDashboardData(): Promise<VendorDashboardResponse>
       // Transform to camelCase for frontend
       applications = (appData || []).map((app) => {
         // Handle the event join - Supabase returns it as an object
-        const eventData = app.event as { id: string; name: string; event_date: string; location: string } | null;
+        const eventData = app.event as {
+          id: string;
+          name: string;
+          event_date: string;
+          location: string;
+        } | null;
 
         return {
           id: app.id,

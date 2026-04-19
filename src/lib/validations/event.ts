@@ -1,16 +1,16 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-export const EVENT_STATUSES = ['draft', 'active', 'closed'] as const
+export const EVENT_STATUSES = ['draft', 'active', 'closed'] as const;
 
 export const EVENT_STATUS_LABELS: Record<(typeof EVENT_STATUSES)[number], string> = {
   draft: 'Draft',
   active: 'Active',
   closed: 'Closed',
-}
+};
 
 // =============================================================================
 // Event Form Schema
@@ -42,9 +42,9 @@ export const eventFormSchema = z
       .or(z.literal(''))
       .refine(
         (val) => {
-          if (!val || val === '') return true
-          const num = parseInt(val, 10)
-          return !isNaN(num) && num >= 1 && num <= 9999 && Number.isInteger(num)
+          if (!val || val === '') return true;
+          const num = parseInt(val, 10);
+          return !isNaN(num) && num >= 1 && num <= 9999 && Number.isInteger(num);
         },
         { message: 'Must be a whole number between 1 and 9,999' }
       ),
@@ -53,18 +53,18 @@ export const eventFormSchema = z
     (data) => {
       // If both dates are set, deadline must be before or on the event date
       if (data.applicationDeadline && data.eventDate) {
-        return new Date(data.applicationDeadline) <= new Date(data.eventDate)
+        return new Date(data.applicationDeadline) <= new Date(data.eventDate);
       }
-      return true
+      return true;
     },
     {
       message: 'Application deadline must be on or before the event date',
       path: ['applicationDeadline'],
     }
-  )
+  );
 
 // =============================================================================
 // TypeScript Types
 // =============================================================================
 
-export type EventFormInput = z.infer<typeof eventFormSchema>
+export type EventFormInput = z.infer<typeof eventFormSchema>;

@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="mb-8">
         <Link
           href="/"
-          className="text-2xl font-bold text-foreground transition-colors hover:text-primary"
+          className="text-foreground hover:text-primary text-2xl font-bold transition-colors"
         >
           Holigay Vendor Market
         </Link>
@@ -15,17 +15,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Auth Card */}
       <div className="w-full max-w-md">
-        <div className="rounded-xl border border-border-subtle bg-surface px-8 py-10 shadow-xl backdrop-blur-sm">
+        <div className="border-border-subtle bg-surface rounded-xl border px-8 py-10 shadow-xl backdrop-blur-sm">
           {children}
         </div>
       </div>
 
       {/* Footer */}
       <div className="mt-8 text-center text-sm">
-        <Link
-          href="/"
-          className="text-muted-foreground transition-colors hover:text-primary"
-        >
+        <Link href="/" className="text-muted-foreground hover:text-primary transition-colors">
           Back to Home
         </Link>
       </div>
