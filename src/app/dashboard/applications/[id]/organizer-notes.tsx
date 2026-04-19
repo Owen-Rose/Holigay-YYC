@@ -1,70 +1,64 @@
-'use client'
+'use client';
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import { updateApplicationNotes } from '@/lib/actions/applications'
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { updateApplicationNotes } from '@/lib/actions/applications';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface OrganizerNotesProps {
-  applicationId: string
-  initialNotes: string
+  applicationId: string;
+  initialNotes: string;
 }
 
 // =============================================================================
 // Component
 // =============================================================================
 
-export function OrganizerNotes({
-  applicationId,
-  initialNotes,
-}: OrganizerNotesProps) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [notes, setNotes] = useState(initialNotes)
-  const [savedNotes, setSavedNotes] = useState(initialNotes)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [notes, setNotes] = useState(initialNotes);
+  const [savedNotes, setSavedNotes] = useState(initialNotes);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const hasChanges = notes !== savedNotes
+  const hasChanges = notes !== savedNotes;
 
   async function handleSave() {
-    setError(null)
-    setSuccess(false)
+    setError(null);
+    setSuccess(false);
 
     startTransition(async () => {
-      const result = await updateApplicationNotes(applicationId, notes)
+      const result = await updateApplicationNotes(applicationId, notes);
 
       if (!result.success) {
-        setError(result.error || 'Failed to save notes')
-        return
+        setError(result.error || 'Failed to save notes');
+        return;
       }
 
-      setSavedNotes(notes)
-      setSuccess(true)
+      setSavedNotes(notes);
+      setSuccess(true);
 
       // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000)
+      setTimeout(() => setSuccess(false), 3000);
 
       // Refresh the page data
-      router.refresh()
-    })
+      router.refresh();
+    });
   }
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">Organizer Notes</h2>
-        {hasChanges && (
-          <span className="text-xs text-amber-600">Unsaved changes</span>
-        )}
+        {hasChanges && <span className="text-xs text-amber-600">Unsaved changes</span>}
       </div>
 
       <p className="mb-3 text-sm text-gray-600">
-        Add private notes about this application. Only organizers can see these
-        notes.
+        Add private notes about this application. Only organizers can see these notes.
       </p>
 
       <textarea
@@ -73,7 +67,7 @@ export function OrganizerNotes({
         disabled={isPending}
         placeholder="Add notes about this application..."
         rows={4}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-50"
+        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50"
       />
 
       <div className="mt-4 flex items-center justify-between">
@@ -93,11 +87,11 @@ export function OrganizerNotes({
         <button
           onClick={handleSave}
           disabled={isPending || !hasChanges}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-300"
         >
           {isPending ? 'Saving...' : 'Save Notes'}
         </button>
       </div>
     </div>
-  )
+  );
 }

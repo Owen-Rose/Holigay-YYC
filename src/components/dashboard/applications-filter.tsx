@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { useCallback, useEffect, useState, useTransition } from 'react'
-import { cn } from '@/lib/utils'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useCallback, useEffect, useState, useTransition } from 'react';
+import { cn } from '@/lib/utils';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface ApplicationsFilterProps {
-  className?: string
+  className?: string;
 }
 
 // Status options for the filter dropdown
@@ -19,7 +19,7 @@ const STATUS_OPTIONS = [
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },
   { value: 'waitlisted', label: 'Waitlisted' },
-] as const
+] as const;
 
 // =============================================================================
 // Search Icon Component
@@ -41,7 +41,7 @@ function SearchIcon({ className }: { className?: string }) {
         d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
       />
     </svg>
-  )
+  );
 }
 
 // =============================================================================
@@ -60,7 +60,7 @@ function ClearIcon({ className }: { className?: string }) {
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
     </svg>
-  )
+  );
 }
 
 // =============================================================================
@@ -68,20 +68,20 @@ function ClearIcon({ className }: { className?: string }) {
 // =============================================================================
 
 export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const [isPending, startTransition] = useTransition()
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   // Get current filter values from URL
-  const currentSearch = searchParams.get('search') || ''
-  const currentStatus = searchParams.get('status') || ''
+  const currentSearch = searchParams.get('search') || '';
+  const currentStatus = searchParams.get('status') || '';
 
   // Local state for the search input (for debouncing)
-  const [searchValue, setSearchValue] = useState(currentSearch)
+  const [searchValue, setSearchValue] = useState(currentSearch);
 
   // Check if any filters are active
-  const hasActiveFilters = currentSearch || currentStatus
+  const hasActiveFilters = currentSearch || currentStatus;
 
   // ---------------------------------------------------------------------------
   // URL Update Helper
@@ -89,27 +89,27 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
 
   const updateUrl = useCallback(
     (updates: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString())
+      const params = new URLSearchParams(searchParams.toString());
 
       // Apply updates
       Object.entries(updates).forEach(([key, value]) => {
         if (value === null || value === '') {
-          params.delete(key)
+          params.delete(key);
         } else {
-          params.set(key, value)
+          params.set(key, value);
         }
-      })
+      });
 
       // Reset to page 1 when filters change
-      params.delete('page')
+      params.delete('page');
 
       // Navigate with the new params
       startTransition(() => {
-        router.push(`${pathname}?${params.toString()}`, { scroll: false })
-      })
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      });
     },
     [pathname, router, searchParams]
-  )
+  );
 
   // ---------------------------------------------------------------------------
   // Debounced Search
@@ -117,41 +117,41 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
 
   useEffect(() => {
     // Sync local state with URL when URL changes externally
-    setSearchValue(currentSearch)
-  }, [currentSearch])
+    setSearchValue(currentSearch);
+  }, [currentSearch]);
 
   useEffect(() => {
     // Debounce search input updates
     const timer = setTimeout(() => {
       if (searchValue !== currentSearch) {
-        updateUrl({ search: searchValue })
+        updateUrl({ search: searchValue });
       }
-    }, 300)
+    }, 300);
 
-    return () => clearTimeout(timer)
-  }, [searchValue, currentSearch, updateUrl])
+    return () => clearTimeout(timer);
+  }, [searchValue, currentSearch, updateUrl]);
 
   // ---------------------------------------------------------------------------
   // Event Handlers
   // ---------------------------------------------------------------------------
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value)
-  }
+    setSearchValue(e.target.value);
+  };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateUrl({ status: e.target.value })
-  }
+    updateUrl({ status: e.target.value });
+  };
 
   const handleClearFilters = () => {
-    setSearchValue('')
-    updateUrl({ search: null, status: null })
-  }
+    setSearchValue('');
+    updateUrl({ search: null, status: null });
+  };
 
   const handleClearSearch = () => {
-    setSearchValue('')
-    updateUrl({ search: null })
-  }
+    setSearchValue('');
+    updateUrl({ search: null });
+  };
 
   // ---------------------------------------------------------------------------
   // Render
@@ -177,9 +177,9 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
               onChange={handleSearchChange}
               placeholder="Search by business name or email..."
               className={cn(
-                'block w-full rounded-md border border-gray-300 py-2 pl-10 pr-10 shadow-sm',
+                'block w-full rounded-md border border-gray-300 py-2 pr-10 pl-10 shadow-sm',
                 'placeholder:text-gray-400',
-                'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
+                'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none',
                 isPending && 'opacity-70'
               )}
             />
@@ -207,8 +207,8 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
             value={currentStatus}
             onChange={handleStatusChange}
             className={cn(
-              'block w-full appearance-none rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 shadow-sm',
-              'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500',
+              'block w-full appearance-none rounded-md border border-gray-300 bg-white py-2 pr-10 pl-3 shadow-sm',
+              'focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none',
               // Custom dropdown arrow
               'bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%236b7280%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E")]',
               'bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat',
@@ -231,7 +231,7 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
             className={cn(
               'inline-flex items-center justify-center rounded-md px-4 py-2',
               'border border-gray-300 bg-white text-sm font-medium text-gray-700',
-              'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+              'hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none',
               'transition-colors',
               isPending && 'opacity-70'
             )}
@@ -280,7 +280,7 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
         <div className="mt-2 text-sm text-gray-500">
           <span className="inline-flex items-center">
             <svg
-              className="-ml-1 mr-2 h-4 w-4 animate-spin text-blue-600"
+              className="mr-2 -ml-1 h-4 w-4 animate-spin text-blue-600"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -304,5 +304,5 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
         </div>
       )}
     </div>
-  )
+  );
 }

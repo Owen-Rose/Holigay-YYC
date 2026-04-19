@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 // =============================================================================
 // Constants
@@ -11,7 +11,7 @@ export const ALLOWED_FILE_TYPES = [
   'image/gif',
   'image/webp',
   'application/pdf',
-] as const
+] as const;
 
 // Human-readable file type labels
 export const FILE_TYPE_LABELS: Record<string, string> = {
@@ -20,18 +20,14 @@ export const FILE_TYPE_LABELS: Record<string, string> = {
   'image/gif': 'GIF Image',
   'image/webp': 'WebP Image',
   'application/pdf': 'PDF Document',
-}
+};
 
 // File size limits
-export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB in bytes
-export const MAX_FILES = 5
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+export const MAX_FILES = 5;
 
 // Booth preference options
-export const BOOTH_PREFERENCES = [
-  'indoor',
-  'outdoor',
-  'no_preference',
-] as const
+export const BOOTH_PREFERENCES = ['indoor', 'outdoor', 'no_preference'] as const;
 
 // Product category options
 export const PRODUCT_CATEGORIES = [
@@ -46,7 +42,7 @@ export const PRODUCT_CATEGORIES = [
   'plants_flowers',
   'pet_products',
   'other',
-] as const
+] as const;
 
 // Human-readable category labels
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -61,7 +57,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   plants_flowers: 'Plants & Flowers',
   pet_products: 'Pet Products',
   other: 'Other',
-}
+};
 
 // =============================================================================
 // Custom Validators
@@ -71,13 +67,13 @@ export const CATEGORY_LABELS: Record<string, string> = {
  * Validates US phone number format
  * Accepts: (123) 456-7890, 123-456-7890, 123.456.7890, 1234567890
  */
-const phoneRegex = /^(\+1)?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/
+const phoneRegex = /^(\+1)?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
 
 /**
  * Validates URL format (optional protocol)
  */
 const websiteRegex =
-  /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/
+  /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
 
 // =============================================================================
 // File Validation Schema
@@ -95,7 +91,7 @@ export const fileSchema = z.object({
   type: z.enum(ALLOWED_FILE_TYPES, {
     message: `File type must be one of: ${Object.values(FILE_TYPE_LABELS).join(', ')}`,
   }),
-})
+});
 
 /**
  * Schema for multiple file attachments
@@ -103,7 +99,7 @@ export const fileSchema = z.object({
 export const filesSchema = z
   .array(fileSchema)
   .max(MAX_FILES, `Maximum ${MAX_FILES} files allowed`)
-  .optional()
+  .optional();
 
 // =============================================================================
 // Vendor Information Schema
@@ -137,7 +133,7 @@ export const vendorInfoSchema = z.object({
     .max(1000, 'Description must be less than 1000 characters')
     .optional()
     .or(z.literal('')),
-})
+});
 
 // =============================================================================
 // Application Details Schema
@@ -158,7 +154,7 @@ export const applicationDetailsSchema = z.object({
     .max(500, 'Special requirements must be less than 500 characters')
     .optional()
     .or(z.literal('')),
-})
+});
 
 // =============================================================================
 // Complete Application Form Schema
@@ -185,7 +181,7 @@ export const applicationFormSchema = z.object({
 
   // File Attachments (validated separately during upload)
   // Files are handled as File objects in the form but validated on upload
-})
+});
 
 // =============================================================================
 // Server-Side Submission Schema
@@ -206,23 +202,23 @@ export const applicationSubmitSchema = applicationFormSchema.extend({
       })
     )
     .optional(),
-})
+});
 
 // =============================================================================
 // TypeScript Types
 // =============================================================================
 
-export type FileInput = z.infer<typeof fileSchema>
-export type VendorInfo = z.infer<typeof vendorInfoSchema>
-export type ApplicationDetails = z.infer<typeof applicationDetailsSchema>
-export type ApplicationFormInput = z.infer<typeof applicationFormSchema>
-export type ApplicationSubmitInput = z.infer<typeof applicationSubmitSchema>
+export type FileInput = z.infer<typeof fileSchema>;
+export type VendorInfo = z.infer<typeof vendorInfoSchema>;
+export type ApplicationDetails = z.infer<typeof applicationDetailsSchema>;
+export type ApplicationFormInput = z.infer<typeof applicationFormSchema>;
+export type ApplicationSubmitInput = z.infer<typeof applicationSubmitSchema>;
 
 // Booth preference type
-export type BoothPreference = (typeof BOOTH_PREFERENCES)[number]
+export type BoothPreference = (typeof BOOTH_PREFERENCES)[number];
 
 // Product category type
-export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
 // Allowed file type
-export type AllowedFileType = (typeof ALLOWED_FILE_TYPES)[number]
+export type AllowedFileType = (typeof ALLOWED_FILE_TYPES)[number];

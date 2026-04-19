@@ -1,21 +1,18 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import {
-  getApplicationById,
-  type ApplicationDetail,
-} from '@/lib/actions/applications'
-import { StatusUpdateButtons } from './status-buttons'
-import { OrganizerNotes } from './organizer-notes'
-import { AttachmentsList } from './attachments-list'
-import { Card, CardTitle } from '@/components/ui/card'
-import { StatusBadge } from '@/components/ui/badge'
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { getApplicationById, type ApplicationDetail } from '@/lib/actions/applications';
+import { StatusUpdateButtons } from './status-buttons';
+import { OrganizerNotes } from './organizer-notes';
+import { AttachmentsList } from './attachments-list';
+import { Card, CardTitle } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/badge';
 
 // =============================================================================
 // Types
 // =============================================================================
 
 interface ApplicationDetailPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
 // =============================================================================
@@ -23,43 +20,37 @@ interface ApplicationDetailPageProps {
 // =============================================================================
 
 function formatDate(dateString: string): string {
-  const date = new Date(dateString)
+  const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
+  });
 }
 
 function formatDateTime(dateString: string): string {
-  const date = new Date(dateString)
+  const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-  })
+  });
 }
 
 // =============================================================================
 // Info Section Component
 // =============================================================================
 
-function InfoSection({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
+function InfoSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Card>
       <CardTitle className="mb-4 font-semibold">{title}</CardTitle>
       {children}
     </Card>
-  )
+  );
 }
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -68,7 +59,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
       <dt className="text-sm font-medium text-gray-500">{label}</dt>
       <dd className="mt-1 text-sm text-gray-900">{value || '—'}</dd>
     </div>
-  )
+  );
 }
 
 // =============================================================================
@@ -84,10 +75,7 @@ function VendorInfo({ vendor }: { vendor: ApplicationDetail['vendor'] }) {
         <InfoRow
           label="Email"
           value={
-            <a
-              href={`mailto:${vendor.email}`}
-              className="text-blue-600 hover:text-blue-800"
-            >
+            <a href={`mailto:${vendor.email}`} className="text-blue-600 hover:text-blue-800">
               {vendor.email}
             </a>
           }
@@ -111,7 +99,7 @@ function VendorInfo({ vendor }: { vendor: ApplicationDetail['vendor'] }) {
         <InfoRow label="Description" value={vendor.description} />
       </dl>
     </InfoSection>
-  )
+  );
 }
 
 // =============================================================================
@@ -127,30 +115,19 @@ function EventInfo({ event }: { event: ApplicationDetail['event'] }) {
         <InfoRow label="Location" value={event.location} />
         <InfoRow
           label="Application Deadline"
-          value={
-            event.application_deadline
-              ? formatDate(event.application_deadline)
-              : null
-          }
+          value={event.application_deadline ? formatDate(event.application_deadline) : null}
         />
-        <InfoRow
-          label="Max Vendors"
-          value={event.max_vendors?.toString() || 'Unlimited'}
-        />
+        <InfoRow label="Max Vendors" value={event.max_vendors?.toString() || 'Unlimited'} />
       </dl>
     </InfoSection>
-  )
+  );
 }
 
 // =============================================================================
 // Application Details Component
 // =============================================================================
 
-function ApplicationDetails({
-  application,
-}: {
-  application: ApplicationDetail
-}) {
+function ApplicationDetails({ application }: { application: ApplicationDetail }) {
   return (
     <InfoSection title="Application Details">
       <dl className="divide-y divide-gray-100">
@@ -172,39 +149,28 @@ function ApplicationDetails({
             ) : null
           }
         />
-        <InfoRow
-          label="Special Requirements"
-          value={application.special_requirements}
-        />
-        <InfoRow
-          label="Submitted"
-          value={formatDateTime(application.submitted_at)}
-        />
-        <InfoRow
-          label="Last Updated"
-          value={formatDateTime(application.updated_at)}
-        />
+        <InfoRow label="Special Requirements" value={application.special_requirements} />
+        <InfoRow label="Submitted" value={formatDateTime(application.submitted_at)} />
+        <InfoRow label="Last Updated" value={formatDateTime(application.updated_at)} />
       </dl>
     </InfoSection>
-  )
+  );
 }
 
 // =============================================================================
 // Main Page Component
 // =============================================================================
 
-export default async function ApplicationDetailPage({
-  params,
-}: ApplicationDetailPageProps) {
-  const { id } = await params
+export default async function ApplicationDetailPage({ params }: ApplicationDetailPageProps) {
+  const { id } = await params;
 
-  const result = await getApplicationById(id)
+  const result = await getApplicationById(id);
 
   if (!result.success || !result.data) {
-    notFound()
+    notFound();
   }
 
-  const application = result.data
+  const application = result.data;
 
   return (
     <div>
@@ -234,22 +200,15 @@ export default async function ApplicationDetailPage({
       {/* Page Title and Status */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {application.vendor.business_name}
-          </h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Application for {application.event.name}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">{application.vendor.business_name}</h1>
+          <p className="mt-1 text-sm text-gray-600">Application for {application.event.name}</p>
         </div>
         <StatusBadge status={application.status} />
       </div>
 
       {/* Status Update Buttons */}
       <div className="mb-8">
-        <StatusUpdateButtons
-          applicationId={application.id}
-          currentStatus={application.status}
-        />
+        <StatusUpdateButtons applicationId={application.id} currentStatus={application.status} />
       </div>
 
       {/* Main Content Grid */}
@@ -277,5 +236,5 @@ export default async function ApplicationDetailPage({
         />
       </div>
     </div>
-  )
+  );
 }

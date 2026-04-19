@@ -1,26 +1,26 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { cn } from '@/lib/utils'
+import * as React from 'react';
+import { cn } from '@/lib/utils';
 import {
   ALLOWED_FILE_TYPES,
   FILE_TYPE_LABELS,
   MAX_FILE_SIZE,
   MAX_FILES,
   type AllowedFileType,
-} from '@/lib/validations/application'
+} from '@/lib/validations/application';
 
 export interface FileUploadProps {
-  label?: string
-  error?: string
-  hint?: string
-  value?: File[]
-  onChange?: (files: File[]) => void
-  maxFiles?: number
-  maxSize?: number
-  accept?: string[]
-  disabled?: boolean
-  className?: string
+  label?: string;
+  error?: string;
+  hint?: string;
+  value?: File[];
+  onChange?: (files: File[]) => void;
+  maxFiles?: number;
+  maxSize?: number;
+  accept?: string[];
+  disabled?: boolean;
+  className?: string;
 }
 
 export function FileUpload({
@@ -35,114 +35,110 @@ export function FileUpload({
   disabled = false,
   className,
 }: FileUploadProps) {
-  const inputRef = React.useRef<HTMLInputElement>(null)
-  const [dragActive, setDragActive] = React.useState(false)
-  const id = React.useId()
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [dragActive, setDragActive] = React.useState(false);
+  const id = React.useId();
 
   const handleFiles = React.useCallback(
     (newFiles: FileList | null) => {
-      if (!newFiles || disabled) return
+      if (!newFiles || disabled) return;
 
-      const validFiles: File[] = []
-      const errors: string[] = []
+      const validFiles: File[] = [];
+      const errors: string[] = [];
 
       Array.from(newFiles).forEach((file) => {
         // Check file type
         if (!accept.includes(file.type as AllowedFileType)) {
-          errors.push(`${file.name}: Invalid file type`)
-          return
+          errors.push(`${file.name}: Invalid file type`);
+          return;
         }
 
         // Check file size
         if (file.size > maxSize) {
-          errors.push(`${file.name}: File too large (max ${maxSize / 1024 / 1024}MB)`)
-          return
+          errors.push(`${file.name}: File too large (max ${maxSize / 1024 / 1024}MB)`);
+          return;
         }
 
         // Check if we haven't exceeded max files
         if (value.length + validFiles.length >= maxFiles) {
-          errors.push(`${file.name}: Maximum ${maxFiles} files allowed`)
-          return
+          errors.push(`${file.name}: Maximum ${maxFiles} files allowed`);
+          return;
         }
 
         // Check for duplicates
         const isDuplicate = value.some(
           (existing) => existing.name === file.name && existing.size === file.size
-        )
+        );
         if (isDuplicate) {
-          errors.push(`${file.name}: File already added`)
-          return
+          errors.push(`${file.name}: File already added`);
+          return;
         }
 
-        validFiles.push(file)
-      })
+        validFiles.push(file);
+      });
 
       if (errors.length > 0) {
-        console.warn('File upload errors:', errors)
+        console.warn('File upload errors:', errors);
       }
 
       if (validFiles.length > 0) {
-        onChange?.([...value, ...validFiles])
+        onChange?.([...value, ...validFiles]);
       }
     },
     [accept, disabled, maxFiles, maxSize, onChange, value]
-  )
+  );
 
   const handleDrag = React.useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true)
+      setDragActive(true);
     } else if (e.type === 'dragleave') {
-      setDragActive(false)
+      setDragActive(false);
     }
-  }, [])
+  }, []);
 
   const handleDrop = React.useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setDragActive(false)
-      handleFiles(e.dataTransfer.files)
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
+      handleFiles(e.dataTransfer.files);
     },
     [handleFiles]
-  )
+  );
 
   const handleInputChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      handleFiles(e.target.files)
+      handleFiles(e.target.files);
       // Reset input to allow selecting same file again
       if (inputRef.current) {
-        inputRef.current.value = ''
+        inputRef.current.value = '';
       }
     },
     [handleFiles]
-  )
+  );
 
   const removeFile = React.useCallback(
     (index: number) => {
-      const newFiles = [...value]
-      newFiles.splice(index, 1)
-      onChange?.(newFiles)
+      const newFiles = [...value];
+      newFiles.splice(index, 1);
+      onChange?.(newFiles);
     },
     [onChange, value]
-  )
+  );
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
 
-  const acceptedFileTypes = accept
-    .map((type) => FILE_TYPE_LABELS[type] || type)
-    .join(', ')
+  const acceptedFileTypes = accept.map((type) => FILE_TYPE_LABELS[type] || type).join(', ');
 
   return (
     <div className={cn('w-full', className)}>
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      )}
+      {label && <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>}
 
       {/* Drop zone */}
       <div
@@ -193,7 +189,7 @@ export function FileUpload({
               htmlFor={id}
               className={cn(
                 'relative cursor-pointer rounded-md font-medium text-blue-600',
-                'hover:text-blue-500 focus-within:outline-none focus-within:ring-2',
+                'focus-within:ring-2 focus-within:outline-none hover:text-blue-500',
                 'focus-within:ring-blue-500 focus-within:ring-offset-2',
                 disabled && 'cursor-not-allowed'
               )}
@@ -218,7 +214,7 @@ export function FileUpload({
           {value.map((file, index) => (
             <li
               key={`${file.name}-${file.size}-${index}`}
-              className="flex items-center justify-between py-3 pl-3 pr-4 text-sm"
+              className="flex items-center justify-between py-3 pr-4 pl-3 text-sm"
             >
               <div className="flex w-0 flex-1 items-center">
                 <svg
@@ -243,7 +239,7 @@ export function FileUpload({
                   disabled={disabled}
                   className={cn(
                     'font-medium text-red-600 hover:text-red-500',
-                    'focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded',
+                    'rounded focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none',
                     disabled && 'cursor-not-allowed opacity-50'
                   )}
                 >
@@ -266,5 +262,5 @@ export function FileUpload({
         </p>
       )}
     </div>
-  )
+  );
 }
