@@ -259,3 +259,10 @@ For implementing tasks from TASKS.md:
 3. Verify acceptance criteria
 4. Run tests: `npm test && npm run build`
 5. Commit with task ID: `feat(scope): description [task-id]`
+
+## Active Technologies
+- TypeScript 5.x, strict mode (`tsconfig.json`) + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest, `@testing-library/react` (001-consolidate-role-helpers)
+- N/A — no schema or data changes (001-consolidate-role-helpers)
+
+## Recent Changes
+- 001-consolidate-role-helpers: Added TypeScript 5.x, strict mode (`tsconfig.json`) + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest, `@testing-library/react`
