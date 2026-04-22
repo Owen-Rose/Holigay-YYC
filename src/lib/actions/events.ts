@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { isOrganizerOrAdmin } from '@/lib/auth/roles';
+import { requireRole } from '@/lib/auth/roles';
 import { eventFormSchema, type EventFormInput } from '@/lib/validations/event';
 
 // =============================================================================
@@ -90,8 +90,9 @@ export async function getEvents(): Promise<GetEventsResponse> {
 export async function createEvent(
   data: EventFormInput
 ): Promise<{ success: boolean; error: string | null; id?: string }> {
-  if (!(await isOrganizerOrAdmin())) {
-    return { success: false, error: 'Unauthorized: insufficient role' };
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role' };
   }
 
   // Server-side validation
@@ -169,8 +170,9 @@ export async function updateEvent(
   id: string,
   data: EventFormInput
 ): Promise<{ success: boolean; error: string | null }> {
-  if (!(await isOrganizerOrAdmin())) {
-    return { success: false, error: 'Unauthorized: insufficient role' };
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role' };
   }
 
   const parsed = eventFormSchema.safeParse(data);
@@ -224,8 +226,9 @@ export async function updateEventStatus(
   id: string,
   newStatus: string
 ): Promise<{ success: boolean; error: string | null }> {
-  if (!(await isOrganizerOrAdmin())) {
-    return { success: false, error: 'Unauthorized: insufficient role' };
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role' };
   }
 
   const supabase = await createClient();
@@ -267,8 +270,9 @@ export async function updateEventStatus(
  * Will fail if the event has linked applications (FK constraint).
  */
 export async function deleteEvent(id: string): Promise<{ success: boolean; error: string | null }> {
-  if (!(await isOrganizerOrAdmin())) {
-    return { success: false, error: 'Unauthorized: insufficient role' };
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role' };
   }
 
   const supabase = await createClient();

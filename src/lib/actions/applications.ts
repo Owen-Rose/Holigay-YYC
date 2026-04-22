@@ -8,7 +8,7 @@ import {
 import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
 import { sendEmail } from '@/lib/email/client';
 import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
-import { isOrganizerOrAdmin } from '@/lib/auth/roles';
+import { requireRole } from '@/lib/auth/roles';
 
 // =============================================================================
 // Types
@@ -830,10 +830,11 @@ export async function updateApplicationStatus(
   }
 
   // Only organizers and admins can change application status
-  if (!(await isOrganizerOrAdmin())) {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
     return {
       success: false,
-      error: 'Unauthorized: insufficient role',
+      error: auth.error ?? 'Unauthorized: insufficient role',
     };
   }
 
@@ -970,10 +971,11 @@ export async function updateApplicationNotes(
   notes: string
 ): Promise<UpdateApplicationResponse> {
   // Only organizers and admins can edit organizer notes
-  if (!(await isOrganizerOrAdmin())) {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
     return {
       success: false,
-      error: 'Unauthorized: insufficient role',
+      error: auth.error ?? 'Unauthorized: insufficient role',
     };
   }
 

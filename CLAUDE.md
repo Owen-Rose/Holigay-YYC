@@ -96,7 +96,7 @@ Supporting objects:
 3. **Authenticated vendors** accessing `/dashboard` → redirect to `/vendor-dashboard`
 4. **Non-admins** accessing `/dashboard/team` → redirect to `/dashboard`
 5. Auth routes (`/login`, `/signup`) redirect authenticated users to their role-appropriate dashboard
-6. Server actions in `src/lib/actions/` validate role with `requireRole()` or `isOrganizerOrAdmin()` before mutations
+6. Server actions in `src/lib/actions/` validate role with `requireRole()` before mutations
 
 ### Server Actions Pattern
 All server actions use this pattern:
@@ -123,7 +123,6 @@ Server action files:
 - `admin.ts` - admin operations
 - `upload.ts` - file upload handling
 - `export.ts` - data export
-- `roles.ts` - role-related operations
 
 ### Form Validation
 Zod schemas in `src/lib/validations/` define validation rules and infer TypeScript types:
@@ -169,24 +168,20 @@ import { createServerClient } from '@/lib/supabase/server'
 
 ## Current Development Phase
 
-**Phase: UI/UX Brand Re-skin (Epic 6)**
+**Active workstream**: `specs/001-consolidate-role-helpers/` — refactor of auth/role helpers. See that directory's `spec.md`, `plan.md`, and `tasks.md` for scope and current tasks.
 
-Epics 1-5 are complete. The RBAC system, vendor dashboard, event management, and core platform features are all functional.
+### Epic status snapshot
+- **Epic 1** (Complete): RBAC database layer
+- **Epic 2** (Complete): RBAC application layer
+- **Epic 3** (Complete): Vendor dashboard
+- **Epic 4** (Partial): Organizer invite system — UI complete; backend (4.2.x) pending service-role client
+- **Epic 5** (Complete): Event management
+- **Epic 6** (Substantially complete): Brand re-skin — stories 6.1–6.8 shipped; 6.9 (file previews) and 6.10 (mobile polish) outstanding
+- **Epic 7** (Deferred): Dynamic application forms — static form covers MVP
 
-See `TASKS.md` for detailed task tracking (Epic 1-7 backlog).
+Brand reference: [holigayeventsyyc.carrd.co](https://holigayeventsyyc.carrd.co/) — dark `#1C171C` background, Quicksand font, violet (`#A78BFA`) primary, rainbow accents.
 
-### Completed Epics
-- **Epic 1** (Complete): RBAC database layer - user_profiles, roles, RLS policies
-- **Epic 2** (Complete): RBAC application layer - middleware, server action guards, role utilities
-- **Epic 3** (Complete): Vendor dashboard - application tracking, profile management
-- **Epic 4** (Partial): Organizer invite system - UI done (4.1.x), backend pending (4.2.x needs service role client)
-- **Epic 5** (Complete): Event management - full CRUD, status workflow, public filtering
-
-### Current Epic: 6 - UI/UX & Brand Re-skin
-The app needs to be re-skinned from generic blue/white to the Holigay Events YYC brand identity: dark `#1C171C` background, Quicksand font, violet (`#A78BFA`) primary, rainbow accents. Brand reference: [holigayeventsyyc.carrd.co](https://holigayeventsyyc.carrd.co/). See TASKS.md Story 6.1-6.10 for detailed subtasks.
-
-### Future: Epic 7 - Dynamic Application Forms
-Low priority, deferred. Current static form works for MVP.
+Historical Epic task detail lives in `docs/archive/TASKS.md`. New work is tracked as Speckit specs under `specs/`.
 
 ### Role System (Complete)
 
@@ -197,7 +192,7 @@ Low priority, deferred. Current static form works for MVP.
 - Trigger also links existing vendors by matching email
 
 **Application:**
-- `src/lib/auth/roles.ts` - `getCurrentUserRole()`, `requireRole()`, `isOrganizerOrAdmin()`
+- `src/lib/auth/roles.ts` - `getCurrentUserRole()`, `requireRole()`
 - `src/lib/constants/roles.ts` - Role constants
 - `src/lib/context/role-context.tsx` - React context for client-side role access
 - Middleware checks role for route protection
@@ -252,10 +247,12 @@ Or use `scripts/seed-admin.sql` (replace email first).
 
 ### Task Workflow
 
-For implementing tasks from TASKS.md:
+New work is scoped via a Speckit spec under `specs/<nnn>-<slug>/`:
 
-1. Reference task by ID (e.g., "Complete task 6.1.1")
-2. Complete the task scope
-3. Verify acceptance criteria
-4. Run tests: `npm test && npm run build`
-5. Commit with task ID: `feat(scope): description [task-id]`
+1. `spec.md` defines intent and acceptance criteria
+2. `plan.md` captures the implementation approach
+3. `tasks.md` breaks the plan into executable tasks
+4. Implement; commit with spec or task ID (e.g., `feat(auth): consolidate role helpers [001-consolidate-role-helpers]`)
+5. Run `npm run lint && npm test && npm run build` before opening a PR
+
+See `.specify/memory/constitution.md` for full governance rules.

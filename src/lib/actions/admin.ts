@@ -8,7 +8,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
-import { requireRole } from '@/lib/actions/roles';
+import { requireRole } from '@/lib/auth/roles';
 import { ROLES, type Role } from '@/lib/constants/roles';
 import type { Database } from '@/types/database';
 

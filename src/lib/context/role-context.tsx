@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { getCurrentUserRole } from '@/lib/actions/roles';
+import { getCurrentUserRole } from '@/lib/auth/roles';
 import type { Role } from '@/lib/constants/roles';
 
 // Context value type
