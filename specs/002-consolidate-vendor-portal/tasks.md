@@ -98,7 +98,7 @@ Next.js App Router layout. All code under `src/`. Tests under `src/test/`. Docs 
 
 - [X] T016 Run the final CI gate chain locally one more time, in the exact order CI enforces: `npm run format:check && npm run lint && npm test && npm run build`. All four must be green. This is the hard gate before the PR is opened. This run is not redundant with T012 because (a) it includes `format:check` (T012 did not), and (b) it runs after the `CLAUDE.md` doc propagation in T010 has landed — a formatter/linter could catch a markdown or stray-whitespace issue in the doc edit.
 - [ ] T017 Walk through `quickstart.md` §6 Definition of Done checklist. Every item checked. If any item is unchecked, diagnose and repair before opening the PR.
-- [ ] T018 (Optional housekeeping) Update `docs/cleanup-roadmap.md` Workstream 1 heading (currently at line 16) with a status line such as `**Status**: Completed 2026-MM-DD (spec 002)`. Not required for PR merge per `research.md` §R4 Decision 3; include only if it fits the commit scope naturally (no separate commit needed).
+- [X] T018 (Optional housekeeping) Update `docs/cleanup-roadmap.md` Workstream 1 heading (currently at line 16) with a status line such as `**Status**: Completed 2026-MM-DD (spec 002)`. Not required for PR merge per `research.md` §R4 Decision 3; include only if it fits the commit scope naturally (no separate commit needed).
 
 ---
 

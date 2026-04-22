@@ -15,6 +15,7 @@ Workstreams are listed in the recommended sequence.
 
 ## Workstream 1 — Vendor portal consolidation
 
+- **Status:** ✅ Completed 2026-04-21 (see `specs/002-consolidate-vendor-portal/`)
 - **Scope:** medium (multi-file refactor, user-visible)
 - **Recommended execution:** spec-kit (spec 002)
 - **Constitutional relevance:** Principle I (dead code), Principle III (consistency)
