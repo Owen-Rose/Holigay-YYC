@@ -1,5 +1,9 @@
 # Holigay Vendor Market - Development Backlog
 
+> **ARCHIVED 2026-04-19.** This file was the pre-Speckit task tracker for Epics 1–6.
+> Active work now lives under `specs/` per the Speckit workflow. Kept for historical
+> reference — do not edit.
+
 > Epics 1-5: RBAC Implementation (Complete). Epic 6: Brand re-skin & UX polish. Epic 7: Dynamic forms (Future).
 
 ## Legend
@@ -227,6 +231,21 @@
 - [x] Vendor linking works on signup
 - [x] `npm run build` passes with no errors
 - [x] `npm test` passes
+
+### Constitutional Exceptions
+
+#### Exception 2.E1: Test coverage gap for refactor 001-consolidate-role-helpers
+- [ ] Time-boxed exception (≤ one release cycle from 2026-04-19) per constitution §Exceptions
+
+**Scope:** Refactor `001-consolidate-role-helpers` modifies `src/lib/actions/events.ts` (4 guard sites) and `src/lib/actions/applications.ts` (2 guard sites). Constitution Principle II requires happy-path + auth-fail tests for every modified server action in `src/lib/actions/`. Neither file has a test file today.
+
+**Why exception:** The modification is mechanical — replacing `if (!(await isOrganizerOrAdmin())) { return ... }` with `const auth = await requireRole('organizer'); if (!auth.success) { return ... }`. The auth mechanism is fully tested in `src/test/auth-roles.test.ts` (rewritten in T012, hierarchy cases added in T017). No domain behavior is altered.
+
+**Resolution:** Either (a) add domain tests for `events.ts` and `applications.ts` covering the modified actions before the next release cycle ends, or (b) escalate to a constitution amendment if the auth-module-layer testing strategy proves sufficient over time.
+
+**Owner:** Whoever opens the next PR touching `events.ts` or `applications.ts`.
+
+**Files:** `src/test/events.test.ts` (new), `src/test/applications.test.ts` (new), or amendment to `.specify/memory/constitution.md` Principle II.
 
 ---
 

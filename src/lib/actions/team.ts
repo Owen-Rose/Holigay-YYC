@@ -1,6 +1,6 @@
 'use server';
 
-import { requireRole } from '@/lib/actions/roles';
+import { requireRole } from '@/lib/auth/roles';
 
 // =============================================================================
 // Types

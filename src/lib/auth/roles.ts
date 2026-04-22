@@ -1,55 +1,95 @@
-import { createClient } from '@/lib/supabase/server';
-import type { Database } from '@/types/database';
+'use server';
 
-// Role type derived from the database enum
-export type Role = Database['public']['Enums']['user_role'];
+import { createClient } from '@/lib/supabase/server';
+import { hasMinimumRole, type Role } from '@/lib/constants/roles';
+
+// Response type for role actions
+export type RoleResponse = {
+  success: boolean;
+  error: string | null;
+  data: {
+    role: Role;
+    userId: string;
+  } | null;
+};
 
 /**
- * Returns the current authenticated user's role, or null if not authenticated
- * or no profile exists.
+ * Get the current authenticated user's role.
+ * Returns 'vendor' as default if no role is assigned.
  */
-export async function getCurrentUserRole(): Promise<Role | null> {
+export async function getCurrentUserRole(): Promise<RoleResponse> {
   const supabase = await createClient();
 
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  if (authError || !user) {
+    return {
+      success: false,
+      error: 'Not authenticated',
+      data: null,
+    };
+  }
 
-  const { data: profile } = await supabase
+  const { data: roleData, error: roleError } = await supabase
     .from('user_profiles')
     .select('role')
     .eq('id', user.id)
     .single();
 
-  // Default to 'vendor' if profile exists but role is somehow missing,
-  // or null if no profile at all
-  return profile?.role ?? null;
+  if (roleError && roleError.code !== 'PGRST116') {
+    // PGRST116 = no rows found, which is ok (default to vendor)
+    return {
+      success: false,
+      error: 'Failed to fetch user role',
+      data: null,
+    };
+  }
+
+  const role = (roleData?.role as Role) || 'vendor';
+
+  return {
+    success: true,
+    error: null,
+    data: {
+      role,
+      userId: user.id,
+    },
+  };
 }
 
 /**
- * Throws an error if the current user doesn't have one of the allowed roles.
- * Returns the user's role on success for downstream use.
+ * Require a minimum role level for a server action.
+ * Use at the start of protected server actions.
+ *
+ * @param minimumRole - The minimum role required (checks hierarchy)
+ * @returns RoleResponse - success with user data, or error if unauthorized
  */
-export async function requireRole(allowedRoles: Role[]): Promise<Role> {
-  const role = await getCurrentUserRole();
+export async function requireRole(minimumRole: Role): Promise<RoleResponse> {
+  const result = await getCurrentUserRole();
 
-  if (!role) {
-    throw new Error('Not authenticated');
+  if (!result.success) {
+    return result;
   }
 
-  if (!allowedRoles.includes(role)) {
-    throw new Error('Unauthorized: insufficient role');
+  const { role, userId } = result.data!;
+
+  if (!hasMinimumRole(role, minimumRole)) {
+    return {
+      success: false,
+      error: `Requires ${minimumRole} role or higher`,
+      data: null,
+    };
   }
 
-  return role;
-}
-
-/**
- * Returns true if the current user is an organizer or admin.
- */
-export async function isOrganizerOrAdmin(): Promise<boolean> {
-  const role = await getCurrentUserRole();
-  return role === 'organizer' || role === 'admin';
+  return {
+    success: true,
+    error: null,
+    data: {
+      role,
+      userId,
+    },
+  };
 }

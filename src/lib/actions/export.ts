@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { requireRole } from '@/lib/actions/roles';
+import { requireRole } from '@/lib/auth/roles';
 import type { ApplicationFilters } from './applications';
 
 // =============================================================================

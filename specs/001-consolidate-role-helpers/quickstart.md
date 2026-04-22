@@ -109,7 +109,7 @@ Confirm the following edits were made as part of the PR:
 
 - `.specify/memory/constitution.md`
   - Version footer: `1.0.0` → `1.0.1`.
-  - `Last Amended`: `2026-04-18` → `2026-04-19`.
+  - `Last Amended`: `2026-04-18` → date the PR is merged (ISO YYYY-MM-DD).
   - `Ratified`: unchanged.
   - Sync Impact Report (top of file) updated with the amendment entry.
   - Line 66 (Principle I): `requireRole() / isOrganizerOrAdmin()` → `requireRole()`.

@@ -79,7 +79,7 @@ The surviving helper uses hierarchy-based role checks (`admin > organizer > vend
 - **FR-008**: The existing test file `src/test/auth-roles.test.ts` MUST be updated to test the surviving implementation's signature and contract, with no reduction in coverage of the three original behaviors (auth-check, authorized-pass, unauthorized-reject).
 - **FR-009**: At least one new test MUST explicitly verify the hierarchy path: a higher role satisfying a lower-role gate, and a lower role failing a higher-role gate.
 - **FR-010**: Middleware role-based redirects MUST continue to function unchanged. Middleware's inline `user_profiles` query is explicitly out of scope and MUST NOT be modified by this refactor.
-- **FR-011**: The `isOrganizerOrAdmin` helper MAY be removed entirely (every caller converts to `requireRole('organizer')`) OR re-exported from the canonical module as a thin wrapper; the decision belongs to planning. Either way, after the refactor, no caller imports `isOrganizerOrAdmin` from the old path.
+- **FR-011**: The `isOrganizerOrAdmin` helper MUST be removed entirely. Every caller MUST convert to `requireRole('organizer')`. The re-export-as-thin-wrapper alternative was rejected at planning time (see plan.md Decision 2) because it re-creates the parallel-API ambiguity this refactor exists to eliminate.
 - **FR-012**: The `Role` type MUST be imported from its existing location (`src/lib/constants/roles.ts`). No new `Role` type is introduced; the `Role` type re-exported from `src/lib/auth/roles.ts` disappears with the file.
 - **FR-013**: `npm run build` and `npm run lint` MUST complete with zero new warnings or errors after the refactor.
 - **FR-014**: A manual smoke test MUST confirm unchanged behavior across three scenarios: vendor redirects away from `/dashboard`, organizer reaches organizer-gated actions successfully, a non-admin user is rejected by admin-only actions.
@@ -99,7 +99,7 @@ The surviving helper uses hierarchy-based role checks (`admin > organizer > vend
 - **SC-003**: At least one new test case explicitly covers the role hierarchy path (higher role satisfying lower-role gate).
 - **SC-004**: `npm run build` and `npm run lint` report zero new warnings or errors compared to the pre-refactor baseline.
 - **SC-005**: A manual smoke test across the three primary role paths (vendor, organizer, admin) confirms that every previously-protected route and action behaves identically to pre-refactor behavior. Specifically: vendor cannot reach `/dashboard`; organizer can reach `/dashboard` and execute event/application actions; non-admin cannot execute admin-only actions (`/dashboard/team`, admin page actions).
-- **SC-006**: A future developer or AI assistant writing a new server action can identify the correct role helper on first attempt without ambiguity — verifiable by the fact that only one import path exists.
+- **SC-006**: A future developer or AI assistant writing a new server action can identify the correct role helper on first attempt without consulting research, plan, or memory artifacts — verifiable by (a) the absence of any second import path (covered by SC-001's grep) and (b) `CLAUDE.md` and `.specify/memory/constitution.md` referencing only the surviving helpers.
 
 ## Assumptions
 
