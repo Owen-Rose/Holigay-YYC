@@ -1,34 +1,35 @@
 <!--
 Sync Impact Report
 ==================
-Version change: uninitialized template → 1.0.0 (initial ratification)
-Bump rationale: first formal adoption; prior file contained only placeholder tokens, so this is
-not a MINOR/MAJOR amendment against a predecessor.
+Version change: 1.1.0 → 1.1.1
+Bump rationale: PATCH — remove references to the deleted `isOrganizerOrAdmin()` helper
+(feature 001-consolidate-role-helpers). Wording refinement only; no principle added,
+removed, or materially redefined. Classification per research.md §R4.
 
-Modified principles: none (all new).
+Modified principles: none (principles unchanged).
 
-Added sections:
-  - Core Principles: I. Code Quality & Type Safety (NON-NEGOTIABLE),
-    II. Testing Standards, III. User Experience Consistency,
-    IV. Performance Requirements
-  - Additional Constraints (stack, environment, migrations)
-  - Development Workflow & Quality Gates
-  - Governance
+Modified sections:
+  - Principle I, server-action authorization bullet: `requireRole()` / `isOrganizerOrAdmin()`
+    → `requireRole()`.
+  - Development Workflow & Quality Gates, PR checklist (Principle I bullet): same edit.
+
+Added sections: none.
 
 Removed sections: none.
 
 Templates requiring updates:
-  - ✅ .specify/templates/plan-template.md — "Constitution Check" placeholder (line 34) is
-       intentionally generic; gates are injected at /speckit.plan time. No edit required.
-  - ✅ .specify/templates/spec-template.md — existing "Success Criteria" section
-       (lines 103–115) already satisfies Principle IV's measurable-performance expectation.
-       No edit required.
-  - ⚠ .specify/templates/tasks-template.md — template treats tests as OPTIONAL
-       (lines 11, 82). Principle II requires tests for new server actions and user-facing
-       forms. Intentionally NOT edited in this ratification to avoid silently changing the
-       Spec Kit workflow; tracked as follow-up below.
+  - ✅ .specify/templates/plan-template.md — no isOrganizerOrAdmin references, no edit required.
+  - ✅ .specify/templates/spec-template.md — no isOrganizerOrAdmin references, no edit required.
+  - ✅ .specify/templates/tasks-template.md — no isOrganizerOrAdmin references; prior follow-up
+       (tasks-template-alignment) remains open.
 
-Deferred items / follow-up TODOs:
+Downstream doc propagation:
+  - CLAUDE.md: line 99 (server-action pattern) and line 196 (Role System module listing)
+    updated to drop `isOrganizerOrAdmin()`; stale `roles.ts` server-action-file bullet
+    removed since `src/lib/actions/roles.ts` was deleted.
+  - README.md: no change required (no isOrganizerOrAdmin references).
+
+Deferred items / follow-up TODOs (carried from v1.1.0):
   - TODO(tasks-template-alignment): Amend .specify/templates/tasks-template.md so test
     tasks for new server actions and user-facing forms are REQUIRED (not OPTIONAL) when
     Principle II applies. Schedule for the next MINOR amendment.
@@ -40,8 +41,9 @@ Deferred items / follow-up TODOs:
 
 Acknowledged pre-existing violations (load-bearing for reviewers):
   - src/app/layout.tsx:32-34 — inline hex in Toaster toastOptions (Principle III).
-  - src/lib/actions/team.ts:22-40 — Epic 4.2.x invite flow returns a placeholder error; tracked
-    in TASKS.md, not a constitutional violation (guard + response shape are compliant).
+  - src/lib/actions/team.ts:22-40 — Epic 4.2.x invite flow returns a placeholder error;
+    must be tracked as a spec under `specs/` (not a constitutional violation — guard and
+    response shape are compliant).
 -->
 
 # Holigay Vendor Market Constitution
@@ -63,7 +65,7 @@ guidelines.
 - Every server action in `src/lib/actions/` MUST:
   1. Validate input with a Zod schema from `src/lib/validations/` via `safeParse` before any
      database call.
-  2. Authorize via `requireRole()` / `isOrganizerOrAdmin()` (`src/lib/auth/roles.ts`) at the
+  2. Authorize via `requireRole()` (`src/lib/auth/roles.ts`) at the
      top of the action body for any mutation or privileged read.
   3. Return a `{ success: boolean, error: string | null, data: T | null }` response — no
      throwing across the server/client boundary.
@@ -75,7 +77,7 @@ guidelines.
   and `npm run build`, in that order. A red check on any of these blocks merge.
 - Commented-out code, dead exports, and half-finished abstractions MUST be removed before
   merge. Known incomplete features (e.g., `src/lib/actions/team.ts`) MUST fail closed with an
-  explicit error response and MUST be tracked in `TASKS.md`.
+  explicit error response and MUST be tracked as a spec under `specs/`.
 
 ### II. Testing Standards
 
@@ -184,8 +186,10 @@ bundle). These rules keep it that way and close the cache-invalidation gap.
 
 ## Development Workflow & Quality Gates
 
-1. **Task source of truth**: `TASKS.md` tracks every epic/story/task. PRs MUST reference the
-   task ID (e.g., `[6.8.2]`) in the commit message.
+1. **Task source of truth**: `specs/<nnn>-<slug>/tasks.md` tracks every task. PRs MUST
+   reference the spec ID or task ID in the commit message (e.g.,
+   `[001-consolidate-role-helpers]`, or `[6.8.2]` for historical Epic tasks archived in
+   `docs/archive/TASKS.md`).
 2. **Commit message convention**: `type(scope): description [task-id]`, matching existing
    history (e.g., `feat(ui): add toast notifications to all key server actions [6.8.2]`).
 3. **Before opening a PR**, the author MUST locally run:
@@ -194,8 +198,8 @@ bundle). These rules keep it that way and close the cache-invalidation gap.
    - `npm test`
    and MUST NOT rely on CI to discover failures that local runs would have caught.
 4. **PR checklist** (reviewer-enforced, in addition to CI):
-   - Principle I: every new mutating server action has a `requireRole()` /
-     `isOrganizerOrAdmin()` guard and a `{ success, error, data }` return.
+   - Principle I: every new mutating server action has a `requireRole()` guard
+     and a `{ success, error, data }` return.
    - Principle II: new server actions and new user-facing forms are accompanied by tests.
    - Principle III: no inline hex colors; forms wire aria attributes; toasts or error
      boundary surface every mutation result.
@@ -203,8 +207,8 @@ bundle). These rules keep it that way and close the cache-invalidation gap.
      they affect existing views; no needless `'use client'`.
 5. **CI gate order** (from `.github/workflows/ci.yml`) is authoritative: format → lint →
    test → build. A PR MUST NOT be merged with any gate red.
-6. **Task completion**: a task in `TASKS.md` MAY be marked complete only after (a) its
-   acceptance criteria are met, (b) the gates above pass, and (c) the PR is merged.
+6. **Task completion**: a task in a spec's `tasks.md` MAY be marked complete only after
+   (a) its acceptance criteria are met, (b) the gates above pass, and (c) the PR is merged.
 
 ## Governance
 
@@ -229,8 +233,8 @@ bundle). These rules keep it that way and close the cache-invalidation gap.
   converting RSC to Client, or disabling an ESLint rule MUST be justified inline in the PR
   description. Reviewers MAY reject PRs whose complexity is not justified.
 - **Exceptions** to MUST-rules in Principles I–IV MUST be time-boxed (≤ one release cycle)
-  and tracked in `TASKS.md`. Long-lived exceptions become amendments.
+  and tracked in a spec under `specs/`. Long-lived exceptions become amendments.
 - **Runtime guidance**: `CLAUDE.md` at the repository root remains the day-to-day operational
   reference for contributors and assistants; it does NOT override this document.
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-04-18
+**Version**: 1.1.1 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-04-21
