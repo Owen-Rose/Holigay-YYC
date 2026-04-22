@@ -54,7 +54,7 @@ export async function signIn(data: LoginInput): Promise<SignInResponse> {
   // ---------------------------------------------------------------------------
   // Fetch user role for redirect determination
   // ---------------------------------------------------------------------------
-  let redirectTo = '/vendor'; // Default to vendor portal
+  let redirectTo = '/vendor-dashboard'; // Default to vendor dashboard
 
   if (authData.user) {
     const { data: roleData, error: roleError } = await supabase
