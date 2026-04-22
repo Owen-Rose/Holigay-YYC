@@ -72,6 +72,11 @@ export function ApplicationPageClient({ events }: ApplicationPageClientProps) {
         return;
       }
 
+      // DB write succeeded; email delivery may still have failed.
+      if (result.warning) {
+        toast.warning(result.warning);
+      }
+
       // Success!
       setState({
         status: 'success',
