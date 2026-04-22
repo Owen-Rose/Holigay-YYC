@@ -367,55 +367,6 @@ export async function getActiveEvents() {
 }
 
 /**
- * Fetches applications for a specific vendor by email
- *
- * @param email - The vendor's email address
- * @returns List of applications with event details
- */
-export async function getVendorApplications(email: string) {
-  const supabase = await createClient();
-
-  // First find the vendor
-  const { data: vendor, error: vendorError } = await supabase
-    .from('vendors')
-    .select('id')
-    .eq('email', email)
-    .single();
-
-  if (vendorError || !vendor) {
-    return [];
-  }
-
-  // Then get their applications with event info
-  const { data: applications, error: appError } = await supabase
-    .from('applications')
-    .select(
-      `
-      id,
-      status,
-      submitted_at,
-      booth_preference,
-      product_categories,
-      events (
-        id,
-        name,
-        event_date,
-        location
-      )
-    `
-    )
-    .eq('vendor_id', vendor.id)
-    .order('submitted_at', { ascending: false });
-
-  if (appError) {
-    console.error('Error fetching applications:', appError);
-    return [];
-  }
-
-  return applications || [];
-}
-
-/**
  * Fetches applications with filtering and pagination support
  *
  * This action:

@@ -118,7 +118,7 @@ Server action files:
 - `applications.ts` - status updates, notes, listing
 - `events.ts` - CRUD, status transitions (draft→active→closed)
 - `vendors.ts` - vendor profile updates
-- `vendor-dashboard.ts` / `vendor-portal.ts` - vendor-specific data fetching
+- `vendor-dashboard.ts` - vendor-specific data fetching
 - `team.ts` - organizer invite (partially implemented)
 - `admin.ts` - admin operations
 - `upload.ts` - file upload handling
@@ -256,3 +256,10 @@ New work is scoped via a Speckit spec under `specs/<nnn>-<slug>/`:
 5. Run `npm run lint && npm test && npm run build` before opening a PR
 
 See `.specify/memory/constitution.md` for full governance rules.
+
+## Active Technologies
+- TypeScript 5.x, `strict: true` (`tsconfig.json` unchanged). + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest — all unchanged. (002-consolidate-vendor-portal)
+- N/A — no schema, RLS, or data changes. (002-consolidate-vendor-portal)
+
+## Recent Changes
+- 002-consolidate-vendor-portal: Added TypeScript 5.x, `strict: true` (`tsconfig.json` unchanged). + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest — all unchanged.
