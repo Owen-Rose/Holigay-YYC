@@ -65,7 +65,13 @@ export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpda
         return;
       }
 
-      toast.success(`Application ${newStatus}`);
+      // Status updated; surface email-delivery failures instead of a
+      // misleading success toast.
+      if (result.warning) {
+        toast.warning(result.warning);
+      } else {
+        toast.success(`Application ${newStatus}`);
+      }
       router.refresh();
     });
   }

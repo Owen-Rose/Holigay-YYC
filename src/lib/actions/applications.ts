@@ -20,6 +20,12 @@ import { requireRole } from '@/lib/auth/roles';
 export type ApplicationResponse = {
   success: boolean;
   error: string | null;
+  /**
+   * User-facing warning message when a non-critical side effect failed
+   * (e.g., the DB write succeeded but the confirmation email could not
+   * be sent). Callers should surface this via a toast.
+   */
+  warning?: string;
   data: {
     applicationId: string;
     vendorId: string;
@@ -282,8 +288,12 @@ export async function submitApplication(
   }
 
   // -------------------------------------------------------------------------
-  // Step 5: Send confirmation email (non-blocking)
+  // Step 5: Send confirmation email (non-blocking but surfaced via warning)
   // -------------------------------------------------------------------------
+  const EMAIL_FAILED_WARNING =
+    'Application submitted, but the confirmation email could not be sent.';
+  let warning: string | undefined;
+
   try {
     // Fetch event details for the email
     const { data: event, error: eventError } = await supabase
@@ -294,6 +304,7 @@ export async function submitApplication(
 
     if (eventError || !event) {
       console.error('[Email] Failed to fetch event for confirmation email:', eventError);
+      warning = EMAIL_FAILED_WARNING;
     } else {
       // Format the event date for display
       const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
@@ -322,21 +333,23 @@ export async function submitApplication(
 
       if (!emailResult.success) {
         console.error('[Email] Failed to send confirmation email:', emailResult.error);
+        warning = EMAIL_FAILED_WARNING;
       } else {
         console.log('[Email] Confirmation email sent:', emailResult.messageId);
       }
     }
   } catch (emailError) {
-    // Log but don't fail the submission - email is non-critical
     console.error('[Email] Unexpected error sending confirmation email:', emailError);
+    warning = EMAIL_FAILED_WARNING;
   }
 
   // -------------------------------------------------------------------------
-  // Success!
+  // Success! (DB write committed; warning is set if the email could not be sent)
   // -------------------------------------------------------------------------
   return {
     success: true,
     error: null,
+    warning,
     data: {
       applicationId,
       vendorId,
@@ -753,6 +766,12 @@ export async function getApplicationCounts(eventId?: string): Promise<{
 export type UpdateApplicationResponse = {
   success: boolean;
   error: string | null;
+  /**
+   * User-facing warning message when a non-critical side effect failed
+   * (e.g., the status update persisted but the notification email
+   * could not be sent). Callers should surface this via a toast.
+   */
+  warning?: string;
 };
 
 /**
@@ -851,10 +870,14 @@ export async function updateApplicationStatus(
   }
 
   // -------------------------------------------------------------------------
-  // Step 3: Send notification email (non-blocking)
+  // Step 3: Send notification email (non-blocking but surfaced via warning)
   // -------------------------------------------------------------------------
   // Only send emails for status changes that the vendor should know about
-  // (approved, rejected, waitlisted - not pending since that's the initial state)
+  // (approved, rejected, waitlisted — not pending since that's the initial state)
+  const EMAIL_FAILED_WARNING =
+    'Status updated, but the notification email could not be sent to the vendor.';
+  let warning: string | undefined;
+
   if (status !== 'pending' && application.vendor && application.event) {
     try {
       const vendor = application.vendor as {
@@ -895,18 +918,20 @@ export async function updateApplicationStatus(
 
       if (!emailResult.success) {
         console.error('[Email] Failed to send status update email:', emailResult.error);
+        warning = EMAIL_FAILED_WARNING;
       } else {
         console.log(`[Email] Status update email sent to ${vendor.email}:`, emailResult.messageId);
       }
     } catch (emailError) {
-      // Log but don't fail the status update - email is non-critical
       console.error('[Email] Unexpected error sending status update email:', emailError);
+      warning = EMAIL_FAILED_WARNING;
     }
   }
 
   return {
     success: true,
     error: null,
+    warning,
   };
 }
 

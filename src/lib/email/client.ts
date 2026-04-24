@@ -29,6 +29,12 @@ function getResendClient(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
 
   if (!apiKey) {
+    // Fail loud in production so a misconfigured deploy can't silently
+    // log-and-pretend-to-succeed. Callers (sendEmail) translate the throw
+    // into a structured { success: false } response.
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('RESEND_API_KEY is required in production but is not set');
+    }
     console.warn('[Email] RESEND_API_KEY is not set. Emails will be logged but not sent.');
     return null;
   }
@@ -119,7 +125,22 @@ type EmailLogEntry = {
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   const { to, subject, html, text, from = DEFAULT_FROM_EMAIL, replyTo, cc, bcc } = options;
 
-  const resend = getResendClient();
+  let resend: Resend | null;
+  try {
+    resend = getResendClient();
+  } catch (err) {
+    // getResendClient throws in production when RESEND_API_KEY is missing.
+    // Surface this as a structured failure so callers can warn the user
+    // instead of letting the exception bubble through try/catch at call sites.
+    const errorMessage =
+      err instanceof Error ? err.message : 'Email client is not configured';
+    console.error('[Email] Email client initialization failed:', err);
+    return {
+      success: false,
+      messageId: null,
+      error: errorMessage,
+    };
+  }
 
   // Development fallback: log email instead of sending
   if (!resend) {
