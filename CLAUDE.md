@@ -260,6 +260,8 @@ See `.specify/memory/constitution.md` for full governance rules.
 ## Active Technologies
 - TypeScript 5.x, `strict: true` (`tsconfig.json` unchanged). + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest — all unchanged. (002-consolidate-vendor-portal)
 - N/A — no schema, RLS, or data changes. (002-consolidate-vendor-portal)
+- PostgreSQL 15 (Supabase hosted) — SQL DDL only; no TypeScript authored + Supabase CLI (`supabase db reset`, `supabase link`), `npm run db:types:dev`, `npm run db:types` (004-consolidate-role-migrations)
+- Supabase PostgreSQL — `public.user_profiles` (canonical role table), `public.user_roles` (superseded; expected empty; targeted for drop) (004-consolidate-role-migrations)
 
 ## Recent Changes
 - 002-consolidate-vendor-portal: Added TypeScript 5.x, `strict: true` (`tsconfig.json` unchanged). + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest — all unchanged.
