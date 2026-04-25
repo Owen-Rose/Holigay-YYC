@@ -220,12 +220,13 @@ After the migration runs, the three dead files in `supabase/migrations/` can be 
 
 ---
 
-## Workstream 4 — Local `supabase db reset` fix (queued)
+## Workstream 4 — Local `supabase db reset` fix
 
-- **Status:** Queued. Surfaced during spec 004 Phase A; deferred from that spec to keep its scope narrow.
+- **Status:** ✅ Completed 2026-04-25 (bundled with WS5; see `cleanup/ws4-ws5-final-tidy` branch).
 - **Scope:** small (filesystem reorganization only; no schema or app changes)
 - **Recommended execution:** single PR, no spec
 - **Constitutional relevance:** Principle I intent (preserve files, just relocate so they don't run on fresh `db reset`)
+- **Note on 007 amendment:** Moving the four superseded files out of the apply path meant `007_role_system_cleanup.sql` would fail at parse time on a fresh local apply (`DROP POLICY ... ON user_roles` needs the `user_roles` table to resolve the `ON` clause, which no longer exists post-WS4). The four affected statements are now wrapped in a DO-block guard. This edit to a previously-applied migration is a functional no-op against prod and dev (where 007 had already executed and `schema_migrations` rows for version 007 are set); only parse-time behavior on fresh applies changes. Documented inline in `007_role_system_cleanup.sql`.
 
 ### Problem
 
@@ -264,9 +265,9 @@ Update `supabase/migrations/README.md` to point to the new location.
 
 ---
 
-## Workstream 5 — Drop `user_roles` table (queued)
+## Workstream 5 — Drop `user_roles` table
 
-- **Status:** Queued. Spec 004 deferred the table drop because prod has 1 row (verified safe to discard).
+- **Status:** ✅ Completed 2026-04-25 (bundled with WS4; see `cleanup/ws4-ws5-final-tidy` branch). `008_drop_user_roles.sql` shipped; applied to prod via dashboard SQL editor; the stale admin row was discarded along with the table per the cross-check captured in `specs/004-consolidate-role-migrations/research.md` §R2-B.
 - **Scope:** small (one new migration file + types regen)
 - **Recommended execution:** single PR or lightweight spec 005 if paper trail feels important
 - **Constitutional relevance:** Principle I (append-only)
@@ -290,9 +291,9 @@ The repo's `src/types/database.ts` is currently generated from dev (which has no
 
 ### Acceptance criteria
 
-- Prod and dev `pg_tables` for `schemaname = 'public'` return identical 5-row lists (no `user_roles`).
-- `git diff src/types/database.ts` after running both type-regen scripts shows zero output (both envs produce the same types).
-- Smoke test: organizer/vendor flows continue to work post-drop (dropping the table can't break what wasn't reading from it, but the constitution wants the manual check anyway).
+- Prod and dev `pg_tables` for `schemaname = 'public'` return identical 5-row lists (no `user_roles`). ✅ verified post-008.
+- `git diff src/types/database.ts` after running both type-regen scripts shows zero output for **schema content** (tables, functions, policies). One residual divergence remains at line 13 — `PostgrestVersion: "14.1"` (dev) vs `"13.0.5"` (prod) — which is a Supabase platform version difference, not a schema concern. Types stay dev-sourced (project convention); the version line will converge when prod's PostgREST is upgraded. Acknowledged, not a blocker.
+- Smoke test: organizer/vendor flows continue to work post-drop (dropping the table can't break what wasn't reading from it, but the constitution wants the manual check anyway). ✅ verified locally.
 
 ### Reference
 
