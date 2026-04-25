@@ -81,8 +81,9 @@ Keep **`/vendor-dashboard/*`**. Rationale: middleware already treats it as canon
 
 ## Workstream 2 — Hardening: silent-failure fixes (middleware + email)
 
+- **Status:** ✅ Completed 2026-04-24 (PR #3)
 - **Scope:** small (three fixes, ~30 LOC + tests)
-- **Recommended execution:** single PR, no spec (or a tiny spec 004 if paper trail feels important)
+- **Recommended execution:** single PR, no spec
 - **Constitutional relevance:** Principle III — "Silent successes are not permitted"
 
 Three closely related defects — all are silent failures in high-stakes paths. Bundle them in one hardening PR.
@@ -140,8 +141,9 @@ If you want retry rigor, add an `email_failures` table with retry marker — tha
 
 ## Workstream 3 — Migration cleanup + RLS audit
 
+- **Status:** ✅ Completed 2026-04-25 — delivered as spec 004 (PR #4)
 - **Scope:** large (schema semantics, append-only migration, prod audit needed)
-- **Recommended execution:** spec-kit (spec 003)
+- **Recommended execution:** spec-kit (delivered as `specs/004-consolidate-role-migrations/`)
 - **Constitutional relevance:** Principle I (migrations MUST be append-only; RLS MUST be enabled)
 
 ### Problem
@@ -186,7 +188,7 @@ ORDER BY tablename, policyname;
 SELECT COUNT(*) FROM user_roles;
 ```
 
-Document the answers in `specs/003-<slug>/research.md`. The consolidation plan depends on this.
+Document the answers in `specs/004-consolidate-role-migrations/research.md`. The consolidation plan depends on this.
 
 ### Phase B — Consolidation migration
 
@@ -218,6 +220,86 @@ After the migration runs, the three dead files in `supabase/migrations/` can be 
 
 ---
 
+## Workstream 4 — Local `supabase db reset` fix (queued)
+
+- **Status:** Queued. Surfaced during spec 004 Phase A; deferred from that spec to keep its scope narrow.
+- **Scope:** small (filesystem reorganization only; no schema or app changes)
+- **Recommended execution:** single PR, no spec
+- **Constitutional relevance:** Principle I intent (preserve files, just relocate so they don't run on fresh `db reset`)
+
+### Problem
+
+`supabase start` and `supabase db reset` against the current migration set fail because the Supabase CLI extracts the leading numeric prefix as the `schema_migrations.version` primary key, and the repo has four duplicate-prefix pairs (`003_*`, `004_*`, `005_*`, `006_*`). The CLI errors on the first duplicate.
+
+```
+Applying migration 003_user_profiles.sql...
+Applying migration 003_user_roles.sql...
+ERROR: duplicate key value violates unique constraint "schema_migrations_pkey"
+Key (version)=(003) already exists.
+```
+
+The remote envs are unaffected — they apply migrations via the dashboard SQL editor, which doesn't enforce the same uniqueness at apply time. The constraint only bites local fresh bootstrap.
+
+### Fix
+
+Move the four superseded files into `supabase/migrations/_superseded/` so the CLI ignores them on reset. Files preserved per FR-011 (intent of Constitution Principle I); local `db reset` succeeds; remote envs unchanged.
+
+Files to move:
+- `supabase/migrations/003_user_roles.sql`
+- `supabase/migrations/004_user_roles_rls.sql`
+- `supabase/migrations/005_users_with_roles_view.sql`
+- `supabase/migrations/006_rbac_rls_updates.sql` (its 8 policies are dropped by 007 anyway, so it's functionally dead post-007)
+
+Update `supabase/migrations/README.md` to point to the new location.
+
+### Acceptance criteria
+
+- `supabase start` followed by `supabase db reset` against a fresh local Supabase exits 0 with zero SQL errors.
+- The post-reset `pg_policies` matches dev's post-007 state (24 canonical policies on main tables).
+- Remote envs are not touched.
+
+### Reference
+
+`specs/004-consolidate-role-migrations/research.md` §R2-C documents the original discovery.
+
+---
+
+## Workstream 5 — Drop `user_roles` table (queued)
+
+- **Status:** Queued. Spec 004 deferred the table drop because prod has 1 row (verified safe to discard).
+- **Scope:** small (one new migration file + types regen)
+- **Recommended execution:** single PR or lightweight spec 005 if paper trail feels important
+- **Constitutional relevance:** Principle I (append-only)
+
+### Problem
+
+After spec 004, prod still has the `user_roles` table with one stale admin row (the user's own bootstrap account, also present in `user_profiles` with the same `admin` role). The 2 surviving policies on the table (`Users can view own role`, `Users can insert own role`) are dead code — no app code reads from `user_roles`.
+
+The repo's `src/types/database.ts` is currently generated from dev (which has no `user_roles`), so it doesn't reflect prod's residual schema. After this workstream, prod and dev schemas converge and types can be safely regenerated from prod.
+
+### Fix
+
+1. Ship `supabase/migrations/008_drop_user_roles.sql`:
+   ```sql
+   DROP TABLE IF EXISTS public.user_roles CASCADE;
+   ```
+   The `CASCADE` drops the 2 surviving policies on the table along with it.
+2. Apply to prod via dashboard SQL editor (dev is already a no-op).
+3. Run `npm run db:types:dev && npm run db:types`. Both should now produce identical output. Commit `src/types/database.ts`.
+4. Update `supabase/migrations/README.md` to reflect that `user_roles` is now gone everywhere.
+
+### Acceptance criteria
+
+- Prod and dev `pg_tables` for `schemaname = 'public'` return identical 5-row lists (no `user_roles`).
+- `git diff src/types/database.ts` after running both type-regen scripts shows zero output (both envs produce the same types).
+- Smoke test: organizer/vendor flows continue to work post-drop (dropping the table can't break what wasn't reading from it, but the constitution wants the manual check anyway).
+
+### Reference
+
+`specs/004-consolidate-role-migrations/research.md` §R2-B documents the deferral, the cross-check confirming the row is safe to discard, and the timeline.
+
+---
+
 ## Opportunistic cleanups (fold into other PRs, no spec needed)
 
 These are too small to stand alone but are constitutional violations or light debt. Fix them in any PR that touches the relevant file.
@@ -236,11 +318,9 @@ These are too small to stand alone but are constitutional violations or light de
 
 ---
 
-## Recommended sequencing
+## Sequencing
 
-1. **Workstream 1 — vendor portal consolidation** first. Biggest leverage; all subsequent feature work benefits. Fold in opportunistic cleanups above.
-2. **Workstream 2 — hardening pass** next. Small diff, high safety return. Pairs naturally with tests the constitution already requires.
-3. **Workstream 3 — migration cleanup** last. Requires a Supabase session for the audit; don't block other work on it.
+Workstreams 1–3 shipped in order over 2026-04-21 → 2026-04-25 (PRs #2/#3/#4). Workstreams 4 and 5 are queued and independent — pick either when you next have a Supabase session free, or fold them into adjacent feature PRs that touch `supabase/migrations/` or `src/types/database.ts` anyway.
 
 ---
 
