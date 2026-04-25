@@ -263,6 +263,8 @@ See `.specify/memory/constitution.md` for full governance rules.
 - N/A — no schema, RLS, or data changes. (002-consolidate-vendor-portal)
 - PostgreSQL 15 (Supabase hosted) — SQL DDL only; no TypeScript authored + Supabase CLI (`supabase db reset`, `supabase link`), `npm run db:types:dev`, `npm run db:types` (004-consolidate-role-migrations)
 - Supabase PostgreSQL — `public.user_profiles` (canonical role table), `public.user_roles` (superseded; expected empty; targeted for drop) (004-consolidate-role-migrations)
+- TypeScript 5.x (strict), Node ≥ 20 (Next.js 16 runtime) + Next.js 16 (App Router, RSC-first), React 19, `@supabase/ssr`, `react-hook-form`, `zod`, `@hookform/resolvers`, `sonner` (toasts), Tailwind CSS v4 (005-dynamic-questionnaires)
+- Supabase PostgreSQL with RLS; existing `attachments` bucket reused for `file_upload` answers; new tables added via migration `009_dynamic_questionnaires.sql` (005-dynamic-questionnaires)
 
 ## Recent Changes
 - 002-consolidate-vendor-portal: Added TypeScript 5.x, `strict: true` (`tsconfig.json` unchanged). + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest — all unchanged.
