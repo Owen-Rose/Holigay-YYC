@@ -41,7 +41,6 @@ src/
 ├── app/                        # Next.js App Router pages
 │   ├── (auth)/                # Auth pages (login, signup) - redirect if logged in
 │   ├── (public)/              # Public pages (landing, apply)
-│   ├── (vendor)/              # Vendor portal layout group
 │   ├── dashboard/             # Organizer/admin routes - require organizer+ role
 │   │   ├── admin/             # Admin management page
 │   │   ├── applications/      # Application review (list + [id] detail)
@@ -86,9 +85,10 @@ Core tables with RLS enabled:
 
 Supporting objects:
 - `user_role` enum type
-- `get_user_role()` SQL function (used in RLS policies)
+- `get_user_role()` SQL function — no-arg, returns `user_role` (used in RLS policies). The earlier two-arg `get_user_role(uuid)` and `user_has_role(uuid, text)` were dropped by spec 004 (`007_role_system_cleanup.sql`).
 - `handle_new_user` trigger (auto-creates profile on signup, links existing vendors by email)
 - `users_with_roles` view (joins auth.users with profiles for admin queries)
+- `public.user_roles` table — superseded by `user_profiles`. Empty of app-relevant data; pending drop in a follow-up workstream (`docs/cleanup-roadmap.md` Workstream 5).
 
 ### Authentication & Authorization Flow
 1. Middleware (`src/middleware.ts`) checks auth state and fetches role on every request
@@ -168,7 +168,7 @@ import { createServerClient } from '@/lib/supabase/server'
 
 ## Current Development Phase
 
-**Active workstream**: `specs/001-consolidate-role-helpers/` — refactor of auth/role helpers. See that directory's `spec.md`, `plan.md`, and `tasks.md` for scope and current tasks.
+No active spec-kit workstream. The most recent specs (001 / 002 / 004) are all merged. Queued follow-ups (Workstreams 4 and 5) are documented in `docs/cleanup-roadmap.md`. See `specs/README.md` for an at-a-glance status of every spec.
 
 ### Epic status snapshot
 - **Epic 1** (Complete): RBAC database layer
@@ -186,8 +186,8 @@ Historical Epic task detail lives in `docs/archive/TASKS.md`. New work is tracke
 ### Role System (Complete)
 
 **Database:**
-- `user_profiles` table links `auth.users` to roles
-- `get_user_role()` SQL function for RLS policies
+- `user_profiles` table links `auth.users` to roles (canonical role source)
+- `get_user_role()` no-arg SQL function for RLS policies (the two-arg variant and `user_has_role` were dropped by spec 004)
 - `handle_new_user` trigger auto-creates profile on signup with `role='vendor'`
 - Trigger also links existing vendors by matching email
 
@@ -223,13 +223,14 @@ Historical Epic task detail lives in `docs/archive/TASKS.md`. New work is tracke
 
 ### Database Migrations
 
-Migrations in `supabase/migrations/` (applied in order):
-1. `001_initial_schema.sql` - Core tables (events, vendors, applications, attachments)
-2. `002_rls_policies.sql` - Initial RLS policies
-3. `003_user_profiles.sql` / `003_user_roles.sql` - User profiles table and role enum
-4. `004_vendors_user_link.sql` / `004_user_roles_rls.sql` - Vendor-user linking, role RLS
-5. `005_rbac_rls_policies.sql` / `005_users_with_roles_view.sql` - Full RBAC policies, admin view
-6. `006_rbac_rls_updates.sql` / `006_users_with_roles_view.sql` - RBAC refinements
+Migrations in `supabase/migrations/` (applied in alphabetical order; see `supabase/migrations/README.md` for the authoritative file map and which duplicate-prefix files are superseded):
+1. `001_initial_schema.sql` — Core tables (events, vendors, applications, attachments)
+2. `002_rls_policies.sql` — Initial RLS policies
+3. `003_user_profiles.sql` (active) / `003_user_roles.sql` (superseded) — User profiles table and role enum
+4. `004_vendors_user_link.sql` (active) / `004_user_roles_rls.sql` (superseded) — Vendor-user linking, role RLS
+5. `005_rbac_rls_policies.sql` (active) / `005_users_with_roles_view.sql` (superseded) — Full RBAC policies, admin view
+6. `006_users_with_roles_view.sql` (active) / `006_rbac_rls_updates.sql` (effectively dead post-007) — RBAC refinements
+7. `007_role_system_cleanup.sql` — Drops 006's superseded policies + the two-arg `get_user_role(uuid)` + `user_has_role(uuid, text)`. See `specs/004-consolidate-role-migrations/`.
 
 ### Admin Bootstrap
 
