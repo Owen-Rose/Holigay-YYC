@@ -56,17 +56,37 @@ DROP FUNCTION IF EXISTS public.get_user_role(UUID);
 -- user_roles (from 004_user_roles_rls.sql) reference user_has_role.
 -- Drop them explicitly before dropping the function. The remaining two
 -- policies on user_roles (Users can view own role, Users can insert
--- own role) use auth.uid() directly and survive until the table itself
--- is dropped in the follow-up spec.
+-- own role) use auth.uid() directly and cascade away later (008 drops
+-- the table).
 --
 -- Explicit drops (rather than DROP FUNCTION ... CASCADE) are used here
 -- so any unexpected dependency surfaces as a loud error instead of a
 -- silent CASCADE removal.
+--
+-- AMENDMENT 2026-04-25 (Workstream 4): When the four superseded migrations
+-- (003_user_roles.sql, 004_user_roles_rls.sql, 005_users_with_roles_view.sql,
+-- 006_rbac_rls_updates.sql) were moved into supabase/migrations/_superseded/,
+-- the user_roles table stopped being created on fresh `supabase db reset`.
+-- The four DROP POLICY ... ON user_roles statements would then fail at parse
+-- time (PostgreSQL needs the table to resolve the ON clause, even with
+-- IF EXISTS on the policy). Wrapping them in a DO block with an existence
+-- guard makes 007 idempotent across all three apply paths (prod, dev,
+-- fresh local). This amendment is a functional no-op for prod and dev —
+-- they've already executed 007 and their schema_migrations rows for version
+-- 007 are already set. Only parse-time behavior on fresh applies changes.
 
-DROP POLICY IF EXISTS "Admins can view all roles"   ON user_roles;
-DROP POLICY IF EXISTS "Admins can insert any role"  ON user_roles;
-DROP POLICY IF EXISTS "Admins can update any role"  ON user_roles;
-DROP POLICY IF EXISTS "Admins can delete any role"  ON user_roles;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT FROM pg_tables
+    WHERE schemaname = 'public' AND tablename = 'user_roles'
+  ) THEN
+    EXECUTE 'DROP POLICY IF EXISTS "Admins can view all roles"   ON public.user_roles';
+    EXECUTE 'DROP POLICY IF EXISTS "Admins can insert any role"  ON public.user_roles';
+    EXECUTE 'DROP POLICY IF EXISTS "Admins can update any role"  ON public.user_roles';
+    EXECUTE 'DROP POLICY IF EXISTS "Admins can delete any role"  ON public.user_roles';
+  END IF;
+END $$;
 
 DROP FUNCTION IF EXISTS public.user_has_role(UUID, TEXT);
 
