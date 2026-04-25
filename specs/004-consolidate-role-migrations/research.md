@@ -53,17 +53,28 @@ WHERE schemaname = 'public'
 ORDER BY tablename;
 ```
 
-**Prod result** _(paste here — include capture timestamp)_:
+**Prod result** _(captured 2026-04-23, env `hgmfjvjlxrhdojwlkgap`)_:
 
-```
-[FILL IN DURING PHASE A]
-```
+| tablename     |
+| ------------- |
+| applications  |
+| attachments   |
+| events        |
+| user_profiles |
+| user_roles    |
+| vendors       |
 
-**Dev result** _(paste here — include capture timestamp)_:
+**Dev result** _(captured 2026-04-24, env `kcokcufmzyckbodelqpb`)_:
 
-```
-[FILL IN DURING PHASE A]
-```
+| tablename     |
+| ------------- |
+| applications  |
+| attachments   |
+| events        |
+| user_profiles |
+| vendors       |
+
+> **Divergence**: dev does not have a `user_roles` table. See §R2-A.
 
 ---
 
@@ -76,22 +87,21 @@ WHERE proname IN ('get_user_role', 'user_has_role')
 ORDER BY proname, pg_get_function_identity_arguments(oid);
 ```
 
-**Prod result** _(paste here — include capture timestamp)_:
+**Prod result** _(captured 2026-04-23)_:
 
-```
-[FILL IN DURING PHASE A]
-```
+| proname       | pg_get_function_identity_arguments   | prorettype |
+| ------------- | ------------------------------------ | ---------- |
+| get_user_role |                                      | user_role  |
+| get_user_role | p_user_id uuid                       | text       |
+| user_has_role | p_user_id uuid, p_required_role text | boolean    |
 
-**Dev result** _(paste here — include capture timestamp)_:
+**Dev result** _(captured 2026-04-24)_:
 
-```
-[FILL IN DURING PHASE A]
-```
+| proname       | pg_get_function_identity_arguments | prorettype |
+| ------------- | ---------------------------------- | ---------- |
+| get_user_role |                                    | user_role  |
 
-Expected (if both environments match the repo): three rows:
-- `get_user_role` | `` (empty) | `user_role`
-- `get_user_role` | `p_user_id uuid` | `text`
-- `user_has_role` | `p_user_id uuid, p_required_role text` | `boolean`
+> **Divergence**: dev has only the canonical no-arg `get_user_role()`. The two-arg `get_user_role(uuid)` and `user_has_role(uuid, text)` from `003_user_roles.sql` are absent. See §R2-A.
 
 ---
 
@@ -104,19 +114,46 @@ WHERE schemaname = 'public'
 ORDER BY tablename, policyname;
 ```
 
-**Prod result** _(paste full table here — include capture timestamp)_:
+**Prod result** _(captured 2026-04-23, 30 rows)_:
 
-```
-[FILL IN DURING PHASE A]
-```
+| tablename     | policyname                        | cmd    | roles           | qual                                                                                                              | with_check                                                                                                        |
+| ------------- | --------------------------------- | ------ | --------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| applications  | anon_insert_applications          | INSERT | {anon}          | null                                                                                                              | true                                                                                                              |
+| applications  | anon_select_applications          | SELECT | {anon}          | true                                                                                                              | null                                                                                                              |
+| applications  | authenticated_insert_applications | INSERT | {authenticated} | null                                                                                                              | `(EXISTS (SELECT 1 FROM vendors WHERE vendors.id = applications.vendor_id AND vendors.user_id = auth.uid())) OR (get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role]))` |
+| applications  | authenticated_select_applications | SELECT | {authenticated} | `(EXISTS (SELECT 1 FROM vendors WHERE vendors.id = applications.vendor_id AND vendors.user_id = auth.uid())) OR (get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role]))` | null                                                                                                              |
+| applications  | organizer_delete_applications     | DELETE | {authenticated} | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       | null                                                                                                              |
+| applications  | organizer_update_applications     | UPDATE | {authenticated} | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       |
+| attachments   | anon_insert_attachments           | INSERT | {anon}          | null                                                                                                              | true                                                                                                              |
+| attachments   | anon_select_attachments           | SELECT | {anon}          | true                                                                                                              | null                                                                                                              |
+| attachments   | authenticated_insert_attachments  | INSERT | {authenticated} | null                                                                                                              | `(EXISTS (SELECT 1 FROM applications JOIN vendors ON vendors.id = applications.vendor_id WHERE applications.id = attachments.application_id AND vendors.user_id = auth.uid())) OR (get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role]))` |
+| attachments   | authenticated_select_attachments  | SELECT | {authenticated} | `(EXISTS (SELECT 1 FROM applications JOIN vendors ON vendors.id = applications.vendor_id WHERE applications.id = attachments.application_id AND vendors.user_id = auth.uid())) OR (get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role]))` | null                                                                                                              |
+| attachments   | organizer_delete_attachments      | DELETE | {authenticated} | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       | null                                                                                                              |
+| events        | anon_select_active_events         | SELECT | {anon}          | `status = 'active'::text`                                                                                         | null                                                                                                              |
+| events        | authenticated_select_events       | SELECT | {authenticated} | true                                                                                                              | null                                                                                                              |
+| events        | organizer_delete_events           | DELETE | {authenticated} | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       | null                                                                                                              |
+| events        | organizer_insert_events           | INSERT | {authenticated} | null                                                                                                              | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       |
+| events        | organizer_update_events           | UPDATE | {authenticated} | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       |
+| user_profiles | admin_update_profiles             | UPDATE | {authenticated} | `get_user_role() = 'admin'::user_role`                                                                            | `get_user_role() = 'admin'::user_role`                                                                            |
+| user_profiles | select_own_profile                | SELECT | {authenticated} | `(id = auth.uid()) OR (get_user_role() = 'admin'::user_role)`                                                     | null                                                                                                              |
+| user_roles    | Admins can delete any role        | DELETE | {authenticated} | `user_has_role(auth.uid(), 'admin'::text)`                                                                        | null                                                                                                              |
+| user_roles    | Admins can insert any role        | INSERT | {authenticated} | null                                                                                                              | `user_has_role(auth.uid(), 'admin'::text)`                                                                        |
+| user_roles    | Admins can update any role        | UPDATE | {authenticated} | `user_has_role(auth.uid(), 'admin'::text)`                                                                        | `user_has_role(auth.uid(), 'admin'::text)`                                                                        |
+| user_roles    | Admins can view all roles         | SELECT | {authenticated} | `user_has_role(auth.uid(), 'admin'::text)`                                                                        | null                                                                                                              |
+| user_roles    | Users can insert own role         | INSERT | {authenticated} | null                                                                                                              | `(auth.uid() = user_id) AND (role = 'vendor'::text)`                                                              |
+| user_roles    | Users can view own role           | SELECT | {authenticated} | `auth.uid() = user_id`                                                                                            | null                                                                                                              |
+| vendors       | anon_insert_vendors               | INSERT | {anon}          | null                                                                                                              | true                                                                                                              |
+| vendors       | anon_select_vendors               | SELECT | {anon}          | true                                                                                                              | null                                                                                                              |
+| vendors       | organizer_delete_vendors          | DELETE | {authenticated} | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       | null                                                                                                              |
+| vendors       | organizer_insert_vendors          | INSERT | {authenticated} | null                                                                                                              | `get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role])`                                       |
+| vendors       | vendor_select_own                 | SELECT | {authenticated} | `(user_id = auth.uid()) OR (get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role]))`           | null                                                                                                              |
+| vendors       | vendor_update_own                 | UPDATE | {authenticated} | `(user_id = auth.uid()) OR (get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role]))`           | `(user_id = auth.uid()) OR (get_user_role() = ANY (ARRAY['organizer'::user_role, 'admin'::user_role]))`           |
 
-**Dev result** _(paste full table here — include capture timestamp)_:
+**Dev result** _(captured 2026-04-24, 24 rows — identical to prod's policies on main tables; no `user_roles` policies)_:
 
-```
-[FILL IN DURING PHASE A]
-```
+Row-by-row breakdown matches prod's 24 main-table policies exactly. The 6 prod policies on `user_roles` (Admins can {delete,insert,update,view} + Users can {insert,view} own role) have no dev equivalent — table absent.
 
-Expected count: 32 rows (24 from `005_rbac_rls_policies.sql` + 8 from `006_rbac_rls_updates.sql`; see `contracts/rls-policies.md` for the full enumeration). If Phase A shows a different count, expand 007 to account for the delta before writing any DROP statements.
+> **Divergence vs spec expectation**: spec assumed 32 rows on main tables (24 from 005 + 8 from 006). Reality: 24 rows on main tables in both envs. The 8 always-FALSE policies from `006_rbac_rls_updates.sql` ("Organizers can {create,update,delete} events", "Organizers can {update,delete} applications", "Organizers can {update,delete} vendors", "Organizers can delete attachments") are absent in both envs. See §R2-A.
 
 ---
 
@@ -126,19 +163,141 @@ Expected count: 32 rows (24 from `005_rbac_rls_policies.sql` + 8 from `006_rbac_
 SELECT COUNT(*) FROM user_roles;
 ```
 
-**Prod result** _(paste here — include capture timestamp)_:
+**Prod result** _(captured 2026-04-23)_:
+
+| count |
+| ----- |
+| 1     |
+
+**Dev result** _(captured 2026-04-24)_:
 
 ```
-[FILL IN DURING PHASE A]
+ERROR: 42P01: relation "user_roles" does not exist
+LINE 2:   SELECT COUNT(*) FROM user_roles;
 ```
 
-**Dev result** _(paste here — include capture timestamp)_:
+> **Decision (FR-005, T017)**: prod has 1 row; dev's table doesn't exist. The `DROP TABLE user_roles CASCADE` step in migration 007 is **deferred**. See §R2-B.
+
+#### Query 4 supplement — `user_roles` row contents (prod)
+
+`SELECT * FROM user_roles;` against prod _(captured 2026-04-24)_:
+
+| id                                     | user_id                                | role  | created_at                    | updated_at                    |
+| -------------------------------------- | -------------------------------------- | ----- | ----------------------------- | ----------------------------- |
+| `5e5941a4-d100-4907-9f11-7ef87e5614e8` | `22d56e26-3534-4bb9-9678-111d60a00c78` | admin | 2026-01-11 05:04:18.962211+00 | 2026-01-11 05:04:18.962211+00 |
+
+A single admin row created 2026-01-11 (~5 weeks after prod was provisioned). `created_at == updated_at` so the row has never been touched since insert. Most likely interpretation: the row is a stale artifact of an early admin bootstrap that used `user_roles` before the canonical design switched to `user_profiles`. See §R2-B for the cross-check actions and the resulting decision.
+
+---
+
+## R2-A — Divergences from spec expectation
+
+Phase A revealed two divergences between the captured baselines and the state the spec's R1 analysis predicted. Neither blocks 007; both reframe what 007 actually accomplishes.
+
+### Divergence 1 — `006_rbac_rls_updates.sql`'s 8 policies are absent in both envs
+
+The spec's R1 section predicted 32 policies on the main tables (24 from `005_rbac_rls_policies.sql` + 8 from `006_rbac_rls_updates.sql`). Phase A captured **24** in both prod and dev. The 8 "Organizers can XXX" policies that 006 creates do not exist in either live environment:
+
+- `Organizers can create events` / `update events` / `delete events`
+- `Organizers can update applications` / `delete applications`
+- `Organizers can update vendors` / `delete vendors`
+- `Organizers can delete attachments`
+
+The repo file `supabase/migrations/006_rbac_rls_updates.sql` does still create these policies on a fresh `db reset`, so the file remains relevant for new envs. But in the live envs, the policies have either never been applied or were manually dropped at some point. Implication: 007's 8 `DROP POLICY IF EXISTS` statements are no-ops against prod and dev, but still drop the policies on a fresh local reset.
+
+### Divergence 2 — Dev never had the `003_user_roles.sql` chain applied
+
+The spec's R1 section assumed prod and dev would share the same messy state. They don't. Dev:
+- has no `user_roles` table
+- has no `get_user_role(uuid)` two-arg function
+- has no `user_has_role(uuid, text)` function
+- has no policies on `user_roles` (no table → no policies)
+
+Likely cause: dev was provisioned 2026-02-06 (~2 months after prod, 2025-12-07), at a point when the abandoned alternate role-system files were already known to be dead. Whoever set up dev applied only the canonical migrations (`001`, `002`, `003_user_profiles`, `004_vendors_user_link`, `005_rbac_rls_policies`, `006_users_with_roles_view`) and skipped the duplicate-numbered alternates.
+
+Implication: 007 applied to dev is a complete no-op. All `IF EXISTS` clauses fall through. No harm; no benefit either.
+
+### What 007 actually does, per env
+
+| Step | Prod | Dev | Local fresh `db reset` |
+|------|------|-----|------------------------|
+| Drop 8 policies from 006 | no-op (absent) | no-op (absent) | drops them |
+| Drop `get_user_role(UUID)` | drops it | no-op (absent) | drops it |
+| Drop `user_has_role(UUID, TEXT)` | **drops it; 6 user_roles policies become unevaluable (acceptable per R4)** | no-op (absent) | drops it |
+| Drop `user_roles` table | **DEFERRED — see §R2-B** | already absent | drops it (no rows) |
+
+The migration text is identical across all three. `IF EXISTS` makes it env-agnostic.
+
+---
+
+## R2-B — DROP TABLE decision (T017)
+
+**Decision: (b) DEFERRED.**
+
+Per FR-005: "If either environment has rows, the `DROP TABLE` step is deferred." Prod has 1 row in `user_roles` (see Query 4 supplement); dev's table does not exist. Migration 007 ships Steps 1–3 (policy drops, function drops); **Step 4 (DROP TABLE user_roles CASCADE) is omitted from 007**.
+
+The deferral is recorded with a SQL comment in 007 itself, pointing to this section.
+
+### Cross-check (resolved 2026-04-24)
+
+Two read-only queries against prod confirmed the `user_roles` row's provenance.
+
+**Query (a) — `user_profiles` lookup:**
+
+| id                                     | role  | created_at                    |
+| -------------------------------------- | ----- | ----------------------------- |
+| `22d56e26-3534-4bb9-9678-111d60a00c78` | admin | 2026-02-07 05:37:49.530708+00 |
+
+**Query (b) — `auth.users` lookup:**
+
+| id                                     | email                    | created_at                    |
+| -------------------------------------- | ------------------------ | ----------------------------- |
+| `22d56e26-3534-4bb9-9678-111d60a00c78` | owenconnorrose@gmail.com | 2025-12-26 01:00:11.485551+00 |
+
+**Resolution: Branch 1 — stale duplicate, no pre-007 action required.**
+
+The user_profiles row is the canonical admin record (created 2026-02-07, role=admin). The user_roles row (created 2026-01-11, role=admin) predates it and is a stale duplicate left over from the abandoned `user_roles`-based role system. Both records agree on the role, so dropping `user_roles` in the follow-up spec discards the duplicate without data loss.
+
+Timeline reconstruction:
+- 2025-12-26 — user signs up (`auth.users` row created)
+- 2026-01-11 — admin row inserted into `user_roles` (the `003_user_roles.sql` design was still considered canonical at this point)
+- 2026-02-07 — `user_profiles` row created with `role=admin` (after the design switched to `user_profiles`; the bootstrap procedure was rerun against the canonical table)
+
+**007 ships unchanged**; the follow-up spec drops `user_roles` and the duplicate row.
+
+### Follow-up spec
+
+A separate spec (numbered 005 or higher) will:
+1. Reconcile the `user_roles` row (per the cross-check outcome above) — confirmed safe to discard.
+2. Ship `008_drop_user_roles.sql`: `DROP TABLE user_roles CASCADE` (drops the table and the 6 now-broken policies)
+3. Regenerate `src/types/database.ts`
+4. Mark the follow-up complete in `docs/cleanup-roadmap.md`
+
+---
+
+## R2-C — Local `supabase db reset` gap (SC-004 deferred)
+
+`supabase start` against this repo's migration set fails:
 
 ```
-[FILL IN DURING PHASE A]
+Applying migration 003_user_profiles.sql...
+Applying migration 003_user_roles.sql...
+ERROR: duplicate key value violates unique constraint "schema_migrations_pkey"
+Key (version)=(003) already exists.
 ```
 
-Expected: 0 in both environments (app never writes to `user_roles`). **If non-zero in either environment**, the `DROP TABLE user_roles CASCADE` step in 007 is deferred per FR-005 — stop and escalate before authoring that clause.
+The Supabase CLI extracts the leading numeric prefix as the `schema_migrations.version` primary key. The repo has four duplicate-prefix pairs (`003_*`, `004_*`, `005_*`, `006_*`); the CLI errors on the first one. The remote envs are unaffected — they apply migrations via the dashboard SQL editor, which doesn't enforce the same unique constraint at apply time.
+
+**Effect on this spec**: SC-004 ("`supabase db reset` on a clean local instance applies every file 001..007 cleanly") is **not achievable without changes to the file set**. The spec's FR-011 explicitly chose preservation over deletion or renaming, so resolving SC-004 inside this spec would require an additional decision the spec didn't anticipate.
+
+**Decision (2026-04-24)**: Defer SC-004 to a follow-up spec.
+
+- Migration 007 ships to dev and prod via the dashboard SQL editor (T022 / T023).
+- Postcondition verification (T020-equivalent) runs against dev and prod after apply, not against a local fresh reset.
+- A follow-up spec will reorganize `supabase/migrations/` (e.g., move the four duplicate-causing files into `supabase/migrations/_superseded/` so the CLI ignores them on reset, while preserving them in the repo for traceability per FR-011) and ship the local-bootstrap fix.
+- The local-reset gap is captured in the PR description and added to `docs/cleanup-roadmap.md` as a new workstream.
+
+This decision keeps spec 004's scope narrow (the production schema fix) and isolates the developer-ergonomics fix into its own spec.
 
 ---
 
