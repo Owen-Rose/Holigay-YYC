@@ -48,14 +48,25 @@ DROP POLICY IF EXISTS "Organizers can delete attachments" ON attachments;
 DROP FUNCTION IF EXISTS public.get_user_role(UUID);
 
 -- ============================================
--- Step 3 — Drop the user_has_role(UUID, TEXT) function
+-- Step 3 — Drop the 4 user_roles policies that depend on user_has_role,
+--         then drop user_has_role(UUID, TEXT) itself
 -- ============================================
--- After this drop, the 6 RLS policies on user_roles
--- (from 004_user_roles_rls.sql) reference a missing function and become
--- unevaluable. This is acceptable per spec R4: user_roles is app-dead;
--- no application code reads from it. The broken policies cascade away
--- when user_roles itself is dropped in the follow-up spec
--- (see Step 4 deferral below).
+-- PostgreSQL refuses to drop a function while any RLS policy still
+-- references it (error 2BP01). The four "Admins can ..." policies on
+-- user_roles (from 004_user_roles_rls.sql) reference user_has_role.
+-- Drop them explicitly before dropping the function. The remaining two
+-- policies on user_roles (Users can view own role, Users can insert
+-- own role) use auth.uid() directly and survive until the table itself
+-- is dropped in the follow-up spec.
+--
+-- Explicit drops (rather than DROP FUNCTION ... CASCADE) are used here
+-- so any unexpected dependency surfaces as a loud error instead of a
+-- silent CASCADE removal.
+
+DROP POLICY IF EXISTS "Admins can view all roles"   ON user_roles;
+DROP POLICY IF EXISTS "Admins can insert any role"  ON user_roles;
+DROP POLICY IF EXISTS "Admins can update any role"  ON user_roles;
+DROP POLICY IF EXISTS "Admins can delete any role"  ON user_roles;
 
 DROP FUNCTION IF EXISTS public.user_has_role(UUID, TEXT);
 
