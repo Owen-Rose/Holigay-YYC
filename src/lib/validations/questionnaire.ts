@@ -22,38 +22,45 @@ export const showIfInputSchema = z.object({
 // Single-question validation. Enforces:
 //   - options required (non-empty) when type is single_select or multi_select
 //   - option keys must be unique within the question
+//
+// questionFieldsSchema is the base object (no superRefine) — used by
+// templateInputSchema and questionnaireInputSchema to .extend() safely.
 // =============================================================================
 
-export const questionInputSchema = z
-  .object({
-    type: z.enum(QUESTION_TYPES),
-    label: z.string().trim().min(1).max(200),
-    help_text: z.string().max(500).nullable().optional(),
-    required: z.boolean().default(false),
-    options: z.array(optionSchema).nullable().optional(),
-    show_if: showIfInputSchema.nullable().optional(),
-  })
-  .superRefine((q, ctx) => {
-    if (q.type === 'single_select' || q.type === 'multi_select') {
-      if (!q.options || q.options.length === 0) {
+const questionFieldsSchema = z.object({
+  type: z.enum(QUESTION_TYPES),
+  label: z.string().trim().min(1).max(200),
+  help_text: z.string().max(500).nullable().optional(),
+  required: z.boolean().default(false),
+  options: z.array(optionSchema).nullable().optional(),
+  show_if: showIfInputSchema.nullable().optional(),
+});
+
+type QuestionFields = z.infer<typeof questionFieldsSchema>;
+
+function enforceOptionConstraints(q: QuestionFields, ctx: z.RefinementCtx) {
+  if (q.type === 'single_select' || q.type === 'multi_select') {
+    if (!q.options || q.options.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['options'],
+        message: `Options are required for ${q.type} questions`,
+      });
+    } else {
+      const keys = q.options.map((o) => o.key);
+      const unique = new Set(keys);
+      if (unique.size !== keys.length) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['options'],
-          message: `Options are required for ${q.type} questions`,
+          message: 'Option keys must be unique',
         });
-      } else {
-        const keys = q.options.map((o) => o.key);
-        const unique = new Set(keys);
-        if (unique.size !== keys.length) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['options'],
-            message: 'Option keys must be unique',
-          });
-        }
       }
     }
-  });
+  }
+}
+
+export const questionInputSchema = questionFieldsSchema.superRefine(enforceOptionConstraints);
 
 // =============================================================================
 // answerValueSchema — discriminated union per R1 shapes
@@ -96,16 +103,18 @@ export type AnswerValueInput = z.infer<typeof answerValueSchema>;
 // Runs validateShowIfRules over the full question set in a top-level superRefine.
 // =============================================================================
 
+const templateQuestionSchema = questionFieldsSchema
+  .extend({
+    id: z.string().uuid().optional(),
+    position: z.number().int().min(0),
+  })
+  .superRefine(enforceOptionConstraints);
+
 export const templateInputSchema = z
   .object({
     name: z.string().trim().min(1).max(120),
     description: z.string().trim().max(2000).nullable().optional(),
-    questions: z.array(
-      questionInputSchema.extend({
-        id: z.string().uuid().optional(), // present when updating existing questions
-        position: z.number().int().min(0),
-      }),
-    ),
+    questions: z.array(templateQuestionSchema),
   })
   .superRefine((data, ctx) => {
     const result = validateShowIfRules(
@@ -134,15 +143,17 @@ export type TemplateInput = z.infer<typeof templateInputSchema>;
 // Same show-if rules pass applied to the complete set.
 // =============================================================================
 
+const questionnaireQuestionSchema = questionFieldsSchema
+  .extend({
+    id: z.string().uuid().optional(),
+    position: z.number().int().min(0),
+  })
+  .superRefine(enforceOptionConstraints);
+
 export const questionnaireInputSchema = z
   .object({
     eventId: z.string().uuid(),
-    questions: z.array(
-      questionInputSchema.extend({
-        id: z.string().uuid().optional(),
-        position: z.number().int().min(0),
-      }),
-    ),
+    questions: z.array(questionnaireQuestionSchema),
   })
   .superRefine((data, ctx) => {
     const result = validateShowIfRules(

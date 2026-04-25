@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getEventById } from '@/lib/actions/events';
+import { getEventQuestionnaire } from '@/lib/actions/questionnaires';
 import { EditEventForm } from './edit-event-form';
+import { QuestionnaireBuilder } from './questionnaire-builder';
 
 // =============================================================================
 // Types
@@ -18,13 +20,18 @@ interface EditEventPageProps {
 export default async function EditEventPage({ params }: EditEventPageProps) {
   const { id } = await params;
 
-  const result = await getEventById(id);
+  const [result, questionnaireResult] = await Promise.all([
+    getEventById(id),
+    getEventQuestionnaire(id),
+  ]);
 
   if (!result.success || !result.data) {
     notFound();
   }
 
   const event = result.data;
+  const initialQuestions = questionnaireResult.data?.questions ?? [];
+  const isLocked = !!questionnaireResult.data?.questionnaire.locked_at;
 
   // Map database fields (snake_case) to form fields (camelCase)
   const defaultValues = {
@@ -69,6 +76,19 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
       {/* Event Form */}
       <div className="border-border-subtle bg-surface rounded-lg border p-6">
         <EditEventForm eventId={id} defaultValues={defaultValues} />
+      </div>
+
+      {/* Questionnaire Builder */}
+      <div className="border-border-subtle bg-surface mt-6 rounded-lg border p-6">
+        <h2 className="text-foreground mb-1 text-lg font-semibold">Questionnaire</h2>
+        <p className="text-muted mb-4 text-sm">
+          Questions vendors will answer when applying to this event.
+        </p>
+        <QuestionnaireBuilder
+          eventId={id}
+          initialQuestions={initialQuestions}
+          isLocked={isLocked}
+        />
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/roles';
 import { eventFormSchema, type EventFormInput } from '@/lib/validations/event';
+import { DEFAULT_EVENT_QUESTIONS } from '@/lib/questionnaire/default-questions';
 
 // =============================================================================
 // Types
@@ -106,26 +108,29 @@ export async function createEvent(
 
   const supabase = await createClient();
 
-  const { data: created, error } = await supabase
-    .from('events')
-    .insert({
-      name,
-      description: description || null,
-      event_date: eventDate,
-      location,
-      application_deadline: applicationDeadline || null,
-      status,
-      max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
-    })
-    .select('id')
-    .single();
+  const { data: eventId, error } = await supabase.rpc(
+    'create_event_with_default_questionnaire',
+    {
+      p_event: {
+        name,
+        description: description || null,
+        event_date: eventDate,
+        location,
+        application_deadline: applicationDeadline || null,
+        status,
+        max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
+        questions: DEFAULT_EVENT_QUESTIONS,
+      },
+    },
+  );
 
-  if (error || !created) {
+  if (error || !eventId) {
     console.error('Error creating event:', error);
     return { success: false, error: 'Failed to create event' };
   }
 
-  return { success: true, error: null, id: created.id };
+  revalidatePath('/dashboard/events');
+  return { success: true, error: null, id: eventId };
 }
 
 /** Database row type for a single event (no application count) */
