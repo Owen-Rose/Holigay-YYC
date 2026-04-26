@@ -5,6 +5,7 @@ import {
   type VendorApplicationDetail,
 } from '@/lib/actions/vendor-dashboard';
 import { AttachmentsList } from '@/app/dashboard/applications/[id]/attachments-list';
+import { DynamicAnswers } from '@/app/dashboard/applications/[id]/dynamic-answers';
 import { Card, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';
 
@@ -245,7 +246,11 @@ export default async function VendorApplicationDetailPage({
       </div>
 
       <div className="mt-6">
-        <ApplicationDetails application={application} />
+        {application.dynamicAnswers !== null ? (
+          <DynamicAnswers answers={application.dynamicAnswers} />
+        ) : (
+          <ApplicationDetails application={application} />
+        )}
       </div>
 
       {/* Attachments Section */}

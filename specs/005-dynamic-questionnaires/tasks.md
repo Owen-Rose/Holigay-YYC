@@ -101,12 +101,12 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
 
 **Independent Test**: Submit a dynamic application with at least four question types (incl. file upload). Open organizer review page — each answer shows label + appropriate rendering. Open vendor review page — same. Unknown question types fall back to plain text. Legacy applications still use the legacy renderer.
 
-- [ ] T025 [P] [US4] Create `src/components/questionnaire/answer-renderer.tsx` (RSC) — type-dispatched read-only renderer: text → `<p>`, multi-select → pill list, date → formatted date, file_upload → signed-URL anchor, yes_no → badge ("Yes"/"No"), unknown type → plain text fallback (SC-007). Accepts `{ question, answer }` props; uses `coerceJsonbToAnswer` from T006
-- [ ] T026 [US4] Create `src/app/dashboard/applications/[id]/dynamic-answers.tsx` (RSC) — iterates the answers array from `getApplicationDetail` and renders `<AnswerRenderer>` per visible question, hiding answers whose question's `show_if` evaluated false at submit time (those simply have no row → naturally hidden)
-- [ ] T027 [US4] Modify `src/lib/actions/applications.ts` `getApplicationDetail` — also fetch `application_answers` LEFT JOIN `event_questions` ordered by `event_questions.position`; expose `dynamicAnswers: AnswerWithQuestion[] | null` (null when zero rows → legacy)
-- [ ] T028 [US4] Modify `src/app/dashboard/applications/[id]/page.tsx` — branch on `dynamicAnswers`: if non-null, render `<DynamicAnswers>`; else render existing legacy section verbatim. Preserve all existing organizer controls (status, notes, attachments)
-- [ ] T029 [US4] Modify `src/app/vendor-dashboard/applications/[id]/page.tsx` — same branching as T028 (read-only path); keep existing layout otherwise
-- [ ] T030 [P] [US4] Add `src/test/answer-renderer.test.tsx` — render every supported `kind` correctly (text, number, date, choice, choices, boolean, file), unknown `kind` falls back to plain text, file payload renders as a link with the correct path
+- [x] T025 [P] [US4] Create `src/components/questionnaire/answer-renderer.tsx` (RSC) — type-dispatched read-only renderer: text → `<p>`, multi-select → pill list, date → formatted date, file_upload → signed-URL anchor, yes_no → badge ("Yes"/"No"), unknown type → plain text fallback (SC-007). Accepts `{ question, answer }` props; uses `coerceJsonbToAnswer` from T006
+- [x] T026 [US4] Create `src/app/dashboard/applications/[id]/dynamic-answers.tsx` (RSC) — iterates the answers array from `getApplicationDetail` and renders `<AnswerRenderer>` per visible question, hiding answers whose question's `show_if` evaluated false at submit time (those simply have no row → naturally hidden)
+- [x] T027 [US4] Modify `src/lib/actions/applications.ts` `getApplicationDetail` — also fetch `application_answers` LEFT JOIN `event_questions` ordered by `event_questions.position`; expose `dynamicAnswers: AnswerWithQuestion[] | null` (null when zero rows → legacy)
+- [x] T028 [US4] Modify `src/app/dashboard/applications/[id]/page.tsx` — branch on `dynamicAnswers`: if non-null, render `<DynamicAnswers>`; else render existing legacy section verbatim. Preserve all existing organizer controls (status, notes, attachments)
+- [x] T029 [US4] Modify `src/app/vendor-dashboard/applications/[id]/page.tsx` — same branching as T028 (read-only path); keep existing layout otherwise
+- [x] T030 [P] [US4] Add `src/test/answer-renderer.test.tsx` — render every supported `kind` correctly (text, number, date, choice, choices, boolean, file), unknown `kind` falls back to plain text, file payload renders as a link with the correct path
 
 **Checkpoint**: Story 4 independent test passes. Legacy applications continue to render unchanged (re-affirmed by the US3 test).
 

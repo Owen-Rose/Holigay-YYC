@@ -1,6 +1,8 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import type { Json } from '@/types/database';
+import type { AnswerWithQuestion } from '@/lib/actions/applications';
 
 // =============================================================================
 // Types
@@ -268,6 +270,7 @@ export type VendorApplicationDetail = {
   booth_preference: string | null;
   product_categories: string[] | null;
   special_requirements: string | null;
+  dynamicAnswers: import('@/lib/actions/applications').AnswerWithQuestion[] | null;
   vendor: {
     business_name: string;
     contact_name: string;
@@ -391,6 +394,48 @@ export async function getVendorApplicationDetail(
     console.error('Error fetching attachments:', attachError);
   }
 
+  // Fetch dynamic answers ordered by question position
+  const { data: rawAnswers } = await supabase
+    .from('application_answers')
+    .select(
+      `
+      id,
+      value,
+      event_question:event_questions (
+        id,
+        label,
+        type,
+        options,
+        position
+      )
+    `
+    )
+    .eq('application_id', applicationId)
+    .order('position', { referencedTable: 'event_questions', ascending: true });
+
+  const mappedAnswers: AnswerWithQuestion[] = (rawAnswers ?? [])
+    .filter((row) => row.event_question && !Array.isArray(row.event_question))
+    .map((row) => {
+      const q = row.event_question as {
+        id: string;
+        label: string;
+        type: string;
+        options: Json | null;
+        position: number;
+      };
+      return {
+        answerId: row.id,
+        rawValue: row.value,
+        question: {
+          id: q.id,
+          label: q.label,
+          type: q.type,
+          options: q.options,
+          position: q.position,
+        },
+      };
+    });
+
   return {
     success: true,
     data: {
@@ -401,6 +446,7 @@ export async function getVendorApplicationDetail(
       booth_preference: application.booth_preference,
       product_categories: application.product_categories,
       special_requirements: application.special_requirements,
+      dynamicAnswers: mappedAnswers.length > 0 ? mappedAnswers : null,
       vendor: application.vendor as VendorApplicationDetail['vendor'],
       event: application.event as VendorApplicationDetail['event'],
       attachments: attachments || [],

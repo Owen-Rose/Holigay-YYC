@@ -4,6 +4,7 @@ import { getApplicationById, type ApplicationDetail } from '@/lib/actions/applic
 import { StatusUpdateButtons } from './status-buttons';
 import { OrganizerNotes } from './organizer-notes';
 import { AttachmentsList } from './attachments-list';
+import { DynamicAnswers } from './dynamic-answers';
 import { Card, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';
 
@@ -218,7 +219,11 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       </div>
 
       <div className="mt-6">
-        <ApplicationDetails application={application} />
+        {application.dynamicAnswers !== null ? (
+          <DynamicAnswers answers={application.dynamicAnswers} />
+        ) : (
+          <ApplicationDetails application={application} />
+        )}
       </div>
 
       {/* Attachments Section */}

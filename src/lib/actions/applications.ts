@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import type { Json } from '@/types/database';
 import {
   applicationSubmitSchema,
   type ApplicationSubmitInput,
@@ -541,6 +542,18 @@ export async function getApplications(
   };
 }
 
+export type AnswerWithQuestion = {
+  answerId: string;
+  rawValue: Json;
+  question: {
+    id: string;
+    label: string;
+    type: string;
+    options: Json | null;
+    position: number;
+  };
+};
+
 /**
  * Full application details with vendor, event, and attachments
  */
@@ -585,6 +598,7 @@ export type ApplicationDetail = {
     file_size: number | null;
     uploaded_at: string;
   }[];
+  dynamicAnswers: AnswerWithQuestion[] | null;
 };
 
 /**
@@ -685,6 +699,48 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
     // Don't fail the whole request if attachments fail
   }
 
+  // Fetch dynamic answers ordered by question position
+  const { data: rawAnswers } = await supabase
+    .from('application_answers')
+    .select(
+      `
+      id,
+      value,
+      event_question:event_questions (
+        id,
+        label,
+        type,
+        options,
+        position
+      )
+    `
+    )
+    .eq('application_id', id)
+    .order('position', { referencedTable: 'event_questions', ascending: true });
+
+  const mappedAnswers: AnswerWithQuestion[] = (rawAnswers ?? [])
+    .filter((row) => row.event_question && !Array.isArray(row.event_question))
+    .map((row) => {
+      const q = row.event_question as {
+        id: string;
+        label: string;
+        type: string;
+        options: Json | null;
+        position: number;
+      };
+      return {
+        answerId: row.id,
+        rawValue: row.value,
+        question: {
+          id: q.id,
+          label: q.label,
+          type: q.type,
+          options: q.options,
+          position: q.position,
+        },
+      };
+    });
+
   return {
     success: true,
     error: null,
@@ -702,6 +758,7 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
       vendor: application.vendor as ApplicationDetail['vendor'],
       event: application.event as ApplicationDetail['event'],
       attachments: attachments || [],
+      dynamicAnswers: mappedAnswers.length > 0 ? mappedAnswers : null,
     },
   };
 }

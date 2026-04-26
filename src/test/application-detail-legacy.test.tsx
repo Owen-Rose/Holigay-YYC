@@ -89,6 +89,7 @@ const LEGACY_APPLICATION: ApplicationDetail = {
     status: 'active',
   },
   attachments: [],
+  dynamicAnswers: null,
 };
 
 const LEGACY_VENDOR_APPLICATION: VendorApplicationDetail = {
@@ -118,6 +119,7 @@ const LEGACY_VENDOR_APPLICATION: VendorApplicationDetail = {
     status: 'active',
   },
   attachments: [],
+  dynamicAnswers: null,
 };
 
 // =============================================================================
