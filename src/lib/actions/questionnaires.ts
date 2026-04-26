@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/roles';
@@ -366,4 +367,98 @@ export async function reorderEventQuestions(
 
   revalidatePath(`/dashboard/events/${eventId}`, 'page');
   return { success: true, error: null, data: null };
+}
+
+// ---------------------------------------------------------------------------
+// saveEventQuestionnaireAsTemplate
+// ---------------------------------------------------------------------------
+
+const saveAsTemplateSchema = z.object({
+  eventId: z.string().uuid(),
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(2000).nullable().optional(),
+});
+
+export async function saveEventQuestionnaireAsTemplate(input: unknown): Promise<{
+  success: boolean;
+  error: string | null;
+  data: { id: string } | null;
+}> {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized', data: null };
+  }
+
+  const parsed = saveAsTemplateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? 'Invalid input',
+      data: null,
+    };
+  }
+
+  const supabase = await createClient();
+
+  const questionnaire = await getQuestionnaire(supabase, parsed.data.eventId);
+  if (!questionnaire) {
+    return { success: false, error: 'Questionnaire not found for event', data: null };
+  }
+
+  const { data: eventQuestions, error: eqError } = await supabase
+    .from('event_questions')
+    .select('*')
+    .eq('event_questionnaire_id', questionnaire.id)
+    .order('position', { ascending: true });
+
+  if (eqError) {
+    return { success: false, error: 'Failed to load event questions', data: null };
+  }
+
+  const questions = eventQuestions ?? [];
+  const newIds = questions.map(() => crypto.randomUUID());
+  const oldToNew = new Map<string, string>();
+  questions.forEach((eq, i) => oldToNew.set(eq.id, newIds[i]));
+
+  const { data: tmpl, error: insertError } = await supabase
+    .from('questionnaire_templates')
+    .insert({
+      name: parsed.data.name,
+      description: parsed.data.description ?? null,
+      created_by: auth.data!.userId,
+    })
+    .select('id')
+    .single();
+
+  if (insertError || !tmpl) {
+    return { success: false, error: 'Failed to create template', data: null };
+  }
+
+  if (questions.length > 0) {
+    const rows = questions.map((eq, i) => {
+      const oldShowIf = eq.show_if as ShowIfRule | null;
+      const remapped = oldShowIf
+        ? { ...oldShowIf, questionId: oldToNew.get(oldShowIf.questionId) ?? oldShowIf.questionId }
+        : null;
+      return {
+        id: newIds[i],
+        template_id: tmpl.id,
+        position: i,
+        type: eq.type,
+        label: eq.label,
+        help_text: eq.help_text,
+        required: eq.required,
+        options: eq.options,
+        show_if: toJson(remapped),
+      };
+    });
+
+    const { error: qInsertError } = await supabase.from('template_questions').insert(rows);
+    if (qInsertError) {
+      return { success: false, error: 'Failed to save template questions', data: null };
+    }
+  }
+
+  revalidatePath('/dashboard/templates');
+  return { success: true, error: null, data: { id: tmpl.id } };
 }
