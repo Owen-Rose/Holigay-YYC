@@ -55,6 +55,11 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+option {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
 /* Subtle radial gradient overlay for depth (no image files) */
 body::before {
   content: '';
