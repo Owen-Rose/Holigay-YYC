@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 import {
   QuestionEditor,
   type QuestionDraft,
@@ -14,14 +16,22 @@ import {
   deleteEventQuestion,
   reorderEventQuestions,
 } from '@/lib/actions/questionnaires';
+import { seedEventQuestionnaireFromTemplate } from '@/lib/actions/templates';
 import type { Database } from '@/types/database';
 
 type EventQuestion = Database['public']['Tables']['event_questions']['Row'];
+
+interface TemplateOption {
+  id: string;
+  name: string;
+}
 
 interface QuestionnaireBuilderProps {
   eventId: string;
   initialQuestions: EventQuestion[];
   isLocked: boolean;
+  templates?: TemplateOption[];
+  hasAnswers?: boolean;
 }
 
 function toQuestionDraft(q: EventQuestion): QuestionDraft {
@@ -40,7 +50,10 @@ export function QuestionnaireBuilder({
   eventId,
   initialQuestions,
   isLocked,
+  templates = [],
+  hasAnswers = false,
 }: QuestionnaireBuilderProps) {
+  const router = useRouter();
   const [questions, setQuestions] = useState<QuestionDraft[]>(
     initialQuestions.map(toQuestionDraft),
   );
@@ -48,6 +61,8 @@ export function QuestionnaireBuilder({
   const [isSaving, setIsSaving] = useState(false);
   const [labelErrors, setLabelErrors] = useState<Record<number, string>>({});
   const initialOrderRef = useRef(initialQuestions.map((q) => q.id));
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [isSeedingTemplate, setIsSeedingTemplate] = useState(false);
 
   if (isLocked) {
     return (
@@ -189,8 +204,58 @@ export function QuestionnaireBuilder({
     }
   }
 
+  async function handleSeed() {
+    if (!selectedTemplateId) return;
+    setIsSeedingTemplate(true);
+    try {
+      const result = await seedEventQuestionnaireFromTemplate({
+        eventId,
+        templateId: selectedTemplateId,
+        replaceExisting: false,
+      });
+      if (!result.success) {
+        toast.error(result.error ?? 'Failed to seed template');
+        return;
+      }
+      toast.success('Questions added from template');
+      setSelectedTemplateId('');
+      router.refresh();
+    } finally {
+      setIsSeedingTemplate(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
+      {templates.length > 0 && !isLocked && (
+        <div className={hasAnswers ? 'pointer-events-none opacity-50' : ''}>
+          <p className="text-foreground mb-2 text-sm font-medium">Seed from template</p>
+          <div className="flex gap-2">
+            <Select
+              value={selectedTemplateId}
+              options={templates.map((t) => ({ value: t.id, label: t.name }))}
+              placeholder="Select a template…"
+              onChange={(e) => setSelectedTemplateId(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button
+              variant="outline"
+              type="button"
+              disabled={!selectedTemplateId || isSeedingTemplate || hasAnswers}
+              isLoading={isSeedingTemplate}
+              onClick={handleSeed}
+            >
+              Seed
+            </Button>
+          </div>
+          {hasAnswers && (
+            <p className="text-muted mt-1 text-xs">
+              Seeding is disabled because this event has received answers.
+            </p>
+          )}
+        </div>
+      )}
+
       {questions.map((q, i) => (
         <div key={q.id ?? `new-${i}`} className="flex gap-2 items-start">
           <div className="flex flex-col gap-1 pt-5 shrink-0">

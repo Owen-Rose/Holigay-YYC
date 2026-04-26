@@ -120,14 +120,14 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
 
 - [x] T031 [US5] Create `src/lib/actions/templates.ts` per `contracts/templates-actions.md` — exports `listTemplates`, `getTemplate`, `createTemplate`, `updateTemplate`, `deleteTemplate`, `seedEventQuestionnaireFromTemplate`. Mutations: `requireRole('organizer')` (RLS handles creator-or-admin row gate per Q4/R8), Zod parse, DB op, `revalidatePath('/dashboard/templates')` and `revalidatePath('/dashboard/templates/[id]', 'page')` where appropriate. `seedEventQuestionnaireFromTemplate` requires the target event to be `draft`, optionally replaces existing questions, remaps `show_if.questionId` references via the old→new id map (contract step 4)
 - [x] T032 [US5] Add `saveEventQuestionnaireAsTemplate` to `src/lib/actions/questionnaires.ts` — bulk-copy current event questions into a new template; remap `show_if.questionId`; `revalidatePath('/dashboard/templates')`
-- [ ] T033 [P] [US5] Create `src/app/dashboard/templates/page.tsx` (RSC) — calls `listTemplates`, renders a card/table listing template name, description, creator email (with "—" when orphaned per Q4), question count, "Edit" / "Delete" buttons gated on creator-or-admin
-- [ ] T034 [P] [US5] Create `src/app/dashboard/templates/loading.tsx`
-- [ ] T035 [P] [US5] Create `src/app/dashboard/templates/new/page.tsx` — RSC shell + `<TemplateBuilder>` client form for new template
-- [ ] T036 [P] [US5] Create `src/app/dashboard/templates/[id]/page.tsx` — RSC; loads via `getTemplate`; renders `<TemplateBuilder>` in edit mode
-- [ ] T037 [P] [US5] Create `src/app/dashboard/templates/[id]/loading.tsx`
-- [ ] T038 [US5] Create `src/app/dashboard/templates/[id]/template-builder.tsx` — wraps `<QuestionnaireBuilder>` with a name + description header and template-context save callbacks (`createTemplate` / `updateTemplate`); reuses the same `<QuestionEditor>` so behaviour matches the per-event builder
-- [ ] T039 [P] [US5] Create `src/app/dashboard/events/[id]/save-as-template-button.tsx` — client button + name/description modal; calls `saveEventQuestionnaireAsTemplate`; surfaces toast and link to the new template
-- [ ] T040 [US5] Add a "Seed from template" picker to `<QuestionnaireBuilder>` — disabled when questionnaire is locked or has any answer-bearing data; calls `seedEventQuestionnaireFromTemplate` and re-fetches questions on success
+- [x] T033 [P] [US5] Create `src/app/dashboard/templates/page.tsx` (RSC) — calls `listTemplates`, renders a card/table listing template name, description, creator email (with "—" when orphaned per Q4), question count, "Edit" / "Delete" buttons gated on creator-or-admin
+- [x] T034 [P] [US5] Create `src/app/dashboard/templates/loading.tsx`
+- [x] T035 [P] [US5] Create `src/app/dashboard/templates/new/page.tsx` — RSC shell + `<TemplateBuilder>` client form for new template
+- [x] T036 [P] [US5] Create `src/app/dashboard/templates/[id]/page.tsx` — RSC; loads via `getTemplate`; renders `<TemplateBuilder>` in edit mode
+- [x] T037 [P] [US5] Create `src/app/dashboard/templates/[id]/loading.tsx`
+- [x] T038 [US5] Create `src/app/dashboard/templates/[id]/template-builder.tsx` — wraps `<QuestionnaireBuilder>` with a name + description header and template-context save callbacks (`createTemplate` / `updateTemplate`); reuses the same `<QuestionEditor>` so behaviour matches the per-event builder
+- [x] T039 [P] [US5] Create `src/app/dashboard/events/[id]/save-as-template-button.tsx` — client button + name/description modal; calls `saveEventQuestionnaireAsTemplate`; surfaces toast and link to the new template
+- [x] T040 [US5] Add a "Seed from template" picker to `<QuestionnaireBuilder>` — disabled when questionnaire is locked or has any answer-bearing data; calls `seedEventQuestionnaireFromTemplate` and re-fetches questions on success
 - [ ] T041 [P] [US5] Add `src/test/templates-actions.test.ts` — CRUD happy paths, creator-only edit/delete enforced (RLS-mock + role-mock), admin override works, orphaned template (created_by null) editable only by admin, `seedEventQuestionnaireFromTemplate` copies questions and remaps show-if ids
 - [ ] T042 [P] [US5] Add `src/test/template-builder.test.tsx` — render new + edit modes, save invokes the right action, validation error display
 
