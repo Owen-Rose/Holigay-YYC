@@ -10,6 +10,8 @@ import {
   QUESTION_TYPE_LABELS,
   type QuestionType,
 } from '@/components/questionnaire/question-types';
+import { ShowIfEditor, type ShowIfSibling } from '@/components/forms/show-if-editor';
+import type { ShowIfRule } from '@/lib/questionnaire/show-if';
 
 export type QuestionOption = { key: string; label: string };
 
@@ -20,7 +22,7 @@ export type QuestionDraft = {
   help_text: string;
   required: boolean;
   options: QuestionOption[];
-  show_if: null;
+  show_if: ShowIfRule | null;
 };
 
 const TYPE_SELECT_OPTIONS = QUESTION_TYPES.map((t) => ({
@@ -34,6 +36,7 @@ interface QuestionEditorProps {
   question: QuestionDraft;
   index: number;
   labelError?: string;
+  siblings?: ShowIfSibling[];
   onChange: (updated: QuestionDraft) => void;
   onDelete: () => void;
 }
@@ -42,6 +45,7 @@ export function QuestionEditor({
   question,
   index,
   labelError,
+  siblings = [],
   onChange,
   onDelete,
 }: QuestionEditorProps) {
@@ -139,6 +143,12 @@ export function QuestionEditor({
           </Button>
         </div>
       )}
+
+      <ShowIfEditor
+        value={question.show_if}
+        earlierSiblings={siblings}
+        onChange={(rule) => set('show_if', rule)}
+      />
     </div>
   );
 }

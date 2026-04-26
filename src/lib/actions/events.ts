@@ -267,6 +267,8 @@ export async function updateEventStatus(
     return { success: false, error: 'Failed to update event status' };
   }
 
+  revalidatePath('/dashboard/events');
+  revalidatePath('/dashboard/events/[id]', 'page');
   return { success: true, error: null };
 }
 

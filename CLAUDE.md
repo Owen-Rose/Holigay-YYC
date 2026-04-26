@@ -263,8 +263,9 @@ See `.specify/memory/constitution.md` for full governance rules.
 - N/A — no schema, RLS, or data changes. (002-consolidate-vendor-portal)
 - PostgreSQL 15 (Supabase hosted) — SQL DDL only; no TypeScript authored + Supabase CLI (`supabase db reset`, `supabase link`), `npm run db:types:dev`, `npm run db:types` (004-consolidate-role-migrations)
 - Supabase PostgreSQL — `public.user_profiles` (canonical role table), `public.user_roles` (superseded; expected empty; targeted for drop) (004-consolidate-role-migrations)
-- TypeScript 5.x (strict), Node ≥ 20 (Next.js 16 runtime) + Next.js 16 (App Router, RSC-first), React 19, `@supabase/ssr`, `react-hook-form`, `zod`, `@hookform/resolvers`, `sonner` (toasts), Tailwind CSS v4 (005-dynamic-questionnaires)
-- Supabase PostgreSQL with RLS; existing `attachments` bucket reused for `file_upload` answers; new tables added via migration `009_dynamic_questionnaires.sql` (005-dynamic-questionnaires)
+- Next.js 16 (App Router/RSC), React 19, `react-hook-form` + `zod`, `sonner` (005-dynamic-questionnaires)
+- Supabase PostgreSQL — migration `009_dynamic_questionnaires.sql` adds questionnaires, templates, and answers tables; `attachments` bucket reused for `file_upload` answers (005-dynamic-questionnaires)
 
 ## Recent Changes
+- 005-dynamic-questionnaires: Per-event dynamic questionnaires with templates, show-if branching, and lock-on-publish. Migration 009 adds 5 RLS-gated tables; vendors fill dynamic forms at `/apply`, organizers build at `/dashboard/events/[id]`.
 - 002-consolidate-vendor-portal: Added TypeScript 5.x, `strict: true` (`tsconfig.json` unchanged). + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest — all unchanged.

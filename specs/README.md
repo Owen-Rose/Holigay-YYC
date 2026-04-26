@@ -10,6 +10,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 002 | Consolidate vendor portal | ✅ Shipped | (direct commits to dev) | 2026-04-21 |
 | 003 | — (number skipped) | — | — | — |
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
+| 005 | Dynamic per-event questionnaires | 🚧 In progress | — | — |
 
 ## Queued work (no spec yet)
 

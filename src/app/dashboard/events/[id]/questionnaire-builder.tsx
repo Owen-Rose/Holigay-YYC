@@ -10,6 +10,7 @@ import {
   type QuestionDraft,
   type QuestionOption,
 } from '@/components/forms/question-editor';
+import type { ShowIfRule } from '@/lib/questionnaire/show-if';
 import {
   addEventQuestion,
   updateEventQuestion,
@@ -42,7 +43,7 @@ function toQuestionDraft(q: EventQuestion): QuestionDraft {
     help_text: q.help_text ?? '',
     required: q.required,
     options: (q.options as QuestionOption[] | null) ?? [],
-    show_if: null,
+    show_if: (q.show_if as ShowIfRule | null) ?? null,
   };
 }
 
@@ -66,17 +67,33 @@ export function QuestionnaireBuilder({
 
   if (isLocked) {
     return (
-      <div className="space-y-3">
-        <p className="text-muted text-sm">
-          This questionnaire is locked because the event has been published.
-        </p>
-        <ul className="space-y-2">
+      <div className="space-y-4">
+        <div role="status" className="border-border-subtle bg-surface rounded-md border p-4">
+          <p className="text-foreground text-sm font-medium">Questionnaire locked</p>
+          <p className="text-muted mt-1 text-sm">
+            This event has been published. Questions, options, and show-if rules are now read-only
+            to keep in-flight applications consistent.
+          </p>
+        </div>
+        <ol className="space-y-2">
           {questions.map((q, i) => (
-            <li key={q.id ?? i} className="text-foreground text-sm">
-              {i + 1}. {q.label}
+            <li
+              key={q.id ?? i}
+              className="border-border-subtle bg-surface flex items-start justify-between gap-3 rounded-md border p-3"
+            >
+              <div>
+                <p className="text-foreground text-sm">
+                  {i + 1}. {q.label}
+                </p>
+                {q.help_text && <p className="text-muted mt-1 text-xs">{q.help_text}</p>}
+              </div>
+              <span className="text-muted shrink-0 text-xs uppercase tracking-wide">
+                {q.type.replace(/_/g, ' ')}
+                {q.required ? ' • required' : ''}
+              </span>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
     );
   }
@@ -154,7 +171,7 @@ export function QuestionnaireBuilder({
           help_text: q.help_text || null,
           required: q.required,
           options: q.options.length ? q.options : null,
-          show_if: null,
+          show_if: q.show_if ?? null,
         });
         if (!result.success) {
           toast.error(result.error ?? 'Failed to update question');
@@ -171,7 +188,7 @@ export function QuestionnaireBuilder({
           help_text: q.help_text || null,
           required: q.required,
           options: q.options.length ? q.options : null,
-          show_if: null,
+          show_if: q.show_if ?? null,
         });
         if (!result.success) {
           toast.error(result.error ?? 'Failed to add question');
@@ -285,6 +302,12 @@ export function QuestionnaireBuilder({
               question={q}
               index={i}
               labelError={labelErrors[i]}
+              siblings={questions.slice(0, i).map((s) => ({
+                id: s.id,
+                type: s.type,
+                label: s.label,
+                options: s.options,
+              }))}
               onChange={(updated) => updateQuestion(i, updated)}
               onDelete={() => removeQuestion(i)}
             />

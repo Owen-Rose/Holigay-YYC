@@ -128,8 +128,8 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
 - [x] T038 [US5] Create `src/app/dashboard/templates/[id]/template-builder.tsx` — wraps `<QuestionnaireBuilder>` with a name + description header and template-context save callbacks (`createTemplate` / `updateTemplate`); reuses the same `<QuestionEditor>` so behaviour matches the per-event builder
 - [x] T039 [P] [US5] Create `src/app/dashboard/events/[id]/save-as-template-button.tsx` — client button + name/description modal; calls `saveEventQuestionnaireAsTemplate`; surfaces toast and link to the new template
 - [x] T040 [US5] Add a "Seed from template" picker to `<QuestionnaireBuilder>` — disabled when questionnaire is locked or has any answer-bearing data; calls `seedEventQuestionnaireFromTemplate` and re-fetches questions on success
-- [ ] T041 [P] [US5] Add `src/test/templates-actions.test.ts` — CRUD happy paths, creator-only edit/delete enforced (RLS-mock + role-mock), admin override works, orphaned template (created_by null) editable only by admin, `seedEventQuestionnaireFromTemplate` copies questions and remaps show-if ids
-- [ ] T042 [P] [US5] Add `src/test/template-builder.test.tsx` — render new + edit modes, save invokes the right action, validation error display
+- [x] T041 [P] [US5] Add `src/test/templates-actions.test.ts` — CRUD happy paths, creator-only edit/delete enforced (RLS-mock + role-mock), admin override works, orphaned template (created_by null) editable only by admin, `seedEventQuestionnaireFromTemplate` copies questions and remaps show-if ids
+- [x] T042 [P] [US5] Add `src/test/template-builder.test.tsx` — render new + edit modes, save invokes the right action, validation error display
 
 **Checkpoint**: Story 5 independent test passes. Templates and event questionnaires are fully decoupled (no shared mutation paths).
 
@@ -143,9 +143,9 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
 
 > Note: the evaluator + validators (T005) and the schema-level acceptance of show-if values (T007) already shipped in foundational. This phase adds the UI surface and tests the action-layer wiring.
 
-- [ ] T043 [P] [US6] Create `src/components/forms/show-if-editor.tsx` — only renders when ≥1 earlier question exists in the parent context; "Show only if" toggle → trigger-question dropdown filtered to `yes_no` / `single_select` siblings with smaller position → operator pinned to `equals` → value selector (yes/no toggle for `yes_no`; option-key dropdown for `single_select`)
-- [ ] T044 [US6] Wire `<ShowIfEditor>` into `<QuestionEditor>` and `<QuestionnaireBuilder>` so each question's show-if rule is editable; ensure the action calls already validate show-if (foundational T005 + T010 — confirm); surface friendly error messages from `validateShowIfRules` on save
-- [ ] T045 [P] [US6] Add `src/test/show-if-validator.test.ts` — action-layer: `addEventQuestion` rejects forward-reference, `updateEventQuestion` rejects creating a cycle, `addEventQuestion` rejects trigger-type when trigger is `multi_select`/`long_text`/etc; `reorderEventQuestions` rejects a reorder that would invalidate an existing show-if (forward-ref appears post-reorder)
+- [x] T043 [P] [US6] Create `src/components/forms/show-if-editor.tsx` — only renders when ≥1 earlier question exists in the parent context; "Show only if" toggle → trigger-question dropdown filtered to `yes_no` / `single_select` siblings with smaller position → operator pinned to `equals` → value selector (yes/no toggle for `yes_no`; option-key dropdown for `single_select`)
+- [x] T044 [US6] Wire `<ShowIfEditor>` into `<QuestionEditor>` and `<QuestionnaireBuilder>` so each question's show-if rule is editable; ensure the action calls already validate show-if (foundational T005 + T010 — confirm); surface friendly error messages from `validateShowIfRules` on save
+- [x] T045 [P] [US6] Add `src/test/show-if-validator.test.ts` — action-layer: `addEventQuestion` rejects forward-reference, `updateEventQuestion` rejects creating a cycle, `addEventQuestion` rejects trigger-type when trigger is `multi_select`/`long_text`/etc; `reorderEventQuestions` rejects a reorder that would invalidate an existing show-if (forward-ref appears post-reorder)
 
 **Checkpoint**: Story 6 independent test passes including the three negative paths (forward-ref / cycle / wrong trigger type).
 
@@ -157,9 +157,9 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
 
 **Independent Test**: Build questionnaire → publish event → attempt add/edit/delete/reorder via UI: all blocked with clear error. Direct SQL UPDATE attempt also rejected by RLS.
 
-- [ ] T046 [US7] Modify `src/lib/actions/events.ts` `updateEventStatus` — on `draft → active` transition, UPDATE `events` row only; the `lock_event_questionnaire_on_publish` trigger (migration 009) sets `event_questionnaires.locked_at` atomically. Add `revalidatePath('/dashboard/events')` + `revalidatePath('/dashboard/events/[id]', 'page')` (R5). No `setQuestionnaireLock` helper needed — the trigger replaces it
-- [ ] T047 [US7] Update `<QuestionnaireBuilder>` to render a locked banner + disable all mutation controls when `locked_at` is non-null; the action-level guards already reject mutations server-side, but the UI lockout matches Story 7 scenarios 2 & 3
-- [ ] T048 [P] [US7] Add `src/test/lock-on-publish.test.ts` — `updateEventStatus(active)` sets `locked_at` once and is idempotent on a re-publish call; subsequent `addEventQuestion` / `updateEventQuestion` / `deleteEventQuestion` / `reorderEventQuestions` all return failure with the draft-status error; verify the assertion that the existing RLS policy from migration 009 is the data-layer backstop (mock-test the supabase response shape that mimics RLS rejection)
+- [x] T046 [US7] Modify `src/lib/actions/events.ts` `updateEventStatus` — on `draft → active` transition, UPDATE `events` row only; the `lock_event_questionnaire_on_publish` trigger (migration 009) sets `event_questionnaires.locked_at` atomically. Add `revalidatePath('/dashboard/events')` + `revalidatePath('/dashboard/events/[id]', 'page')` (R5). No `setQuestionnaireLock` helper needed — the trigger replaces it
+- [x] T047 [US7] Update `<QuestionnaireBuilder>` to render a locked banner + disable all mutation controls when `locked_at` is non-null; the action-level guards already reject mutations server-side, but the UI lockout matches Story 7 scenarios 2 & 3
+- [x] T048 [P] [US7] Add `src/test/lock-on-publish.test.ts` — `updateEventStatus(active)` sets `locked_at` once and is idempotent on a re-publish call; subsequent `addEventQuestion` / `updateEventQuestion` / `deleteEventQuestion` / `reorderEventQuestions` all return failure with the draft-status error; verify the assertion that the existing RLS policy from migration 009 is the data-layer backstop (mock-test the supabase response shape that mimics RLS rejection)
 
 **Checkpoint**: Story 7 independent test passes. Both layers reject post-publish edits.
 
@@ -167,9 +167,9 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T049 Run `npm run lint && npm test && npm run build` — all green; fix any new TS strict / a11y warnings introduced by spec 005 components
-- [ ] T050 Execute `specs/005-dynamic-questionnaires/quickstart.md` end-to-end against the local dev environment; record any deviations and resolve before merge
-- [ ] T051 Update `CLAUDE.md` "Active Technologies" + "Recent Changes" sections to reference spec 005 once shipped; trim the spec 005 entry in "Active Technologies" to a single line matching the existing one-line-per-spec pattern; ensure `specs/README.md` index reflects spec 005 state
+- [x] T049 Run `npm run lint && npm test && npm run build` — all green; fix any new TS strict / a11y warnings introduced by spec 005 components
+- [ ] T050 Execute `specs/005-dynamic-questionnaires/quickstart.md` end-to-end against the local dev environment; record any deviations and resolve before merge — **AUTOMATED PREREQS DONE; awaiting manual walk-through**
+- [x] T051 Update `CLAUDE.md` "Active Technologies" + "Recent Changes" sections to reference spec 005 once shipped; trim the spec 005 entry in "Active Technologies" to a single line matching the existing one-line-per-spec pattern; ensure `specs/README.md` index reflects spec 005 state
 
 ---
 

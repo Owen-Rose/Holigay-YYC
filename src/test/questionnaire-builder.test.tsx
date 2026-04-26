@@ -4,6 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { QuestionnaireBuilder } from '@/app/dashboard/events/[id]/questionnaire-builder';
 import type { Database } from '@/types/database';
 
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn().mockReturnValue({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+  usePathname: vi.fn().mockReturnValue('/'),
+  useSearchParams: vi.fn().mockReturnValue(new URLSearchParams()),
+}));
+
 type EventQuestion = Database['public']['Tables']['event_questions']['Row'];
 
 // =============================================================================
@@ -22,6 +28,10 @@ vi.mock('@/lib/actions/questionnaires', () => ({
   updateEventQuestion: (...args: unknown[]) => mockUpdateEventQuestion(...args),
   deleteEventQuestion: (...args: unknown[]) => mockDeleteEventQuestion(...args),
   reorderEventQuestions: (...args: unknown[]) => mockReorderEventQuestions(...args),
+}));
+
+vi.mock('@/lib/actions/templates', () => ({
+  seedEventQuestionnaireFromTemplate: vi.fn().mockResolvedValue({ success: true, error: null, data: null }),
 }));
 
 vi.mock('sonner', () => ({
@@ -104,7 +114,7 @@ describe('QuestionnaireBuilder', () => {
     it('renders a locked view when isLocked is true', () => {
       renderBuilder(THREE_DEFAULTS, true);
 
-      expect(screen.getByText(/locked because the event has been published/i)).toBeInTheDocument();
+      expect(screen.getByText(/questionnaire locked/i)).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /add question/i })).not.toBeInTheDocument();
     });
   });
