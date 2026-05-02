@@ -96,6 +96,7 @@ function makeChain(): Record<string, unknown> {
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockImplementation(async () => ({
     from: () => makeChain(),
+    rpc: () => Promise.resolve(responseQueue.shift() ?? { data: null, error: null }),
   })),
 }));
 
@@ -156,7 +157,7 @@ describe('show-if action-layer validation', () => {
       position: 2,
     };
 
-    ok({ id: ID_QUESTIONNAIRE });     // questionnaire fetch
+    ok(ID_QUESTIONNAIRE);             // ensure_event_questionnaire RPC → string uuid
     ok([{ position: 1 }]);            // max position
     ok(newQ);                         // insert result
     ok([Q_YES_NO, newQ]);             // all questions for validateShowIfRules
@@ -209,7 +210,7 @@ describe('show-if action-layer validation', () => {
       position: 2,
     };
 
-    ok({ id: ID_QUESTIONNAIRE });          // questionnaire fetch
+    ok(ID_QUESTIONNAIRE);                  // ensure_event_questionnaire RPC → string uuid
     ok([{ position: 1 }]);                 // max position
     ok(newQ);                              // insert result
     ok([Q_MULTI_SELECT, newQ]);            // all questions for validateShowIfRules

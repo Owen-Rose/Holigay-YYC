@@ -357,14 +357,12 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
     return { success: false, error: draft.error, data: null };
   }
 
-  const { data: questionnaire, error: qError } = await supabase
-    .from('event_questionnaires')
-    .select('id')
-    .eq('event_id', parsed.data.eventId)
-    .single();
-
-  if (qError || !questionnaire) {
-    return { success: false, error: 'Questionnaire not found for event', data: null };
+  const { data: questionnaireId, error: qError } = await supabase.rpc(
+    'ensure_event_questionnaire',
+    { p_event_id: parsed.data.eventId },
+  );
+  if (qError || !questionnaireId) {
+    return { success: false, error: 'Failed to prepare questionnaire', data: null };
   }
 
   const { data: templateQuestions, error: tqError } = await supabase
@@ -383,7 +381,7 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
     const { error: delError } = await supabase
       .from('event_questions')
       .delete()
-      .eq('event_questionnaire_id', questionnaire.id);
+      .eq('event_questionnaire_id', questionnaireId);
     if (delError) {
       return { success: false, error: 'Failed to clear existing questions', data: null };
     }
@@ -394,7 +392,7 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
     const { data: existing } = await supabase
       .from('event_questions')
       .select('position')
-      .eq('event_questionnaire_id', questionnaire.id)
+      .eq('event_questionnaire_id', questionnaireId)
       .order('position', { ascending: false })
       .limit(1);
     startPosition = existing?.length ? existing[0].position + 1 : 0;
@@ -407,7 +405,7 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
 
     const rows = questions.map((tq, i) => ({
       id: newIds[i],
-      event_questionnaire_id: questionnaire.id,
+      event_questionnaire_id: questionnaireId,
       position: startPosition + i,
       type: tq.type,
       label: tq.label,
@@ -427,12 +425,12 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
   await supabase
     .from('event_questionnaires')
     .update({ seeded_from_template_id: parsed.data.templateId })
-    .eq('id', questionnaire.id);
+    .eq('id', questionnaireId);
 
   revalidatePath(`/dashboard/events/${parsed.data.eventId}`, 'page');
   return {
     success: true,
     error: null,
-    data: { eventQuestionnaireId: questionnaire.id, questionsCount: questions.length },
+    data: { eventQuestionnaireId: questionnaireId, questionsCount: questions.length },
   };
 }

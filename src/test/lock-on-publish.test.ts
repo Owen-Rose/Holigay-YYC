@@ -46,6 +46,7 @@ function makeChain(): Record<string, unknown> {
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockImplementation(async () => ({
     from: () => makeChain(),
+    rpc: () => Promise.resolve(responseQueue.shift() ?? { data: null, error: null }),
   })),
 }));
 
@@ -183,7 +184,7 @@ describe('RLS backstop', () => {
     // returns success) but the database's RLS policy on event_questions rejects the
     // INSERT because locked_at is set. The action must return { success: false } with
     // a non-empty error and must not throw.
-    ok({ id: 'questionnaire-1' });  // getQuestionnaire
+    ok('questionnaire-1');           // ensure_event_questionnaire RPC → string uuid
     ok([]);                          // max position query (empty → nextPosition = 1)
     enqueue(null, {                  // INSERT rejected by RLS
       code: '42501',

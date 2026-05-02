@@ -453,6 +453,10 @@ export type Database = {
         Args: { p_event: Json }
         Returns: string
       }
+      ensure_event_questionnaire: {
+        Args: { p_event_id: string }
+        Returns: string
+      }
       get_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]

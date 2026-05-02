@@ -106,6 +106,7 @@ function makeChain(): Record<string, unknown> {
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockImplementation(async () => ({
     from: () => makeChain(),
+    rpc: () => Promise.resolve(responseQueue.shift() ?? { data: null, error: null }),
   })),
 }));
 
@@ -344,7 +345,7 @@ describe('seedEventQuestionnaireFromTemplate', () => {
   };
 
   it('copies template questions and returns questionsCount', async () => {
-    ok({ id: EQ_ID });     // event_questionnaires single
+    ok(EQ_ID);             // ensure_event_questionnaire RPC → string uuid
     ok([TQ1, TQ2]);        // template_questions
     ok([{ position: 2 }]); // max existing position (limit)
     ok(null);              // event_questions insert
@@ -358,7 +359,7 @@ describe('seedEventQuestionnaireFromTemplate', () => {
   });
 
   it('clears existing questions first when replaceExisting is true', async () => {
-    ok({ id: EQ_ID }); // event_questionnaires single
+    ok(EQ_ID);           // ensure_event_questionnaire RPC → string uuid
     ok([TQ1]);           // template_questions
     ok(null);            // event_questions delete
     ok(null);            // event_questions insert
@@ -379,7 +380,7 @@ describe('seedEventQuestionnaireFromTemplate', () => {
       show_if: { questionId: TQ1_ID, operator: 'equals', value: 'yes' } as unknown as null,
     };
 
-    ok({ id: EQ_ID });
+    ok(EQ_ID);           // ensure_event_questionnaire RPC → string uuid
     ok([TQ1, TQ2_WITH_SHOWIF]);
     ok([]); // no existing questions → startPosition = 0
     ok(null);
@@ -392,6 +393,21 @@ describe('seedEventQuestionnaireFromTemplate', () => {
     // TQ2's show_if must reference the newly-generated id for TQ1, not the old template id
     expect(rows[1].show_if?.questionId).toBe(rows[0].id);
     expect(rows[1].show_if?.questionId).not.toBe(TQ1_ID);
+  });
+
+  it('creates questionnaire row for a legacy event (no prior questionnaire row)', async () => {
+    const NEW_EQ_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    ok(NEW_EQ_ID);       // ensure_event_questionnaire RPC creates row, returns new uuid
+    ok([TQ1]);           // template_questions
+    ok([]);              // no existing questions → startPosition = 0
+    ok(null);            // event_questions insert
+    ok(null);            // event_questionnaires update (best-effort)
+
+    const result = await seedEventQuestionnaireFromTemplate(SEED_INPUT);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.eventQuestionnaireId).toBe(NEW_EQ_ID);
+    expect(result.data?.questionsCount).toBe(1);
   });
 
   it('rejects when the event is not in draft status', async () => {

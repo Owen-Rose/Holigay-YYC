@@ -33,6 +33,7 @@ interface QuestionnaireBuilderProps {
   isLocked: boolean;
   templates?: TemplateOption[];
   hasAnswers?: boolean;
+  isLegacyEvent?: boolean;
 }
 
 function toQuestionDraft(q: EventQuestion): QuestionDraft {
@@ -53,6 +54,7 @@ export function QuestionnaireBuilder({
   isLocked,
   templates = [],
   hasAnswers = false,
+  isLegacyEvent = false,
 }: QuestionnaireBuilderProps) {
   const router = useRouter();
   const [questions, setQuestions] = useState<QuestionDraft[]>(
@@ -244,6 +246,14 @@ export function QuestionnaireBuilder({
 
   return (
     <div className="space-y-4">
+      {isLegacyEvent && !isLocked && (
+        <div role="note" className="border-border-subtle rounded-md border p-4">
+          <p className="text-muted text-sm">
+            This event was created before dynamic questionnaires were added. Adding and saving a
+            question will convert it to use the dynamic form.
+          </p>
+        </div>
+      )}
       {templates.length > 0 && !isLocked && (
         <div className={hasAnswers ? 'pointer-events-none opacity-50' : ''}>
           <p className="text-foreground mb-2 text-sm font-medium">Seed from template</p>

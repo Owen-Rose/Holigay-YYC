@@ -36,6 +36,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
   const event = result.data;
   const initialQuestions = questionnaireResult.data?.questions ?? [];
   const isLocked = !!questionnaireResult.data?.questionnaire.locked_at;
+  const isLegacyEvent = questionnaireResult.success && questionnaireResult.data === null;
 
   let hasAnswers = false;
   if (initialQuestions.length > 0) {
@@ -112,6 +113,7 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
           isLocked={isLocked}
           templates={templates}
           hasAnswers={hasAnswers}
+          isLegacyEvent={isLegacyEvent}
         />
       </div>
     </div>

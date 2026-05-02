@@ -102,6 +102,7 @@ function makeChain(): Record<string, unknown> {
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockImplementation(async () => ({
     from: () => makeChain(),
+    rpc: () => Promise.resolve(responseQueue.shift() ?? { data: null, error: null }),
   })),
 }));
 
@@ -180,7 +181,7 @@ describe('getEventQuestionnaire', () => {
 
 describe('addEventQuestion', () => {
   it('inserts and returns the new question', async () => {
-    ok({ id: 'q-1' });             // questionnaire fetch
+    ok('q-1');                     // ensure_event_questionnaire RPC → string uuid
     ok([{ position: 2 }]);         // max position
     ok(NEW_Q);                     // insert result
     ok([Q1, Q2, NEW_Q]);           // all questions for validation
@@ -189,6 +190,27 @@ describe('addEventQuestion', () => {
 
     expect(result.success).toBe(true);
     expect(result.data?.id).toBe('qstn-new');
+  });
+
+  it('creates questionnaire row for a legacy event (no prior questionnaire row)', async () => {
+    ok('q-new');                   // ensure_event_questionnaire RPC creates row, returns new uuid
+    ok([]);                        // max position (no existing questions)
+    ok(NEW_Q);                     // insert result
+    ok([NEW_Q]);                   // all questions for validation
+
+    const result = await addEventQuestion('event-1', VALID_INPUT);
+
+    expect(result.success).toBe(true);
+    expect(result.data?.id).toBe('qstn-new');
+  });
+
+  it('returns error when ensure_event_questionnaire RPC fails', async () => {
+    enqueue(null, { message: 'Event is not in draft status', code: 'P0001' });
+
+    const result = await addEventQuestion('event-1', VALID_INPUT);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/prepare questionnaire/i);
   });
 
   it('rejects when caller has vendor role', async () => {

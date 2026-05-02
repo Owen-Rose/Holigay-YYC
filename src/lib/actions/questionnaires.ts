@@ -48,6 +48,20 @@ async function getQuestionnaire(
   return data;
 }
 
+// Creates an event_questionnaires row for the event if one does not exist, then
+// returns the row id. Uses a SECURITY DEFINER RPC (INSERT … ON CONFLICT DO NOTHING)
+// to be race-safe when two sessions call this simultaneously.
+async function ensureQuestionnaire(
+  supabase: SupabaseClient<Database>,
+  eventId: string,
+): Promise<{ id: string } | null> {
+  const { data, error } = await supabase.rpc('ensure_event_questionnaire', {
+    p_event_id: eventId,
+  });
+  if (error || !data) return null;
+  return { id: data };
+}
+
 async function getAllQuestions(
   supabase: SupabaseClient<Database>,
   questionnaireId: string,
@@ -66,8 +80,13 @@ async function getAllQuestions(
   }));
 }
 
-// Two-step position update to avoid unique-constraint violations.
-// Step A sets temporary negative positions; Step B sets final positions.
+// Two-step position update to avoid (event_questionnaire_id, position) UNIQUE
+// collisions. Step A parks every row at a high temp position; Step B moves
+// each to its final position. The temp range must clear both existing and
+// target positions, and stay >= 0 (event_questions has CHECK position >= 0,
+// so negative sentinels are not an option).
+const TEMP_POSITION_OFFSET = 1_000_000;
+
 async function twoStepPositionUpdate(
   supabase: SupabaseClient<Database>,
   entries: Array<{ id: string; targetPosition: number }>,
@@ -75,7 +94,7 @@ async function twoStepPositionUpdate(
   for (let i = 0; i < entries.length; i++) {
     const { error } = await supabase
       .from('event_questions')
-      .update({ position: -(i + 1) })
+      .update({ position: TEMP_POSITION_OFFSET + i })
       .eq('id', entries[i].id);
     if (error) return false;
   }
@@ -148,9 +167,9 @@ export async function addEventQuestion(
     return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input', data: null };
   }
 
-  const questionnaire = await getQuestionnaire(supabase, eventId);
+  const questionnaire = await ensureQuestionnaire(supabase, eventId);
   if (!questionnaire) {
-    return { success: false, error: 'Questionnaire not found for event', data: null };
+    return { success: false, error: 'Failed to prepare questionnaire', data: null };
   }
 
   const { data: last } = await supabase
