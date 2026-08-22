@@ -121,9 +121,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navigation.map((item) => {
             const isActive =
-              item.href === '/dashboard'
-                ? pathname === item.href
-                : pathname.startsWith(item.href);
+              item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.name}

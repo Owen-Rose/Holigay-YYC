@@ -31,7 +31,9 @@ vi.mock('@/lib/actions/questionnaires', () => ({
 }));
 
 vi.mock('@/lib/actions/templates', () => ({
-  seedEventQuestionnaireFromTemplate: vi.fn().mockResolvedValue({ success: true, error: null, data: null }),
+  seedEventQuestionnaireFromTemplate: vi
+    .fn()
+    .mockResolvedValue({ success: true, error: null, data: null }),
 }));
 
 vi.mock('sonner', () => ({
@@ -59,8 +61,20 @@ const makeQuestion = (override: Partial<EventQuestion> = {}): EventQuestion => (
 });
 
 const THREE_DEFAULTS: EventQuestion[] = [
-  makeQuestion({ id: 'q-1', label: 'Booth Preference', type: 'single_select', position: 1, options: [{ key: 'indoor', label: 'Indoor' }] as unknown as null }),
-  makeQuestion({ id: 'q-2', label: 'Product Categories', type: 'multi_select', position: 2, options: [{ key: 'crafts', label: 'Crafts' }] as unknown as null }),
+  makeQuestion({
+    id: 'q-1',
+    label: 'Booth Preference',
+    type: 'single_select',
+    position: 1,
+    options: [{ key: 'indoor', label: 'Indoor' }] as unknown as null,
+  }),
+  makeQuestion({
+    id: 'q-2',
+    label: 'Product Categories',
+    type: 'multi_select',
+    position: 2,
+    options: [{ key: 'crafts', label: 'Crafts' }] as unknown as null,
+  }),
   makeQuestion({ id: 'q-3', label: 'Special Requirements', type: 'long_text', position: 3 }),
 ];
 
@@ -68,12 +82,9 @@ const THREE_DEFAULTS: EventQuestion[] = [
 // Helpers
 // =============================================================================
 
-function renderBuilder(
-  questions: EventQuestion[] = THREE_DEFAULTS,
-  isLocked = false,
-) {
+function renderBuilder(questions: EventQuestion[] = THREE_DEFAULTS, isLocked = false) {
   return render(
-    <QuestionnaireBuilder eventId="event-1" initialQuestions={questions} isLocked={isLocked} />,
+    <QuestionnaireBuilder eventId="event-1" initialQuestions={questions} isLocked={isLocked} />
   );
 }
 
@@ -166,7 +177,7 @@ describe('QuestionnaireBuilder', () => {
       await waitFor(() => {
         expect(mockAddEventQuestion).toHaveBeenCalledWith(
           'event-1',
-          expect.objectContaining({ label: 'New question' }),
+          expect.objectContaining({ label: 'New question' })
         );
       });
 

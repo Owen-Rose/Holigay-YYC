@@ -45,7 +45,7 @@ export function TemplateBuilder({
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription ?? '');
   const [questions, setQuestions] = useState<QuestionDraft[]>(
-    initialQuestions.map(toQuestionDraft),
+    initialQuestions.map(toQuestionDraft)
   );
   const [isSaving, setIsSaving] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -161,7 +161,7 @@ export function TemplateBuilder({
 
   return (
     <div className="space-y-6">
-      <div className="border-border-subtle bg-surface rounded-lg border p-6 space-y-4">
+      <div className="border-border-subtle bg-surface space-y-4 rounded-lg border p-6">
         <h2 className="text-foreground text-lg font-semibold">Template Details</h2>
         <Input
           label="Name"

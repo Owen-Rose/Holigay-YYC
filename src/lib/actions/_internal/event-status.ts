@@ -9,7 +9,7 @@ type DraftEventResult =
 
 export async function requireDraftEvent(
   supabase: SupabaseClient<Database>,
-  eventId: string,
+  eventId: string
 ): Promise<DraftEventResult> {
   const { data: event, error } = await supabase
     .from('events')

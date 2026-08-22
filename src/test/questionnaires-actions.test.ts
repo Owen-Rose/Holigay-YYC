@@ -154,8 +154,8 @@ beforeEach(() => {
 
 describe('getEventQuestionnaire', () => {
   it('returns questionnaire and questions ordered by position', async () => {
-    ok(QUESTIONNAIRE);    // event_questionnaires single
-    ok([Q1, Q2]);         // event_questions order
+    ok(QUESTIONNAIRE); // event_questionnaires single
+    ok([Q1, Q2]); // event_questions order
 
     const result = await getEventQuestionnaire('event-1');
 
@@ -181,10 +181,10 @@ describe('getEventQuestionnaire', () => {
 
 describe('addEventQuestion', () => {
   it('inserts and returns the new question', async () => {
-    ok('q-1');                     // ensure_event_questionnaire RPC → string uuid
-    ok([{ position: 2 }]);         // max position
-    ok(NEW_Q);                     // insert result
-    ok([Q1, Q2, NEW_Q]);           // all questions for validation
+    ok('q-1'); // ensure_event_questionnaire RPC → string uuid
+    ok([{ position: 2 }]); // max position
+    ok(NEW_Q); // insert result
+    ok([Q1, Q2, NEW_Q]); // all questions for validation
 
     const result = await addEventQuestion('event-1', VALID_INPUT);
 
@@ -193,10 +193,10 @@ describe('addEventQuestion', () => {
   });
 
   it('creates questionnaire row for a legacy event (no prior questionnaire row)', async () => {
-    ok('q-new');                   // ensure_event_questionnaire RPC creates row, returns new uuid
-    ok([]);                        // max position (no existing questions)
-    ok(NEW_Q);                     // insert result
-    ok([NEW_Q]);                   // all questions for validation
+    ok('q-new'); // ensure_event_questionnaire RPC creates row, returns new uuid
+    ok([]); // max position (no existing questions)
+    ok(NEW_Q); // insert result
+    ok([NEW_Q]); // all questions for validation
 
     const result = await addEventQuestion('event-1', VALID_INPUT);
 
@@ -252,10 +252,10 @@ describe('addEventQuestion', () => {
 
 describe('updateEventQuestion', () => {
   it('updates and returns the question', async () => {
-    ok({ id: 'q-1' });              // questionnaire fetch
-    ok(Q1);                         // existing question fetch
+    ok({ id: 'q-1' }); // questionnaire fetch
+    ok(Q1); // existing question fetch
     ok({ ...Q1, label: 'Updated' }); // update result
-    ok([Q1, Q2]);                   // all questions for validation
+    ok([Q1, Q2]); // all questions for validation
 
     const result = await updateEventQuestion('event-1', 'qstn-1', {
       ...VALID_INPUT,
@@ -286,9 +286,9 @@ describe('updateEventQuestion', () => {
 
 describe('deleteEventQuestion', () => {
   it('deletes the question successfully', async () => {
-    ok({ id: 'q-1' });                 // questionnaire fetch
-    ok([Q1, Q2]);                      // all questions (no references to Q1)
-    ok(null);                          // delete result
+    ok({ id: 'q-1' }); // questionnaire fetch
+    ok([Q1, Q2]); // all questions (no references to Q1)
+    ok(null); // delete result
 
     const result = await deleteEventQuestion('event-1', 'qstn-1');
 
@@ -301,8 +301,8 @@ describe('deleteEventQuestion', () => {
       show_if: { questionId: 'qstn-1', operator: 'equals', value: 'true' } as unknown as null,
     };
 
-    ok({ id: 'q-1' });           // questionnaire fetch
-    ok([Q1, Q2_WITH_REF]);       // questions — Q2 references Q1
+    ok({ id: 'q-1' }); // questionnaire fetch
+    ok([Q1, Q2_WITH_REF]); // questions — Q2 references Q1
 
     const result = await deleteEventQuestion('event-1', 'qstn-1');
 
@@ -317,13 +317,15 @@ describe('deleteEventQuestion', () => {
 
 describe('reorderEventQuestions', () => {
   it('reorders questions to the specified order', async () => {
-    ok({ id: 'q-1' });      // questionnaire fetch
-    ok([Q1, Q2]);           // current questions
+    ok({ id: 'q-1' }); // questionnaire fetch
+    ok([Q1, Q2]); // current questions
     // Step A: two position updates (negatives)
-    ok(null); ok(null);
+    ok(null);
+    ok(null);
     // Step B: two position updates (finals)
-    ok(null); ok(null);
-    ok([Q2, Q1]);           // reordered questions for validation
+    ok(null);
+    ok(null);
+    ok([Q2, Q1]); // reordered questions for validation
 
     const result = await reorderEventQuestions('event-1', ['qstn-2', 'qstn-1']);
 
@@ -331,8 +333,8 @@ describe('reorderEventQuestions', () => {
   });
 
   it('rejects when question IDs do not match the questionnaire', async () => {
-    ok({ id: 'q-1' });                                  // questionnaire fetch
-    ok([Q1, Q2]);                                        // current questions
+    ok({ id: 'q-1' }); // questionnaire fetch
+    ok([Q1, Q2]); // current questions
 
     const result = await reorderEventQuestions('event-1', ['qstn-1', 'qstn-UNKNOWN']);
 

@@ -17,48 +17,48 @@ describe('evaluateShowIf', () => {
   it('matches yes_no trigger when value is "true" and answer is true', () => {
     const answers = { q1: { kind: 'boolean', value: true } };
     expect(evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'true' }, answers)).toBe(
-      true,
+      true
     );
   });
 
   it('mismatches yes_no trigger when value is "true" but answer is false', () => {
     const answers = { q1: { kind: 'boolean', value: false } };
     expect(evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'true' }, answers)).toBe(
-      false,
+      false
     );
   });
 
   it('matches yes_no trigger when value is "false" and answer is false', () => {
     const answers = { q1: { kind: 'boolean', value: false } };
     expect(evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'false' }, answers)).toBe(
-      true,
+      true
     );
   });
 
   it('matches single_select trigger when option key equals rule value', () => {
     const answers = { q1: { kind: 'choice', value: 'indoor' } };
-    expect(
-      evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'indoor' }, answers),
-    ).toBe(true);
+    expect(evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'indoor' }, answers)).toBe(
+      true
+    );
   });
 
   it('mismatches single_select trigger when option key differs from rule value', () => {
     const answers = { q1: { kind: 'choice', value: 'outdoor' } };
-    expect(
-      evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'indoor' }, answers),
-    ).toBe(false);
+    expect(evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'indoor' }, answers)).toBe(
+      false
+    );
   });
 
   it('returns false for unsupported trigger kind', () => {
     const answers = { q1: { kind: 'text', value: 'hello' } };
     expect(evaluateShowIf({ questionId: 'q1', operator: 'equals', value: 'hello' }, answers)).toBe(
-      false,
+      false
     );
   });
 
   it('returns false when referenced question is not in answers', () => {
     expect(evaluateShowIf({ questionId: 'missing', operator: 'equals', value: 'x' }, {})).toBe(
-      false,
+      false
     );
   });
 });

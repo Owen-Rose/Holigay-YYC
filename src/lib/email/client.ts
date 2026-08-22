@@ -132,8 +132,7 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
     // getResendClient throws in production when RESEND_API_KEY is missing.
     // Surface this as a structured failure so callers can warn the user
     // instead of letting the exception bubble through try/catch at call sites.
-    const errorMessage =
-      err instanceof Error ? err.message : 'Email client is not configured';
+    const errorMessage = err instanceof Error ? err.message : 'Email client is not configured';
     console.error('[Email] Email client initialization failed:', err);
     return {
       success: false,

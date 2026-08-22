@@ -104,7 +104,7 @@ describe('updateEventStatus', () => {
     // and sets event_questionnaires.locked_at atomically. That behavior is not
     // asserted here (unit test scope); it is covered by the quickstart end-to-end.
     ok({ status: 'draft' }); // current status fetch
-    ok(null);                // update succeeds
+    ok(null); // update succeeds
 
     const result = await updateEventStatus('event-1', 'active');
 
@@ -184,9 +184,10 @@ describe('RLS backstop', () => {
     // returns success) but the database's RLS policy on event_questions rejects the
     // INSERT because locked_at is set. The action must return { success: false } with
     // a non-empty error and must not throw.
-    ok('questionnaire-1');           // ensure_event_questionnaire RPC → string uuid
-    ok([]);                          // max position query (empty → nextPosition = 1)
-    enqueue(null, {                  // INSERT rejected by RLS
+    ok('questionnaire-1'); // ensure_event_questionnaire RPC → string uuid
+    ok([]); // max position query (empty → nextPosition = 1)
+    enqueue(null, {
+      // INSERT rejected by RLS
       code: '42501',
       message: 'new row violates row-level security policy for table "event_questions"',
     });

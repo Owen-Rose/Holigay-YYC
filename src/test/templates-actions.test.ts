@@ -230,7 +230,7 @@ describe('getTemplate', () => {
 describe('createTemplate', () => {
   it('inserts template and questions, returns template id', async () => {
     ok({ id: 'tmpl-new' }); // questionnaire_templates insert → single
-    ok(null);               // template_questions insert
+    ok(null); // template_questions insert
 
     const result = await createTemplate(VALID_CREATE_INPUT);
 
@@ -271,8 +271,8 @@ describe('updateTemplate', () => {
 
   it('updates metadata, replaces questions, returns template id', async () => {
     ok([{ id: TMPL_ID }]); // template update → direct await (array)
-    ok(null);               // template_questions delete
-    ok(null);               // template_questions insert
+    ok(null); // template_questions delete
+    ok(null); // template_questions insert
 
     const result = await updateTemplate(VALID_UPDATE_INPUT);
 
@@ -345,11 +345,11 @@ describe('seedEventQuestionnaireFromTemplate', () => {
   };
 
   it('copies template questions and returns questionsCount', async () => {
-    ok(EQ_ID);             // ensure_event_questionnaire RPC → string uuid
-    ok([TQ1, TQ2]);        // template_questions
+    ok(EQ_ID); // ensure_event_questionnaire RPC → string uuid
+    ok([TQ1, TQ2]); // template_questions
     ok([{ position: 2 }]); // max existing position (limit)
-    ok(null);              // event_questions insert
-    ok(null);              // event_questionnaires update (best-effort)
+    ok(null); // event_questions insert
+    ok(null); // event_questionnaires update (best-effort)
 
     const result = await seedEventQuestionnaireFromTemplate(SEED_INPUT);
 
@@ -359,11 +359,11 @@ describe('seedEventQuestionnaireFromTemplate', () => {
   });
 
   it('clears existing questions first when replaceExisting is true', async () => {
-    ok(EQ_ID);           // ensure_event_questionnaire RPC → string uuid
-    ok([TQ1]);           // template_questions
-    ok(null);            // event_questions delete
-    ok(null);            // event_questions insert
-    ok(null);            // event_questionnaires update
+    ok(EQ_ID); // ensure_event_questionnaire RPC → string uuid
+    ok([TQ1]); // template_questions
+    ok(null); // event_questions delete
+    ok(null); // event_questions insert
+    ok(null); // event_questionnaires update
 
     const result = await seedEventQuestionnaireFromTemplate({
       ...SEED_INPUT,
@@ -380,7 +380,7 @@ describe('seedEventQuestionnaireFromTemplate', () => {
       show_if: { questionId: TQ1_ID, operator: 'equals', value: 'yes' } as unknown as null,
     };
 
-    ok(EQ_ID);           // ensure_event_questionnaire RPC → string uuid
+    ok(EQ_ID); // ensure_event_questionnaire RPC → string uuid
     ok([TQ1, TQ2_WITH_SHOWIF]);
     ok([]); // no existing questions → startPosition = 0
     ok(null);
@@ -397,11 +397,11 @@ describe('seedEventQuestionnaireFromTemplate', () => {
 
   it('creates questionnaire row for a legacy event (no prior questionnaire row)', async () => {
     const NEW_EQ_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-    ok(NEW_EQ_ID);       // ensure_event_questionnaire RPC creates row, returns new uuid
-    ok([TQ1]);           // template_questions
-    ok([]);              // no existing questions → startPosition = 0
-    ok(null);            // event_questions insert
-    ok(null);            // event_questionnaires update (best-effort)
+    ok(NEW_EQ_ID); // ensure_event_questionnaire RPC creates row, returns new uuid
+    ok([TQ1]); // template_questions
+    ok([]); // no existing questions → startPosition = 0
+    ok(null); // event_questions insert
+    ok(null); // event_questionnaires update (best-effort)
 
     const result = await seedEventQuestionnaireFromTemplate(SEED_INPUT);
 

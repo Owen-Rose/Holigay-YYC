@@ -21,7 +21,11 @@ type QuestionForValidation = {
 };
 
 type GetResult =
-  | { success: true; error: null; data: { questionnaire: EventQuestionnaire; questions: EventQuestion[] } | null }
+  | {
+      success: true;
+      error: null;
+      data: { questionnaire: EventQuestionnaire; questions: EventQuestion[] } | null;
+    }
   | { success: false; error: string; data: null };
 
 type QuestionResult =
@@ -38,7 +42,7 @@ type VoidResult =
 
 async function getQuestionnaire(
   supabase: SupabaseClient<Database>,
-  eventId: string,
+  eventId: string
 ): Promise<{ id: string } | null> {
   const { data } = await supabase
     .from('event_questionnaires')
@@ -53,7 +57,7 @@ async function getQuestionnaire(
 // to be race-safe when two sessions call this simultaneously.
 async function ensureQuestionnaire(
   supabase: SupabaseClient<Database>,
-  eventId: string,
+  eventId: string
 ): Promise<{ id: string } | null> {
   const { data, error } = await supabase.rpc('ensure_event_questionnaire', {
     p_event_id: eventId,
@@ -64,7 +68,7 @@ async function ensureQuestionnaire(
 
 async function getAllQuestions(
   supabase: SupabaseClient<Database>,
-  questionnaireId: string,
+  questionnaireId: string
 ): Promise<QuestionForValidation[]> {
   const { data } = await supabase
     .from('event_questions')
@@ -89,7 +93,7 @@ const TEMP_POSITION_OFFSET = 1_000_000;
 
 async function twoStepPositionUpdate(
   supabase: SupabaseClient<Database>,
-  entries: Array<{ id: string; targetPosition: number }>,
+  entries: Array<{ id: string; targetPosition: number }>
 ): Promise<boolean> {
   for (let i = 0; i < entries.length; i++) {
     const { error } = await supabase
@@ -146,10 +150,7 @@ export async function getEventQuestionnaire(eventId: string): Promise<GetResult>
   return { success: true, error: null, data: { questionnaire, questions: questions ?? [] } };
 }
 
-export async function addEventQuestion(
-  eventId: string,
-  input: unknown,
-): Promise<QuestionResult> {
+export async function addEventQuestion(eventId: string, input: unknown): Promise<QuestionResult> {
   const auth = await requireRole('organizer');
   if (!auth.success) {
     return { success: false, error: auth.error ?? 'Unauthorized', data: null };
@@ -164,7 +165,11 @@ export async function addEventQuestion(
 
   const parsed = questionInputSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input', data: null };
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? 'Invalid input',
+      data: null,
+    };
   }
 
   const questionnaire = await ensureQuestionnaire(supabase, eventId);
@@ -204,7 +209,11 @@ export async function addEventQuestion(
   const validation = validateShowIfRules(allQuestions);
   if (!validation.ok) {
     await supabase.from('event_questions').delete().eq('id', newQuestion.id);
-    return { success: false, error: validation.errors[0]?.message ?? 'Show-if validation failed', data: null };
+    return {
+      success: false,
+      error: validation.errors[0]?.message ?? 'Show-if validation failed',
+      data: null,
+    };
   }
 
   revalidatePath(`/dashboard/events/${eventId}`, 'page');
@@ -214,7 +223,7 @@ export async function addEventQuestion(
 export async function updateEventQuestion(
   eventId: string,
   questionId: string,
-  input: unknown,
+  input: unknown
 ): Promise<QuestionResult> {
   const auth = await requireRole('organizer');
   if (!auth.success) {
@@ -230,7 +239,11 @@ export async function updateEventQuestion(
 
   const parsed = questionInputSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input', data: null };
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? 'Invalid input',
+      data: null,
+    };
   }
 
   const questionnaire = await getQuestionnaire(supabase, eventId);
@@ -281,7 +294,11 @@ export async function updateEventQuestion(
         show_if: existing.show_if,
       })
       .eq('id', questionId);
-    return { success: false, error: validation.errors[0]?.message ?? 'Show-if validation failed', data: null };
+    return {
+      success: false,
+      error: validation.errors[0]?.message ?? 'Show-if validation failed',
+      data: null,
+    };
   }
 
   revalidatePath(`/dashboard/events/${eventId}`, 'page');
@@ -290,7 +307,7 @@ export async function updateEventQuestion(
 
 export async function deleteEventQuestion(
   eventId: string,
-  questionId: string,
+  questionId: string
 ): Promise<VoidResult> {
   const auth = await requireRole('organizer');
   if (!auth.success) {
@@ -315,7 +332,7 @@ export async function deleteEventQuestion(
     .eq('event_questionnaire_id', questionnaire.id);
 
   const dependent = allQuestions?.find(
-    (q) => q.id !== questionId && (q.show_if as ShowIfRule | null)?.questionId === questionId,
+    (q) => q.id !== questionId && (q.show_if as ShowIfRule | null)?.questionId === questionId
   );
   if (dependent) {
     return {
@@ -341,7 +358,7 @@ export async function deleteEventQuestion(
 
 export async function reorderEventQuestions(
   eventId: string,
-  questionIds: string[],
+  questionIds: string[]
 ): Promise<VoidResult> {
   const auth = await requireRole('organizer');
   if (!auth.success) {
@@ -363,11 +380,12 @@ export async function reorderEventQuestions(
   const currentQuestions = await getAllQuestions(supabase, questionnaire.id);
 
   const currentIds = new Set(currentQuestions.map((q) => q.id));
-  if (
-    currentIds.size !== questionIds.length ||
-    questionIds.some((id) => !currentIds.has(id))
-  ) {
-    return { success: false, error: 'Question IDs do not match the current questionnaire', data: null };
+  if (currentIds.size !== questionIds.length || questionIds.some((id) => !currentIds.has(id))) {
+    return {
+      success: false,
+      error: 'Question IDs do not match the current questionnaire',
+      data: null,
+    };
   }
 
   const forward = questionIds.map((id, i) => ({ id, targetPosition: i + 1 }));
@@ -381,7 +399,11 @@ export async function reorderEventQuestions(
   if (!validation.ok) {
     const rollback = currentQuestions.map((q) => ({ id: q.id, targetPosition: q.position }));
     await twoStepPositionUpdate(supabase, rollback);
-    return { success: false, error: validation.errors[0]?.message ?? 'Show-if validation failed after reorder', data: null };
+    return {
+      success: false,
+      error: validation.errors[0]?.message ?? 'Show-if validation failed after reorder',
+      data: null,
+    };
   }
 
   revalidatePath(`/dashboard/events/${eventId}`, 'page');

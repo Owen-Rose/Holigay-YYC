@@ -25,7 +25,9 @@ export default async function TemplatesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-foreground text-2xl font-bold">Templates</h1>
-            <p className="text-muted mt-1 text-sm">Reusable question sets for event questionnaires.</p>
+            <p className="text-muted mt-1 text-sm">
+              Reusable question sets for event questionnaires.
+            </p>
           </div>
           <Link href="/dashboard/templates/new">
             <Button>New Template</Button>

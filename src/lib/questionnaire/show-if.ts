@@ -13,7 +13,7 @@ type AnswerSnapshot = Record<string, { kind: string; value: unknown } | undefine
 
 export function evaluateShowIf(
   rule: ShowIfRule | null | undefined,
-  answers: AnswerSnapshot,
+  answers: AnswerSnapshot
 ): boolean {
   if (rule == null) return true;
   const ans = answers[rule.questionId];

@@ -44,7 +44,10 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
     const { count } = await supabase
       .from('application_answers')
       .select('id', { count: 'exact', head: true })
-      .in('event_question_id', initialQuestions.map((q) => q.id));
+      .in(
+        'event_question_id',
+        initialQuestions.map((q) => q.id)
+      );
     hasAnswers = (count ?? 0) > 0;
   }
 

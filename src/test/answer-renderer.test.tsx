@@ -15,7 +15,7 @@ describe('AnswerRenderer', () => {
       <AnswerRenderer
         question={{ ...BASE_QUESTION, type: 'short_text' }}
         rawValue={{ kind: 'text', value: 'Hello world' }}
-      />,
+      />
     );
     expect(screen.getByText('Hello world')).toBeInTheDocument();
     expect(screen.getByText('Test Question')).toBeInTheDocument();
@@ -26,7 +26,7 @@ describe('AnswerRenderer', () => {
       <AnswerRenderer
         question={{ ...BASE_QUESTION, type: 'number' }}
         rawValue={{ kind: 'number', value: 42 }}
-      />,
+      />
     );
     expect(screen.getByText('42')).toBeInTheDocument();
   });
@@ -36,7 +36,7 @@ describe('AnswerRenderer', () => {
       <AnswerRenderer
         question={{ ...BASE_QUESTION, type: 'date' }}
         rawValue={{ kind: 'date', value: '2026-04-25' }}
-      />,
+      />
     );
     expect(screen.getByText('Apr 25, 2026')).toBeInTheDocument();
   });
@@ -53,7 +53,7 @@ describe('AnswerRenderer', () => {
           ],
         }}
         rawValue={{ kind: 'choice', value: 'indoor' }}
-      />,
+      />
     );
     expect(screen.getByText('Indoor Booth')).toBeInTheDocument();
   });
@@ -63,7 +63,7 @@ describe('AnswerRenderer', () => {
       <AnswerRenderer
         question={{ ...BASE_QUESTION, type: 'single_select', options: [] }}
         rawValue={{ kind: 'choice', value: 'unknown_key' }}
-      />,
+      />
     );
     expect(screen.getByText('unknown_key')).toBeInTheDocument();
   });
@@ -80,7 +80,7 @@ describe('AnswerRenderer', () => {
           ],
         }}
         rawValue={{ kind: 'choices', value: ['food', 'art'] }}
-      />,
+      />
     );
     expect(screen.getByText('Food')).toBeInTheDocument();
     expect(screen.getByText('Art')).toBeInTheDocument();
@@ -91,7 +91,7 @@ describe('AnswerRenderer', () => {
       <AnswerRenderer
         question={{ ...BASE_QUESTION, type: 'yes_no' }}
         rawValue={{ kind: 'boolean', value: true }}
-      />,
+      />
     );
     expect(screen.getByText('Yes')).toBeInTheDocument();
   });
@@ -101,7 +101,7 @@ describe('AnswerRenderer', () => {
       <AnswerRenderer
         question={{ ...BASE_QUESTION, type: 'yes_no' }}
         rawValue={{ kind: 'boolean', value: false }}
-      />,
+      />
     );
     expect(screen.getByText('No')).toBeInTheDocument();
   });
@@ -117,7 +117,7 @@ describe('AnswerRenderer', () => {
           mimeType: 'application/pdf',
           size: 1024,
         }}
-      />,
+      />
     );
     const link = screen.getByRole('link', { name: 'document.pdf' });
     expect(link).toBeInTheDocument();
@@ -125,12 +125,7 @@ describe('AnswerRenderer', () => {
   });
 
   it('renders — for a null rawValue (parse failure)', () => {
-    render(
-      <AnswerRenderer
-        question={{ ...BASE_QUESTION, type: 'short_text' }}
-        rawValue={null}
-      />,
-    );
+    render(<AnswerRenderer question={{ ...BASE_QUESTION, type: 'short_text' }} rawValue={null} />);
     expect(screen.getByText('—')).toBeInTheDocument();
   });
 
@@ -139,7 +134,7 @@ describe('AnswerRenderer', () => {
       <AnswerRenderer
         question={{ ...BASE_QUESTION, type: 'short_text' }}
         rawValue={{ kind: 'unknown_future_type', value: 'whatever' }}
-      />,
+      />
     );
     expect(screen.getByText('—')).toBeInTheDocument();
   });

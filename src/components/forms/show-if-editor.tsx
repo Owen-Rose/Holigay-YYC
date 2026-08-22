@@ -25,7 +25,7 @@ const YES_NO_VALUE_OPTIONS = [
 
 export function ShowIfEditor({ value, earlierSiblings, onChange }: ShowIfEditorProps) {
   const eligible = earlierSiblings.filter(
-    (s) => s.id != null && (s.type === 'yes_no' || s.type === 'single_select'),
+    (s) => s.id != null && (s.type === 'yes_no' || s.type === 'single_select')
   );
 
   if (eligible.length === 0) return null;
@@ -52,7 +52,7 @@ export function ShowIfEditor({ value, earlierSiblings, onChange }: ShowIfEditorP
   const selectedTrigger = value ? eligible.find((s) => s.id === value.questionId) : null;
 
   return (
-    <div className="border-border rounded-md border p-3 space-y-3">
+    <div className="border-border space-y-3 rounded-md border p-3">
       <Checkbox
         label="Show only if…"
         checked={enabled}

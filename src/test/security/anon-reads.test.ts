@@ -45,10 +45,7 @@ describe.runIf(stackUp)('anon reads', () => {
       service.from('vendors').select('id').eq('id', fx.seededVendorId),
       service.from('applications').select('id, organizer_notes').eq('id', fx.seededApplicationId),
       service.from('attachments').select('id').eq('application_id', fx.seededApplicationId),
-      service
-        .from('application_answers')
-        .select('id')
-        .eq('application_id', fx.seededApplicationId),
+      service.from('application_answers').select('id').eq('application_id', fx.seededApplicationId),
     ]);
 
     expect(vendors.data ?? []).toHaveLength(1);

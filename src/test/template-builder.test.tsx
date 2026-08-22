@@ -36,7 +36,9 @@ vi.mock('sonner', () => ({
 // Fixtures
 // =============================================================================
 
-const makeTemplateQuestion = (override: Partial<TemplateQuestionRow> = {}): TemplateQuestionRow => ({
+const makeTemplateQuestion = (
+  override: Partial<TemplateQuestionRow> = {}
+): TemplateQuestionRow => ({
   id: `tq-${Math.random().toString(36).slice(2)}`,
   template_id: 'tmpl-1',
   type: 'short_text',
@@ -64,7 +66,7 @@ function renderEdit(questions: TemplateQuestionRow[] = []) {
       initialName="Existing Template"
       initialDescription="Some description"
       initialQuestions={questions}
-    />,
+    />
   );
 }
 
@@ -123,7 +125,10 @@ describe('TemplateBuilder', () => {
       renderNew();
 
       await user.click(screen.getByRole('button', { name: /add question/i }));
-      await user.type(screen.getByPlaceholderText(/e\.g\. holiday market standard/i), 'My Template');
+      await user.type(
+        screen.getByPlaceholderText(/e\.g\. holiday market standard/i),
+        'My Template'
+      );
       await user.click(screen.getByRole('button', { name: /create template/i }));
 
       await waitFor(() => {
@@ -139,12 +144,15 @@ describe('TemplateBuilder', () => {
       const user = userEvent.setup();
       renderNew();
 
-      await user.type(screen.getByPlaceholderText(/e\.g\. holiday market standard/i), 'New Template');
+      await user.type(
+        screen.getByPlaceholderText(/e\.g\. holiday market standard/i),
+        'New Template'
+      );
       await user.click(screen.getByRole('button', { name: /create template/i }));
 
       await waitFor(() => {
         expect(mockCreateTemplate).toHaveBeenCalledWith(
-          expect.objectContaining({ name: 'New Template', questions: [] }),
+          expect.objectContaining({ name: 'New Template', questions: [] })
         );
       });
 
@@ -164,7 +172,7 @@ describe('TemplateBuilder', () => {
 
       await waitFor(() => {
         expect(mockUpdateTemplate).toHaveBeenCalledWith(
-          expect.objectContaining({ id: 'tmpl-1', name: 'Existing Template' }),
+          expect.objectContaining({ id: 'tmpl-1', name: 'Existing Template' })
         );
       });
 
@@ -187,7 +195,10 @@ describe('TemplateBuilder', () => {
       const user = userEvent.setup();
       renderNew();
 
-      await user.type(screen.getByPlaceholderText(/e\.g\. holiday market standard/i), 'My Template');
+      await user.type(
+        screen.getByPlaceholderText(/e\.g\. holiday market standard/i),
+        'My Template'
+      );
       await user.click(screen.getByRole('button', { name: /create template/i }));
 
       await waitFor(() => {

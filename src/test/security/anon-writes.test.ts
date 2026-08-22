@@ -164,11 +164,7 @@ describe.runIf(stackUp)('anon writes', () => {
     const [vendors, applications, attachments, answers] = await Promise.all([
       anon.from('vendors').delete().eq('id', fx.seededVendorId).select('id'),
       anon.from('applications').delete().eq('id', fx.seededApplicationId).select('id'),
-      anon
-        .from('attachments')
-        .delete()
-        .eq('application_id', fx.seededApplicationId)
-        .select('id'),
+      anon.from('attachments').delete().eq('application_id', fx.seededApplicationId).select('id'),
       anon
         .from('application_answers')
         .delete()
@@ -185,10 +181,7 @@ describe.runIf(stackUp)('anon writes', () => {
       service.from('vendors').select('id').eq('id', fx.seededVendorId),
       service.from('applications').select('id').eq('id', fx.seededApplicationId),
       service.from('attachments').select('id').eq('application_id', fx.seededApplicationId),
-      service
-        .from('application_answers')
-        .select('id')
-        .eq('application_id', fx.seededApplicationId),
+      service.from('application_answers').select('id').eq('application_id', fx.seededApplicationId),
     ]);
 
     expect(vendorRows.data ?? []).toHaveLength(1);

@@ -80,9 +80,7 @@ export async function listTemplates(): Promise<{
 
   const creatorIds = [
     ...new Set(
-      (templates ?? [])
-        .map((t) => t.created_by)
-        .filter((id): id is string => id !== null),
+      (templates ?? []).map((t) => t.created_by).filter((id): id is string => id !== null)
     ),
   ];
 
@@ -359,7 +357,7 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
 
   const { data: questionnaireId, error: qError } = await supabase.rpc(
     'ensure_event_questionnaire',
-    { p_event_id: parsed.data.eventId },
+    { p_event_id: parsed.data.eventId }
   );
   if (qError || !questionnaireId) {
     return { success: false, error: 'Failed to prepare questionnaire', data: null };

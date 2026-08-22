@@ -43,7 +43,10 @@ const Q_MULTI_SELECT: EventQuestion = {
   label: 'Categories',
   help_text: null,
   required: false,
-  options: [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }] as unknown as null,
+  options: [
+    { key: 'a', label: 'A' },
+    { key: 'b', label: 'B' },
+  ] as unknown as null,
   show_if: null,
   position: 1,
 };
@@ -157,11 +160,11 @@ describe('show-if action-layer validation', () => {
       position: 2,
     };
 
-    ok(ID_QUESTIONNAIRE);             // ensure_event_questionnaire RPC → string uuid
-    ok([{ position: 1 }]);            // max position
-    ok(newQ);                         // insert result
-    ok([Q_YES_NO, newQ]);             // all questions for validateShowIfRules
-    ok(null);                         // rollback delete
+    ok(ID_QUESTIONNAIRE); // ensure_event_questionnaire RPC → string uuid
+    ok([{ position: 1 }]); // max position
+    ok(newQ); // insert result
+    ok([Q_YES_NO, newQ]); // all questions for validateShowIfRules
+    ok(null); // rollback delete
 
     const result = await addEventQuestion('event-1', input);
 
@@ -178,11 +181,11 @@ describe('show-if action-layer validation', () => {
       show_if: { questionId: ID_Q_DEP, operator: 'equals', value: 'true' } as unknown as null,
     };
 
-    ok({ id: ID_QUESTIONNAIRE });         // questionnaire fetch
-    ok(Q_YES_NO);                         // existing question fetch
-    ok(updatedQ1);                        // update result
-    ok([updatedQ1, Q_DEPENDENT]);         // all questions for validateShowIfRules
-    ok(null);                             // rollback update
+    ok({ id: ID_QUESTIONNAIRE }); // questionnaire fetch
+    ok(Q_YES_NO); // existing question fetch
+    ok(updatedQ1); // update result
+    ok([updatedQ1, Q_DEPENDENT]); // all questions for validateShowIfRules
+    ok(null); // rollback update
 
     const result = await updateEventQuestion('event-1', ID_Q_YES_NO, {
       type: Q_YES_NO.type,
@@ -210,11 +213,11 @@ describe('show-if action-layer validation', () => {
       position: 2,
     };
 
-    ok(ID_QUESTIONNAIRE);                  // ensure_event_questionnaire RPC → string uuid
-    ok([{ position: 1 }]);                 // max position
-    ok(newQ);                              // insert result
-    ok([Q_MULTI_SELECT, newQ]);            // all questions for validateShowIfRules
-    ok(null);                              // rollback delete
+    ok(ID_QUESTIONNAIRE); // ensure_event_questionnaire RPC → string uuid
+    ok([{ position: 1 }]); // max position
+    ok(newQ); // insert result
+    ok([Q_MULTI_SELECT, newQ]); // all questions for validateShowIfRules
+    ok(null); // rollback delete
 
     const result = await addEventQuestion('event-1', input);
 
@@ -230,17 +233,21 @@ describe('show-if action-layer validation', () => {
     const qDepAtPos1: EventQuestion = { ...Q_DEPENDENT, position: 1 };
     const qYnAtPos2: EventQuestion = { ...Q_YES_NO, position: 2 };
 
-    ok({ id: ID_QUESTIONNAIRE });              // questionnaire fetch
-    ok([Q_YES_NO, Q_DEPENDENT]);               // current questions
+    ok({ id: ID_QUESTIONNAIRE }); // questionnaire fetch
+    ok([Q_YES_NO, Q_DEPENDENT]); // current questions
     // two-step update step A: set negatives (2 rows)
-    ok(null); ok(null);
+    ok(null);
+    ok(null);
     // two-step update step B: set finals (2 rows)
-    ok(null); ok(null);
-    ok([qDepAtPos1, qYnAtPos2]);               // post-reorder fetch for validateShowIfRules
+    ok(null);
+    ok(null);
+    ok([qDepAtPos1, qYnAtPos2]); // post-reorder fetch for validateShowIfRules
     // rollback step A (2 rows)
-    ok(null); ok(null);
+    ok(null);
+    ok(null);
     // rollback step B (2 rows)
-    ok(null); ok(null);
+    ok(null);
+    ok(null);
 
     const result = await reorderEventQuestions('event-1', [ID_Q_DEP, ID_Q_YES_NO]);
 

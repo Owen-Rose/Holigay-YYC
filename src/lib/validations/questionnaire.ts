@@ -124,7 +124,7 @@ export const templateInputSchema = z
         type: q.type,
         options: q.options ?? null,
         show_if: q.show_if ?? null,
-      })),
+      }))
     );
     if (!result.ok) {
       for (const err of result.errors) {
@@ -163,7 +163,7 @@ export const questionnaireInputSchema = z
         type: q.type,
         options: q.options ?? null,
         show_if: q.show_if ?? null,
-      })),
+      }))
     );
     if (!result.ok) {
       for (const err of result.errors) {

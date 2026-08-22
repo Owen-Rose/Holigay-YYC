@@ -76,8 +76,7 @@ export default async function ApplyPage({
     }
 
     const questionnaireResult = await getEventQuestionnaire(event_id);
-    const hasQuestionnaire =
-      questionnaireResult.success && questionnaireResult.data !== null;
+    const hasQuestionnaire = questionnaireResult.success && questionnaireResult.data !== null;
 
     return (
       <div>

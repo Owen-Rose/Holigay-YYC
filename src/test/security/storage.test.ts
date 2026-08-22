@@ -116,9 +116,7 @@ describe.runIf(stackUp)('storage policies', () => {
   it('ST3: an authenticated organizer can mint a signed URL and redeem it', async () => {
     const path = await uploadAsAnon('st3-signed.txt');
 
-    const { data, error } = await organizer.client.storage
-      .from(BUCKET)
-      .createSignedUrl(path, 60);
+    const { data, error } = await organizer.client.storage.from(BUCKET).createSignedUrl(path, 60);
 
     expect(error).toBeNull();
     expect(data?.signedUrl).toBeTruthy();

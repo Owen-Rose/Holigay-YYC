@@ -58,7 +58,7 @@ export function QuestionnaireBuilder({
 }: QuestionnaireBuilderProps) {
   const router = useRouter();
   const [questions, setQuestions] = useState<QuestionDraft[]>(
-    initialQuestions.map(toQuestionDraft),
+    initialQuestions.map(toQuestionDraft)
   );
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,7 +89,7 @@ export function QuestionnaireBuilder({
                 </p>
                 {q.help_text && <p className="text-muted mt-1 text-xs">{q.help_text}</p>}
               </div>
-              <span className="text-muted shrink-0 text-xs uppercase tracking-wide">
+              <span className="text-muted shrink-0 text-xs tracking-wide uppercase">
                 {q.type.replace(/_/g, ' ')}
                 {q.required ? ' • required' : ''}
               </span>
@@ -215,9 +215,7 @@ export function QuestionnaireBuilder({
       initialOrderRef.current = finalOrder;
 
       let assignedIdx = 0;
-      setQuestions((prev) =>
-        prev.map((q) => (q.id ? q : { ...q, id: addedIds[assignedIdx++] })),
-      );
+      setQuestions((prev) => prev.map((q) => (q.id ? q : { ...q, id: addedIds[assignedIdx++] })));
     } finally {
       setIsSaving(false);
     }
@@ -284,8 +282,8 @@ export function QuestionnaireBuilder({
       )}
 
       {questions.map((q, i) => (
-        <div key={q.id ?? `new-${i}`} className="flex gap-2 items-start">
-          <div className="flex flex-col gap-1 pt-5 shrink-0">
+        <div key={q.id ?? `new-${i}`} className="flex items-start gap-2">
+          <div className="flex shrink-0 flex-col gap-1 pt-5">
             <Button
               variant="ghost"
               size="sm"

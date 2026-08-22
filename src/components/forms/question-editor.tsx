@@ -60,9 +60,7 @@ export function QuestionEditor({
   }
 
   function setOption(i: number, field: keyof QuestionOption, value: string) {
-    const options = question.options.map((o, idx) =>
-      idx === i ? { ...o, [field]: value } : o,
-    );
+    const options = question.options.map((o, idx) => (idx === i ? { ...o, [field]: value } : o));
     onChange({ ...question, options });
   }
 
@@ -75,7 +73,7 @@ export function QuestionEditor({
   }
 
   return (
-    <div className="bg-surface-bright border-border rounded-lg border p-4 space-y-3">
+    <div className="bg-surface-bright border-border space-y-3 rounded-lg border p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="text-muted text-sm font-medium">Question {index + 1}</span>
         <Button variant="ghost" size="sm" type="button" onClick={onDelete}>
@@ -116,7 +114,7 @@ export function QuestionEditor({
         <div className="space-y-2">
           <p className="text-foreground text-sm font-medium">Options</p>
           {question.options.map((opt, i) => (
-            <div key={i} className="flex gap-2 items-start">
+            <div key={i} className="flex items-start gap-2">
               <Input
                 placeholder="Key (e.g. indoor)"
                 value={opt.key}

@@ -58,7 +58,7 @@ export function TemplatesListClient({ templates }: TemplatesListClientProps) {
     <>
       {/* Desktop table */}
       <div className="border-border-subtle bg-surface hidden rounded-lg border sm:block">
-        <div className="border-border-subtle bg-surface-bright grid grid-cols-[2fr_2fr_2fr_1fr_auto] gap-4 rounded-t-lg border-b px-6 py-3 text-xs font-semibold uppercase tracking-wide">
+        <div className="border-border-subtle bg-surface-bright grid grid-cols-[2fr_2fr_2fr_1fr_auto] gap-4 rounded-t-lg border-b px-6 py-3 text-xs font-semibold tracking-wide uppercase">
           <span className="text-muted">Name</span>
           <span className="text-muted">Description</span>
           <span className="text-muted">Creator</span>
@@ -68,7 +68,7 @@ export function TemplatesListClient({ templates }: TemplatesListClientProps) {
         {templates.map((t) => (
           <div
             key={t.id}
-            className="border-border-subtle grid grid-cols-[2fr_2fr_2fr_1fr_auto] gap-4 border-b px-6 py-4 last:border-0 items-center"
+            className="border-border-subtle grid grid-cols-[2fr_2fr_2fr_1fr_auto] items-center gap-4 border-b px-6 py-4 last:border-0"
           >
             <span className="text-foreground truncate font-medium">{t.name}</span>
             <span className="text-muted truncate text-sm">{t.description ?? '—'}</span>
@@ -82,11 +82,7 @@ export function TemplatesListClient({ templates }: TemplatesListClientProps) {
                       Edit
                     </Button>
                   </Link>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => setConfirmDeleteId(t.id)}
-                  >
+                  <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(t.id)}>
                     Delete
                   </Button>
                 </>
@@ -110,9 +106,7 @@ export function TemplatesListClient({ templates }: TemplatesListClientProps) {
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-foreground font-medium">{t.name}</p>
-                {t.description && (
-                  <p className="text-muted mt-0.5 text-sm">{t.description}</p>
-                )}
+                {t.description && <p className="text-muted mt-0.5 text-sm">{t.description}</p>}
                 <p className="text-muted mt-1 text-xs">
                   {t.createdByEmail ?? '—'} · {t.questionCount} questions
                 </p>
@@ -125,11 +119,7 @@ export function TemplatesListClient({ templates }: TemplatesListClientProps) {
                         Edit
                       </Button>
                     </Link>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => setConfirmDeleteId(t.id)}
-                    >
+                    <Button variant="danger" size="sm" onClick={() => setConfirmDeleteId(t.id)}>
                       Delete
                     </Button>
                   </>

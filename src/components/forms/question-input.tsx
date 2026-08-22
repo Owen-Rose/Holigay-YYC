@@ -280,9 +280,7 @@ export function QuestionInput({
           error={error}
           aria-required={required}
         />
-        {fileName && (
-          <p className="text-muted mt-1 text-xs">Selected: {fileName}</p>
-        )}
+        {fileName && <p className="text-muted mt-1 text-xs">Selected: {fileName}</p>}
       </div>
     );
   }

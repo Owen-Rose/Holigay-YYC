@@ -108,21 +108,18 @@ export async function createEvent(
 
   const supabase = await createClient();
 
-  const { data: eventId, error } = await supabase.rpc(
-    'create_event_with_default_questionnaire',
-    {
-      p_event: {
-        name,
-        description: description || null,
-        event_date: eventDate,
-        location,
-        application_deadline: applicationDeadline || null,
-        status,
-        max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
-        questions: DEFAULT_EVENT_QUESTIONS,
-      },
+  const { data: eventId, error } = await supabase.rpc('create_event_with_default_questionnaire', {
+    p_event: {
+      name,
+      description: description || null,
+      event_date: eventDate,
+      location,
+      application_deadline: applicationDeadline || null,
+      status,
+      max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
+      questions: DEFAULT_EVENT_QUESTIONS,
     },
-  );
+  });
 
   if (error || !eventId) {
     console.error('Error creating event:', error);
