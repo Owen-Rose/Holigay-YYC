@@ -143,37 +143,3 @@ export async function uploadFile(formData: FormData): Promise<UploadResponse> {
     },
   };
 }
-
-/**
- * Deletes a file from Supabase Storage
- *
- * @param filePath - The storage path of the file to delete
- * @returns Success status and any error message
- */
-export async function deleteFile(
-  filePath: string
-): Promise<{ success: boolean; error: string | null }> {
-  if (!filePath) {
-    return {
-      success: false,
-      error: 'No file path provided',
-    };
-  }
-
-  const supabase = await createClient();
-
-  const { error } = await supabase.storage.from('attachments').remove([filePath]);
-
-  if (error) {
-    console.error('Supabase storage delete error:', error);
-    return {
-      success: false,
-      error: `Delete failed: ${error.message}`,
-    };
-  }
-
-  return {
-    success: true,
-    error: null,
-  };
-}

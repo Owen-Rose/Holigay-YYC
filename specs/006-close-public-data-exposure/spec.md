@@ -20,6 +20,20 @@ This exposure is live in production now. The fix approach was decided in the
 006 brainstorming session; this spec records the requirements and acceptance
 criteria for that work.
 
+## Clarifications
+
+### Session 2026-08-21
+
+- Q: Should the codified storage policies keep the current anon SELECT
+  (download) policy on the attachments bucket? → A: No — drop anon downloads;
+  keep anon uploads. Downloads are restricted to authenticated users. No app
+  code uses anon downloads (the only download path is the authenticated
+  organizer dashboard, via signed URL).
+- Q: Is abuse protection (rate limiting, captcha, submission caps) for the
+  public submission path in scope? → A: No — explicitly out of scope; no
+  regression versus today, and the app is barely used. Revisit as a future
+  spec.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Vendor data is private again (Priority: P1)
@@ -27,7 +41,8 @@ criteria for that work.
 A member of the public (or a malicious actor) holding the app's public API key can
 no longer read vendor contact details, application records, internal organizer
 notes, submitted answers, or attachment paths by querying the data API directly.
-They also cannot delete stored files. What is *meant* to be public — the list of
+They also cannot download or delete stored files. What is *meant* to be public
+— the list of
 active events and their published application questions — remains publicly
 readable, so the application form still renders for anonymous visitors.
 
@@ -38,7 +53,7 @@ closing it safe.
 **Independent Test**: With no app involved, issue direct data-API requests using
 only the public key against the private tables and confirm zero records come back;
 confirm the active-events and published-questions reads still return data; confirm
-no file-deletion pathway is publicly invocable.
+no file-download or file-deletion pathway is publicly invocable.
 
 **Acceptance Scenarios**:
 
@@ -54,6 +69,9 @@ no file-deletion pathway is publicly invocable.
 4. **Given** any unauthenticated caller, **When** they attempt to invoke a
    file-deletion capability, **Then** no such capability exists (the ungated
    `deleteFile` action and its dev-only `/test-upload` page are removed).
+5. **Given** only the public API key and a known stored-file path, **When** a
+   direct download is attempted from the file-storage bucket, **Then** it is
+   denied (downloads require an authenticated user).
 
 ---
 
@@ -146,10 +164,13 @@ suite run in CI.
    rows to public-key reads; public-key direct writes fail; submission succeeds
    end-to-end for new and returning vendors, with and without answers and
    attachments; duplicates are rejected; a forced mid-submission failure leaves no
-   orphans; and the intentionally public reads still work.
+   orphans; the intentionally public reads still work; and anonymous storage
+   downloads fail while anonymous uploads still succeed.
 2. **Given** the file-storage bucket, **When** its access rules are inspected,
-   **Then** they are defined in a migration file and match the previously
-   dashboard-configured behavior (public uploads for the apply flow keep working).
+   **Then** they are defined in a migration file: anonymous uploads for the
+   apply flow keep working, downloads require an authenticated user (the
+   previously dashboard-configured anonymous download policy is dropped), and
+   deletion remains authenticated-only.
 3. **Given** any pull request, **When** CI runs, **Then** the security suite runs
    against a disposable local database stack and must pass.
 4. **Given** a developer without the local database stack running, **When** they
@@ -205,8 +226,9 @@ suite run in CI.
 - **FR-010**: No publicly invocable file-deletion capability may exist; the
   `deleteFile` server action and the `/test-upload` dev page are removed.
 - **FR-011**: File-storage bucket access rules MUST be defined in version-
-  controlled migrations, preserving current behavior (anonymous uploads for the
-  apply flow continue to work).
+  controlled migrations: anonymous uploads for the apply flow continue to work,
+  downloads are restricted to authenticated users (the current anonymous
+  download policy is dropped), and deletion remains authenticated-only.
 - **FR-012**: An automated security test suite exercising a real database (not
   mocks) MUST verify FR-001 through FR-008 and MUST run in CI on every pull
   request, while being skippable locally when the database stack isn't running.
@@ -271,6 +293,11 @@ Decisions carried in from ROADMAP Tier 1 and the 006 brainstorming session
 - **`deleteFile` is deleted, not gated**: Its only caller is the dev-only
   `/test-upload` page, which is removed with it. If organizers ever need file
   deletion, it returns as a role-checked action.
+- **Abuse protection is out of scope**: Rate limiting, captcha, or submission
+  caps for the anonymously callable submission operation and anonymous uploads
+  are explicitly out of scope — no regression versus today (anonymous callers
+  can already write directly), and the app is barely used. Revisit as a future
+  spec if abuse appears.
 - **Storage-file orphans are out of scope**: Files uploaded before an abandoned
   or failed submission already orphan in storage today; this spec guarantees
   database consistency only. A cleanup job is a future nicety.

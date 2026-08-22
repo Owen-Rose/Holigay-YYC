@@ -15,17 +15,11 @@ const TEXT_Q_UUID = 'c1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const YESNO_Q_UUID = 'd1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const COND_Q_UUID = 'e1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const FILE_Q_UUID = 'f1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const FOREIGN_Q_UUID = '0a1b2c3d-e5f6-7890-abcd-ef1234567890';
 
 // =============================================================================
 // Fixtures
 // =============================================================================
-
-const ACTIVE_EVENT = {
-  id: EVENT_UUID,
-  name: 'Holiday Market 2024',
-  event_date: '2024-12-15',
-  status: 'active',
-};
 
 const QUESTIONNAIRE: EventQuestionnaire = {
   id: Q_UUID,
@@ -84,8 +78,6 @@ const FILE_QUESTION: EventQuestion = {
   position: 1,
 };
 
-const EXISTING_VENDOR = { id: 'vendor-existing' };
-
 const VENDOR_INPUT = {
   businessName: 'Artisan Crafts',
   contactName: 'Jane Smith',
@@ -95,55 +87,75 @@ const VENDOR_INPUT = {
   description: '',
 };
 
+/** The row shape `submit_public_application` returns (one row, via .single()). */
+const RPC_ROW = {
+  application_id: 'app-new',
+  vendor_id: 'vendor-1',
+  vendor_created: false,
+  event_name: 'Holiday Market 2024',
+  event_date: '2024-12-15',
+};
+
 // =============================================================================
-// Queue-based Supabase mock
+// Supabase mock
+//
+// The action now makes two reads (event_questionnaires, event_questions) and
+// one rpc call — the old positional queue modelled ~8 sequential writes that
+// migration 011 moved into the database (spec 006, research.md R18).
 // =============================================================================
 
-const responseQueue: Array<{ data: unknown; error: unknown }> = [];
-const insertCalls: unknown[] = [];
+type Response = { data?: unknown; error?: unknown };
 
-function enqueue(data: unknown, error: unknown = null) {
-  responseQueue.push({ data, error });
+const selectQueues: Record<string, Response[]> = {};
+const rpcQueue: Response[] = [];
+const rpcCalls: Array<{ fn: string; args: unknown }> = [];
+
+function queueSelect(table: string, response: Response) {
+  (selectQueues[table] ??= []).push(response);
 }
 
-function ok(data: unknown = null) {
-  return enqueue(data);
+function queueRpc(response: Response) {
+  rpcQueue.push(response);
 }
 
-function fail(error: unknown) {
-  return enqueue(null, error);
-}
-
-function pgrst116() {
-  return fail({ code: 'PGRST116', message: 'No rows found' });
-}
-
-function makeChain(): Record<string, unknown> {
-  function dequeue() {
-    return Promise.resolve(responseQueue.shift() ?? { data: null, error: null });
+function nextSelect(table: string): Response {
+  const queued = selectQueues[table]?.shift();
+  if (!queued) {
+    throw new Error(`No mock queued for ${table}.select`);
   }
-
-  const chain: Record<string, unknown> = {
-    select: () => chain,
-    eq: () => chain,
-    gte: () => chain,
-    order: () => chain,
-    limit: () => dequeue(),
-    single: () => dequeue(),
-    insert: (rows: unknown) => {
-      insertCalls.push(rows);
-      return chain;
-    },
-    update: () => chain,
-    delete: () => chain,
-    then: (resolve: (v: unknown) => unknown) => dequeue().then(resolve),
-  };
-  return chain;
+  return queued;
 }
+
+// Chainable builder: filters are ignored, and the next queued response is
+// handed back either via .single() or by awaiting the chain directly (the
+// questions read has no .single()).
+function makeFrom(table: string) {
+  const chain: Record<string, unknown> = {
+    eq: () => chain,
+    in: () => chain,
+    order: () => chain,
+    limit: () => chain,
+    single: () => Promise.resolve(nextSelect(table)),
+    then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
+      Promise.resolve(nextSelect(table)).then(resolve, reject),
+  };
+
+  return { select: () => chain };
+}
+
+const rpcMock = vi.fn((fn: string, args: unknown) => {
+  rpcCalls.push({ fn, args });
+  const queued = rpcQueue.shift();
+  if (!queued) {
+    throw new Error(`No mock queued for rpc(${fn})`);
+  }
+  return { single: () => Promise.resolve(queued) };
+});
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockImplementation(async () => ({
-    from: () => makeChain(),
+    from: (table: string) => makeFrom(table),
+    rpc: (fn: string, args: unknown) => rpcMock(fn, args),
   })),
 }));
 
@@ -162,29 +174,41 @@ vi.mock('@/lib/email/templates', () => ({
 }));
 
 // =============================================================================
+// Helpers
+// =============================================================================
+
+/** Queues the two reads every submission performs before reaching the RPC. */
+function queueQuestionnaire(questions: EventQuestion[]) {
+  queueSelect('event_questionnaires', { data: QUESTIONNAIRE, error: null });
+  queueSelect('event_questions', { data: questions, error: null });
+}
+
+function lastRpcPayload() {
+  const call = rpcCalls.at(-1);
+  return (call?.args as { p_submission: Record<string, unknown> }).p_submission;
+}
+
+// =============================================================================
 // Tests
 // =============================================================================
 
 beforeEach(() => {
   vi.clearAllMocks();
-  responseQueue.length = 0;
-  insertCalls.length = 0;
+  for (const key of Object.keys(selectQueues)) {
+    delete selectQueues[key];
+  }
+  rpcQueue.length = 0;
+  rpcCalls.length = 0;
 });
 
-// ---------------------------------------------------------------------------
-// Happy path — existing vendor, single required text answer
-// ---------------------------------------------------------------------------
-
 describe('submitDynamicApplication', () => {
-  it('creates application and inserts answers for existing vendor', async () => {
-    ok(ACTIVE_EVENT);              // events single
-    ok(QUESTIONNAIRE);             // event_questionnaires single
-    ok([TEXT_QUESTION]);           // event_questions order
-    ok(EXISTING_VENDOR);           // vendors single (found)
-    ok({ error: null });           // vendors update then
-    pgrst116();                    // applications duplicate check single
-    ok({ id: 'app-new' });         // applications insert single
-    ok({ error: null });           // application_answers insert then
+  // ---------------------------------------------------------------------------
+  // Happy path — one required text answer, submitted through the RPC
+  // ---------------------------------------------------------------------------
+
+  it('submits the whole application through submit_public_application', async () => {
+    queueQuestionnaire([TEXT_QUESTION]);
+    queueRpc({ data: RPC_ROW, error: null });
 
     const result = await submitDynamicApplication({
       eventId: EVENT_UUID,
@@ -194,32 +218,33 @@ describe('submitDynamicApplication', () => {
 
     expect(result.success).toBe(true);
     expect(result.data?.applicationId).toBe('app-new');
-  });
+    expect(rpcCalls).toHaveLength(1);
+    expect(rpcCalls[0]!.fn).toBe('submit_public_application');
 
-  // ---------------------------------------------------------------------------
-  // Event not active
-  // ---------------------------------------------------------------------------
-
-  it('rejects when event is not active', async () => {
-    ok({ ...ACTIVE_EVENT, status: 'draft' });
-
-    const result = await submitDynamicApplication({
-      eventId: EVENT_UUID,
-      vendor: VENDOR_INPUT,
-      answers: [],
+    const payload = lastRpcPayload();
+    expect(payload['event_id']).toBe(EVENT_UUID);
+    expect(payload['legacy']).toBeNull();
+    expect(payload['attachments']).toBeNull();
+    expect(payload['vendor']).toMatchObject({
+      business_name: 'Artisan Crafts',
+      contact_name: 'Jane Smith',
+      email: 'jane@artisan.com',
+      phone: null,
     });
-
-    expect(result.success).toBe(false);
-    expect(result.error).toMatch(/not currently accepting/i);
+    expect(payload['answers']).toEqual([
+      { event_question_id: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } },
+    ]);
   });
 
   // ---------------------------------------------------------------------------
-  // No questionnaire (legacy event)
+  // No questionnaire (legacy event) — short-circuits before the RPC
   // ---------------------------------------------------------------------------
 
   it('rejects legacy events that have no questionnaire row', async () => {
-    ok(ACTIVE_EVENT);
-    pgrst116(); // event_questionnaires single → no row
+    queueSelect('event_questionnaires', {
+      data: null,
+      error: { code: 'PGRST116', message: 'No rows found' },
+    });
 
     const result = await submitDynamicApplication({
       eventId: EVENT_UUID,
@@ -229,16 +254,15 @@ describe('submitDynamicApplication', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/legacy form/i);
+    expect(rpcMock).not.toHaveBeenCalled();
   });
 
   // ---------------------------------------------------------------------------
-  // Missing required answer
+  // Missing required answer — short-circuits before the RPC
   // ---------------------------------------------------------------------------
 
   it('rejects when a visible required question has no answer', async () => {
-    ok(ACTIVE_EVENT);
-    ok(QUESTIONNAIRE);
-    ok([TEXT_QUESTION]); // required: true
+    queueQuestionnaire([TEXT_QUESTION]);
 
     const result = await submitDynamicApplication({
       eventId: EVENT_UUID,
@@ -248,21 +272,37 @@ describe('submitDynamicApplication', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/required/i);
+    expect(rpcMock).not.toHaveBeenCalled();
   });
 
   // ---------------------------------------------------------------------------
-  // Hidden show-if question not required
+  // Unknown question IDs are rejected outright (research.md R11)
+  // ---------------------------------------------------------------------------
+
+  it('rejects an answer for a question outside this questionnaire', async () => {
+    queueQuestionnaire([TEXT_QUESTION]);
+
+    const result = await submitDynamicApplication({
+      eventId: EVENT_UUID,
+      vendor: VENDOR_INPUT,
+      answers: [
+        { questionId: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } },
+        { questionId: FOREIGN_Q_UUID, value: { kind: 'text', value: 'Injected' } },
+      ],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/invalid answers/i);
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Hidden show-if question is not required
   // ---------------------------------------------------------------------------
 
   it('succeeds when a hidden required question has no answer', async () => {
-    ok(ACTIVE_EVENT);
-    ok(QUESTIONNAIRE);
-    ok([YESNO_QUESTION, CONDITIONAL_QUESTION]); // Q1=yes_no, Q2=required+show_if(Q1=true)
-    pgrst116();                        // vendors single (new)
-    ok({ id: 'vendor-new' });          // vendors insert single
-    pgrst116();                        // applications duplicate check
-    ok({ id: 'app-2' });              // applications insert single
-    ok({ error: null });               // application_answers insert then
+    queueQuestionnaire([YESNO_QUESTION, CONDITIONAL_QUESTION]);
+    queueRpc({ data: { ...RPC_ROW, application_id: 'app-2' }, error: null });
 
     // Q1 answered false → Q2 is hidden → Q2 required check skipped
     const result = await submitDynamicApplication({
@@ -273,21 +313,18 @@ describe('submitDynamicApplication', () => {
 
     expect(result.success).toBe(true);
     expect(result.data?.applicationId).toBe('app-2');
+    expect(lastRpcPayload()['answers']).toEqual([
+      { event_question_id: YESNO_Q_UUID, value: { kind: 'boolean', value: false } },
+    ]);
   });
 
   // ---------------------------------------------------------------------------
-  // File answer passes through to insert payload
+  // File answers reach the RPC payload in their coerced JSONB shape
   // ---------------------------------------------------------------------------
 
-  it('includes file answer in the bulk insert payload', async () => {
-    ok(ACTIVE_EVENT);
-    ok(QUESTIONNAIRE);
-    ok([FILE_QUESTION]);
-    pgrst116();
-    ok({ id: 'vendor-file' });
-    pgrst116();
-    ok({ id: 'app-file' });
-    ok({ error: null }); // application_answers insert
+  it('includes file answers in the RPC payload', async () => {
+    queueQuestionnaire([FILE_QUESTION]);
+    queueRpc({ data: { ...RPC_ROW, application_id: 'app-file' }, error: null });
 
     const fileAnswer = {
       kind: 'file' as const,
@@ -304,15 +341,34 @@ describe('submitDynamicApplication', () => {
     });
 
     expect(result.success).toBe(true);
+    expect(lastRpcPayload()['answers']).toEqual([
+      { event_question_id: FILE_Q_UUID, value: fileAnswer },
+    ]);
+  });
 
-    // The answers insert was called with the file answer coerced to JSONB shape
-    const answersInsertArg = insertCalls.find(
-      (rows) =>
-        Array.isArray(rows) &&
-        (rows as Array<{ event_question_id: string }>)[0]?.event_question_id === FILE_Q_UUID,
-    ) as Array<{ application_id: string; event_question_id: string; value: unknown }> | undefined;
+  // ---------------------------------------------------------------------------
+  // ERRCODE mapping — the RPC is what rejects these now (research.md R2)
+  // ---------------------------------------------------------------------------
 
-    expect(answersInsertArg).toBeDefined();
-    expect(answersInsertArg![0].value).toEqual(fileAnswer);
+  it.each([
+    ['P0001', /not currently accepting/i],
+    ['P0002', /event not found/i],
+    ['P0003', /already submitted an application/i],
+    ['P0004', /invalid answers/i],
+    ['23505', /failed to create application/i],
+  ])('maps RPC error %s to its canned message', async (code, expected) => {
+    queueQuestionnaire([TEXT_QUESTION]);
+    queueRpc({ data: null, error: { code, message: 'raw postgres detail' } });
+
+    const result = await submitDynamicApplication({
+      eventId: EVENT_UUID,
+      vendor: VENDOR_INPUT,
+      answers: [{ questionId: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } }],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.data).toBeNull();
+    expect(result.error).toMatch(expected);
+    expect(result.error).not.toMatch(/raw postgres detail/);
   });
 });

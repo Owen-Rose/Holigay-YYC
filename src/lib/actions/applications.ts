@@ -10,6 +10,7 @@ import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/ap
 import { sendEmail } from '@/lib/email/client';
 import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
 import { requireRole } from '@/lib/auth/roles';
+import { mapSubmissionError } from '@/lib/submission/errors';
 
 // =============================================================================
 // Types
@@ -100,13 +101,14 @@ export type GetApplicationsResponse = {
 // =============================================================================
 
 /**
- * Submits a vendor application for an event
+ * Submits a vendor application for an event (legacy static form)
  *
  * This action:
  * 1. Validates the input data
- * 2. Creates or finds an existing vendor by email
- * 3. Creates the application record
- * 4. Links any uploaded attachments to the application
+ * 2. Hands the whole submission to submit_public_application, which upserts
+ *    the vendor, rejects duplicates, and writes the application plus its
+ *    attachments in one transaction
+ * 3. Sends the confirmation email from the event details the RPC returns
  *
  * @param data - The validated application form data
  * @returns ApplicationResponse with IDs on success or error message on failure
@@ -141,203 +143,95 @@ export async function submitApplication(
   const supabase = await createClient();
 
   // -------------------------------------------------------------------------
-  // Step 1: Find or create vendor by email
+  // Single transactional write (spec 006, FR-004/005/006/007)
+  //
+  // The seven broad anon RLS policies this action used to rely on are gone
+  // (migration 011 §3). Vendor upsert, duplicate detection, the application
+  // row, and the attachment rows all happen inside submit_public_application,
+  // so a failure at any step leaves nothing behind (FR-008).
   // -------------------------------------------------------------------------
-  let vendorId: string;
-
-  // Check if vendor already exists with this email
-  const { data: existingVendor, error: findError } = await supabase
-    .from('vendors')
-    .select('id')
-    .eq('email', email)
-    .single();
-
-  if (findError && findError.code !== 'PGRST116') {
-    // PGRST116 = no rows found, which is expected for new vendors
-    console.error('Error finding vendor:', findError);
-    return {
-      success: false,
-      error: 'Failed to check for existing vendor',
-      data: null,
-    };
-  }
-
-  if (existingVendor) {
-    // Update existing vendor with latest info
-    vendorId = existingVendor.id;
-
-    const { error: updateError } = await supabase
-      .from('vendors')
-      .update({
-        business_name: businessName,
-        contact_name: contactName,
-        phone: phone || null,
-        website: website || null,
-        description: description || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', vendorId);
-
-    if (updateError) {
-      console.error('Error updating vendor:', updateError);
-      return {
-        success: false,
-        error: 'Failed to update vendor information',
-        data: null,
-      };
-    }
-  } else {
-    // Create new vendor
-    const { data: newVendor, error: createError } = await supabase
-      .from('vendors')
-      .insert({
-        business_name: businessName,
-        contact_name: contactName,
-        email,
-        phone: phone || null,
-        website: website || null,
-        description: description || null,
-      })
-      .select('id')
-      .single();
-
-    if (createError || !newVendor) {
-      console.error('Error creating vendor:', createError);
-      return {
-        success: false,
-        error: 'Failed to create vendor record',
-        data: null,
-      };
-    }
-
-    vendorId = newVendor.id;
-  }
-
-  // -------------------------------------------------------------------------
-  // Step 2: Check if vendor already applied to this event
-  // -------------------------------------------------------------------------
-  const { data: existingApplication, error: checkAppError } = await supabase
-    .from('applications')
-    .select('id')
-    .eq('vendor_id', vendorId)
-    .eq('event_id', eventId)
-    .single();
-
-  if (checkAppError && checkAppError.code !== 'PGRST116') {
-    console.error('Error checking existing application:', checkAppError);
-    return {
-      success: false,
-      error: 'Failed to check for existing application',
-      data: null,
-    };
-  }
-
-  if (existingApplication) {
-    return {
-      success: false,
-      error: 'You have already submitted an application for this event',
-      data: null,
-    };
-  }
-
-  // -------------------------------------------------------------------------
-  // Step 3: Create application record
-  // -------------------------------------------------------------------------
-  const { data: application, error: appError } = await supabase
-    .from('applications')
-    .insert({
-      vendor_id: vendorId,
-      event_id: eventId,
+  const payload = {
+    event_id: eventId,
+    vendor: {
+      business_name: businessName,
+      contact_name: contactName,
+      email,
+      phone: phone || null,
+      website: website || null,
+      description: description || null,
+    },
+    legacy: {
       booth_preference: boothPreference || null,
       product_categories: productCategories,
       special_requirements: specialRequirements || null,
-      status: 'pending',
-    })
-    .select('id')
+    },
+    answers: null,
+    attachments: (attachments ?? []).map((attachment) => ({
+      file_name: attachment.fileName,
+      file_path: attachment.filePath,
+      file_type: attachment.fileType,
+      file_size: attachment.fileSize ?? null,
+    })),
+  };
+
+  const { data: submission, error: submissionError } = await supabase
+    .rpc('submit_public_application', { p_submission: payload as unknown as Json })
     .single();
 
-  if (appError || !application) {
-    console.error('Error creating application:', appError);
+  if (submissionError || !submission) {
+    // Raw PostgREST text stays server-side; the caller gets a canned message.
+    console.error('Error submitting application:', submissionError);
     return {
       success: false,
-      error: 'Failed to create application',
+      error: mapSubmissionError(submissionError),
       data: null,
     };
   }
 
-  const applicationId = application.id;
+  const applicationId = submission.application_id;
+  const vendorId = submission.vendor_id;
 
   // -------------------------------------------------------------------------
-  // Step 4: Link attachments to application
-  // -------------------------------------------------------------------------
-  if (attachments && attachments.length > 0) {
-    const attachmentRecords = attachments.map((attachment) => ({
-      application_id: applicationId,
-      file_name: attachment.fileName,
-      file_path: attachment.filePath,
-      file_type: attachment.fileType,
-      file_size: attachment.fileSize || null,
-    }));
-
-    const { error: attachError } = await supabase.from('attachments').insert(attachmentRecords);
-
-    if (attachError) {
-      console.error('Error linking attachments:', attachError);
-      // Note: We don't fail the whole submission if attachments fail
-      // The application is already created, so we just log the error
-    }
-  }
-
-  // -------------------------------------------------------------------------
-  // Step 5: Send confirmation email (non-blocking but surfaced via warning)
+  // Send confirmation email (non-blocking but surfaced via warning)
+  //
+  // The RPC returns the event name and date, so this no longer needs its own
+  // events read — which anon can no longer perform for non-active events.
   // -------------------------------------------------------------------------
   const EMAIL_FAILED_WARNING =
     'Application submitted, but the confirmation email could not be sent.';
   let warning: string | undefined;
 
   try {
-    // Fetch event details for the email
-    const { data: event, error: eventError } = await supabase
-      .from('events')
-      .select('name, event_date')
-      .eq('id', eventId)
-      .single();
+    // Format the event date for display
+    const eventDate = new Date(submission.event_date).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
 
-    if (eventError || !event) {
-      console.error('[Email] Failed to fetch event for confirmation email:', eventError);
+    // Generate the email content
+    const emailContent = applicationReceivedEmail({
+      vendorName: contactName,
+      businessName,
+      eventName: submission.event_name,
+      eventDate,
+      applicationId,
+    });
+
+    // Send the confirmation email
+    const emailResult = await sendEmail({
+      to: email,
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
+    });
+
+    if (!emailResult.success) {
+      console.error('[Email] Failed to send confirmation email:', emailResult.error);
       warning = EMAIL_FAILED_WARNING;
     } else {
-      // Format the event date for display
-      const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-
-      // Generate the email content
-      const emailContent = applicationReceivedEmail({
-        vendorName: contactName,
-        businessName,
-        eventName: event.name,
-        eventDate,
-        applicationId,
-      });
-
-      // Send the confirmation email
-      const emailResult = await sendEmail({
-        to: email,
-        subject: emailContent.subject,
-        html: emailContent.html,
-        text: emailContent.text,
-      });
-
-      if (!emailResult.success) {
-        console.error('[Email] Failed to send confirmation email:', emailResult.error);
-        warning = EMAIL_FAILED_WARNING;
-      } else {
-        console.log('[Email] Confirmation email sent:', emailResult.messageId);
-      }
+      console.log('[Email] Confirmation email sent:', emailResult.messageId);
     }
   } catch (emailError) {
     console.error('[Email] Unexpected error sending confirmation email:', emailError);

@@ -32,6 +32,23 @@ function nextResponse(table: string, op: 'select' | 'insert' | 'update'): Respon
   return queued;
 }
 
+// submitApplication now performs a single rpc('submit_public_application')
+// call instead of the old vendor/application/attachment/event sequence
+// (spec 006, T017). updateApplicationStatus still uses the table builders.
+const rpcQueue: Response[] = [];
+
+function queueRpc(response: Response) {
+  rpcQueue.push(response);
+}
+
+const rpcMock = vi.fn((fn: string) => {
+  const queued = rpcQueue.shift();
+  if (!queued) {
+    throw new Error(`No mock queued for rpc(${fn})`);
+  }
+  return { single: () => Promise.resolve(queued) };
+});
+
 // Chainable query builder that ignores eq/in filters and returns the next
 // queued response for the requested table+op via .single() or direct await.
 function makeFrom(table: string) {
@@ -70,6 +87,7 @@ function makeFrom(table: string) {
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockResolvedValue({
     from: (table: string) => makeFrom(table),
+    rpc: (fn: string) => rpcMock(fn),
   }),
 }));
 
@@ -99,6 +117,7 @@ const requireRoleMock = vi.mocked(requireRole);
 beforeEach(() => {
   vi.clearAllMocks();
   resetResponses();
+  rpcQueue.length = 0;
 });
 
 // =============================================================================
@@ -119,17 +138,17 @@ const validSubmission: ApplicationSubmitInput = {
 };
 
 function queueSubmitHappyPath() {
-  // Step 1: vendor lookup — no match → trigger insert path
-  queue('vendors', 'select', { data: null, error: { code: 'PGRST116' } });
-  // Step 1b: create vendor
-  queue('vendors', 'insert', { data: { id: 'vendor-1' }, error: null });
-  // Step 2: no existing application for this (vendor, event)
-  queue('applications', 'select', { data: null, error: { code: 'PGRST116' } });
-  // Step 3: create application
-  queue('applications', 'insert', { data: { id: 'app-1' }, error: null });
-  // Step 5: event lookup for email
-  queue('events', 'select', {
-    data: { name: 'Holigay Winter Market', event_date: '2026-12-01' },
+  // One transactional RPC does the vendor upsert, the duplicate gate, the
+  // application row, and the attachments — and returns the event details the
+  // confirmation email needs, so there is no separate events read any more.
+  queueRpc({
+    data: {
+      application_id: 'app-1',
+      vendor_id: 'vendor-1',
+      vendor_created: true,
+      event_name: 'Holigay Winter Market',
+      event_date: '2026-12-01',
+    },
     error: null,
   });
 }
@@ -169,6 +188,21 @@ describe('submitApplication — email failure propagation (Workstream 2c)', () =
     expect(result.success).toBe(true);
     expect(result.warning).toBeUndefined();
     expect(result.data).toEqual({ applicationId: 'app-1', vendorId: 'vendor-1' });
+  });
+
+  it('returns the mapped message and sends no email when the RPC fails', async () => {
+    queueRpc({
+      data: null,
+      error: { code: 'P0003', message: 'duplicate key value violates unique constraint' },
+    });
+
+    const result = await submitApplication(validSubmission);
+
+    expect(result.success).toBe(false);
+    expect(result.data).toBeNull();
+    expect(result.error).toBe('You have already submitted an application for this event');
+    expect(result.error).not.toMatch(/constraint/);
+    expect(sendEmailMock).not.toHaveBeenCalled();
   });
 });
 

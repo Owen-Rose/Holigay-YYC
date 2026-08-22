@@ -11,6 +11,7 @@ import {
   type AnswerValue,
 } from '@/lib/questionnaire/answer-coercion';
 import { evaluateShowIf, type ShowIfRule } from '@/lib/questionnaire/show-if';
+import { mapSubmissionError, INVALID_ANSWERS_MESSAGE } from '@/lib/submission/errors';
 import { sendEmail } from '@/lib/email/client';
 import { applicationReceivedEmail } from '@/lib/email/templates';
 import type { Json } from '@/types/database';
@@ -26,7 +27,7 @@ const submitDynamicApplicationSchema = z.object({
     z.object({
       questionId: z.string().uuid(),
       value: answerValueSchema,
-    }),
+    })
   ),
 });
 
@@ -66,7 +67,7 @@ function toSnapshotEntry(ans: AnswerValue): { kind: string; value: unknown } {
 // ---------------------------------------------------------------------------
 
 export async function submitDynamicApplication(
-  rawInput: unknown,
+  rawInput: unknown
 ): Promise<SubmitDynamicApplicationResponse> {
   const parsed = submitDynamicApplicationSchema.safeParse(rawInput);
   if (!parsed.success) {
@@ -82,25 +83,13 @@ export async function submitDynamicApplication(
 
   const supabase = await createClient();
 
-  // Verify event is active
-  const { data: event, error: eventError } = await supabase
-    .from('events')
-    .select('id, name, event_date, status')
-    .eq('id', eventId)
-    .single();
-
-  if (eventError || !event) {
-    return { success: false, error: 'Event not found', data: null };
-  }
-  if (event.status !== 'active') {
-    return {
-      success: false,
-      error: 'This event is not currently accepting applications',
-      data: null,
-    };
-  }
-
-  // Load questionnaire — reject if none (legacy event)
+  // Load questionnaire — reject if none (legacy event).
+  //
+  // This is now the first database read: the event's existence and status are
+  // checked inside submit_public_application (P0002 / P0001), not here. A
+  // bogus event id therefore stops at this lookup with the legacy-form
+  // message; unreachable from the UI, which only renders this form for events
+  // that already have a questionnaire.
   const { data: questionnaire, error: qError } = await supabase
     .from('event_questionnaires')
     .select('id')
@@ -126,9 +115,20 @@ export async function submitDynamicApplication(
 
   // Server-side schema re-validation (shape check only — required enforced below after show-if)
   const answerMap = new Map(answers.map((a) => [a.questionId, a.value]));
+
+  // Reject answers for questions that are not part of this event's
+  // questionnaire (research.md R11). They used to be dropped silently by the
+  // visibility filter below; the RPC independently raises P0004 for them.
+  const knownQuestionIds = new Set(questions.map((q) => q.id));
+  for (const questionId of answerMap.keys()) {
+    if (!knownQuestionIds.has(questionId)) {
+      return { success: false, error: INVALID_ANSWERS_MESSAGE, data: null };
+    }
+  }
+
   const answersForSchema = Object.fromEntries(answerMap);
   const answersSchema = buildAnswersSchema(
-    questions.map((q) => ({ id: q.id, type: q.type as never, required: false })),
+    questions.map((q) => ({ id: q.id, type: q.type as never, required: false }))
   );
   const answersParsed = answersSchema.safeParse(answersForSchema);
   if (!answersParsed.success) {
@@ -168,112 +168,48 @@ export async function submitDynamicApplication(
     }
   }
 
-  // Vendor upsert by email
-  const { data: existingVendor, error: findError } = await supabase
-    .from('vendors')
-    .select('id')
-    .eq('email', email)
+  // -------------------------------------------------------------------------
+  // Single transactional write (spec 006, FR-004/005/006/007)
+  //
+  // Vendor upsert, duplicate rejection, the application row, and every answer
+  // row happen inside submit_public_application. A failure at any step rolls
+  // the whole thing back, so there is no orphan cleanup to do (FR-008).
+  // -------------------------------------------------------------------------
+  const payload = {
+    event_id: eventId,
+    vendor: {
+      business_name: businessName,
+      contact_name: contactName,
+      email,
+      phone: phone || null,
+      website: website || null,
+      description: description || null,
+    },
+    legacy: null,
+    answers: questions
+      .filter((q) => visibleQuestionIds.has(q.id) && answerMap.has(q.id))
+      .map((q) => ({
+        event_question_id: q.id,
+        value: coerceAnswerToJsonb(answerMap.get(q.id)!),
+      })),
+    attachments: null,
+  };
+
+  const { data: submission, error: submissionError } = await supabase
+    .rpc('submit_public_application', { p_submission: payload as unknown as Json })
     .single();
 
-  if (findError && findError.code !== 'PGRST116') {
-    return { success: false, error: 'Failed to check for existing vendor', data: null };
+  if (submissionError || !submission) {
+    // Raw PostgREST text stays server-side; the caller gets a canned message.
+    console.error('Error submitting dynamic application:', submissionError);
+    return { success: false, error: mapSubmissionError(submissionError), data: null };
   }
 
-  let vendorId: string;
+  const applicationId = submission.application_id;
 
-  if (existingVendor) {
-    vendorId = existingVendor.id;
-    const { error: updateError } = await supabase
-      .from('vendors')
-      .update({
-        business_name: businessName,
-        contact_name: contactName,
-        phone: phone || null,
-        website: website || null,
-        description: description || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', vendorId);
-    if (updateError) {
-      return { success: false, error: 'Failed to update vendor information', data: null };
-    }
-  } else {
-    const { data: newVendor, error: createError } = await supabase
-      .from('vendors')
-      .insert({
-        business_name: businessName,
-        contact_name: contactName,
-        email,
-        phone: phone || null,
-        website: website || null,
-        description: description || null,
-      })
-      .select('id')
-      .single();
-    if (createError || !newVendor) {
-      return { success: false, error: 'Failed to create vendor record', data: null };
-    }
-    vendorId = newVendor.id;
-  }
-
-  // Reject duplicate application
-  const { data: existingApp } = await supabase
-    .from('applications')
-    .select('id')
-    .eq('vendor_id', vendorId)
-    .eq('event_id', eventId)
-    .single();
-
-  if (existingApp) {
-    return {
-      success: false,
-      error: 'You have already submitted an application for this event',
-      data: null,
-    };
-  }
-
-  // INSERT application (legacy columns NULL for dynamic submissions)
-  const { data: application, error: appError } = await supabase
-    .from('applications')
-    .insert({
-      vendor_id: vendorId,
-      event_id: eventId,
-      status: 'pending',
-      booth_preference: null,
-      product_categories: null,
-      special_requirements: null,
-    })
-    .select('id')
-    .single();
-
-  if (appError || !application) {
-    return { success: false, error: 'Failed to create application', data: null };
-  }
-
-  const applicationId = application.id;
-
-  // Bulk INSERT application_answers for visible questions
-  const answerRows = questions
-    .filter((q) => visibleQuestionIds.has(q.id) && answerMap.has(q.id))
-    .map((q) => ({
-      application_id: applicationId,
-      event_question_id: q.id,
-      value: coerceAnswerToJsonb(answerMap.get(q.id)!) as Json,
-    }));
-
-  if (answerRows.length > 0) {
-    const { error: answersError } = await supabase
-      .from('application_answers')
-      .insert(answerRows);
-    if (answersError) {
-      await supabase.from('applications').delete().eq('id', applicationId);
-      return { success: false, error: 'Failed to save answers', data: null };
-    }
-  }
-
-  // Send confirmation email (best-effort)
+  // Send confirmation email (best-effort) from the details the RPC returned
   try {
-    const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
+    const eventDate = new Date(submission.event_date).toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -282,7 +218,7 @@ export async function submitDynamicApplication(
     const emailContent = applicationReceivedEmail({
       vendorName: contactName,
       businessName,
-      eventName: event.name,
+      eventName: submission.event_name,
       eventDate,
       applicationId,
     });
