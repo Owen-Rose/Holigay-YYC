@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, dev]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, dev]
 
 jobs:
   lint-test-build:
@@ -34,3 +34,43 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # Spec 006 / US4 (FR-012): proves the security posture against a real Supabase
+  # stack on every PR. Runs in parallel with lint-test-build so ~3-4 min of
+  # Supabase boot stays off the critical path.
+  security-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.65.6
+
+      # Boots db + kong + postgrest + gotrue + storage-api and applies every
+      # migration, so the suite tests exactly what ships. Everything the suite
+      # does not touch is excluded to stay inside SC-004's 5-minute budget.
+      # Service names are the CLI 2.65.6 set (there is no `inbucket` - it is
+      # `mailpit`); see research.md, "R15 - corrected supabase start -x names".
+      - name: Start Supabase stack
+        run: supabase start -x studio,mailpit,realtime,edge-runtime,imgproxy,postgres-meta,logflare,vector,supavisor
+
+      # No secrets needed: src/test/security/harness.ts falls back to the CLI's
+      # deterministic local demo JWTs. CI_REQUIRE_SECURITY_TESTS=1 makes a down
+      # stack fail the job instead of silently skipping (FR-012).
+      - name: Run security suite
+        run: npm run test:security
+        env:
+          CI_REQUIRE_SECURITY_TESTS: '1'

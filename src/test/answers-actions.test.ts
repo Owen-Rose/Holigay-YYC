@@ -15,6 +15,8 @@ const TEXT_Q_UUID = 'c1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const YESNO_Q_UUID = 'd1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const COND_Q_UUID = 'e1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const FILE_Q_UUID = 'f1b2c3d4-e5f6-7890-abcd-ef1234567890';
+const MULTI_Q_UUID = '1a1b2c3d-e5f6-7890-abcd-ef1234567890';
+const OPTIONAL_Q_UUID = '2a1b2c3d-e5f6-7890-abcd-ef1234567890';
 const FOREIGN_Q_UUID = '0a1b2c3d-e5f6-7890-abcd-ef1234567890';
 
 // =============================================================================
@@ -76,6 +78,33 @@ const FILE_QUESTION: EventQuestion = {
   options: null,
   show_if: null,
   position: 1,
+};
+
+const MULTI_QUESTION: EventQuestion = {
+  id: MULTI_Q_UUID,
+  event_questionnaire_id: Q_UUID,
+  type: 'multi_select',
+  label: 'Which categories apply?',
+  help_text: null,
+  required: true,
+  options: [
+    { key: 'art', label: 'Art' },
+    { key: 'food', label: 'Food' },
+  ],
+  show_if: null,
+  position: 1,
+};
+
+const OPTIONAL_TEXT_QUESTION: EventQuestion = {
+  id: OPTIONAL_Q_UUID,
+  event_questionnaire_id: Q_UUID,
+  type: 'long_text',
+  label: 'Anything else we should know?',
+  help_text: null,
+  required: false,
+  options: null,
+  show_if: null,
+  position: 2,
 };
 
 const VENDOR_INPUT = {
@@ -370,5 +399,84 @@ describe('submitDynamicApplication', () => {
     expect(result.data).toBeNull();
     expect(result.error).toMatch(expected);
     expect(result.error).not.toMatch(/raw postgres detail/);
+  });
+
+  // ---------------------------------------------------------------------------
+  // FR-009 — present-but-empty answers to required questions (research.md R10)
+  //
+  // Only text and choices reach isAnswerEmpty: the input-level
+  // answerValueSchema already rejects choice '', file path '', and a
+  // non-ISO date before the questionnaire is even loaded.
+  // ---------------------------------------------------------------------------
+
+  const EMPTY_TEXT_ANSWERS: Array<[string, { kind: 'text'; value: string }]> = [
+    ['an empty string', { kind: 'text', value: '' }],
+    ['a whitespace-only string', { kind: 'text', value: '   \t ' }],
+  ];
+
+  it.each(EMPTY_TEXT_ANSWERS)(
+    'rejects %s answering a required text question',
+    async (_label, value) => {
+      queueQuestionnaire([TEXT_QUESTION]);
+
+      const result = await submitDynamicApplication({
+        eventId: EVENT_UUID,
+        vendor: VENDOR_INPUT,
+        answers: [{ questionId: TEXT_Q_UUID, value }],
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(`Answer required for: ${TEXT_QUESTION.label}`);
+      expect(rpcMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it('rejects an empty selection list for a required multi-select question', async () => {
+    queueQuestionnaire([MULTI_QUESTION]);
+
+    const result = await submitDynamicApplication({
+      eventId: EVENT_UUID,
+      vendor: VENDOR_INPUT,
+      answers: [{ questionId: MULTI_Q_UUID, value: { kind: 'choices', value: [] } }],
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe(`Answer required for: ${MULTI_QUESTION.label}`);
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts a genuinely answered required multi-select question', async () => {
+    queueQuestionnaire([MULTI_QUESTION]);
+    queueRpc({ data: { ...RPC_ROW, application_id: 'app-multi' }, error: null });
+
+    const result = await submitDynamicApplication({
+      eventId: EVENT_UUID,
+      vendor: VENDOR_INPUT,
+      answers: [{ questionId: MULTI_Q_UUID, value: { kind: 'choices', value: ['art'] } }],
+    });
+
+    expect(result.success).toBe(true);
+    expect(lastRpcPayload()['answers']).toEqual([
+      { event_question_id: MULTI_Q_UUID, value: { kind: 'choices', value: ['art'] } },
+    ]);
+  });
+
+  it('drops an empty optional answer instead of storing it', async () => {
+    queueQuestionnaire([TEXT_QUESTION, OPTIONAL_TEXT_QUESTION]);
+    queueRpc({ data: { ...RPC_ROW, application_id: 'app-optional' }, error: null });
+
+    const result = await submitDynamicApplication({
+      eventId: EVENT_UUID,
+      vendor: VENDOR_INPUT,
+      answers: [
+        { questionId: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } },
+        { questionId: OPTIONAL_Q_UUID, value: { kind: 'text', value: '   ' } },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+    expect(lastRpcPayload()['answers']).toEqual([
+      { event_question_id: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } },
+    ]);
   });
 });

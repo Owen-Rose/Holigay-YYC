@@ -10,11 +10,17 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 002 | Consolidate vendor portal | ✅ Shipped | (direct commits to dev) | 2026-04-21 |
 | 003 | — (number skipped) | — | — | — |
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
-| 005 | Dynamic per-event questionnaires | 🚧 In progress | — | — |
+| 005 | Dynamic per-event questionnaires | 🧪 Implemented, unmerged | — | — |
+| 006 | Close the public data exposure | 🧪 Implemented, unmerged | — | — |
+
+### In-flight detail
+
+- **005** lives on `005-dynamic-questionnaires`; its commits are also contained in the 006 branch. All user stories are implemented and unit-tested, but two known defects remain before merge: non-atomic questionnaire-builder saves and the never-populated `seeded_from_template_id` column (`docs/ROADMAP.md` Tier 2). Its third known defect — required-answer semantics — was fixed by 006/US3.
+- **006** lives on `006-close-public-data-exposure`. Tasks T001–T027 and T029–T031 are done and the full gates pass locally; T028 (verify the `security-tests` CI job green in under 5 minutes) needs the branch pushed. Rollout to dev then prod follows `specs/006-close-public-data-exposure/quickstart.md`.
 
 ## Queued work (no spec yet)
 
-See `docs/cleanup-roadmap.md` Workstreams 4 (local `supabase db reset` fix) and 5 (drop `user_roles` table). Either may end up as a lightweight spec if paper trail is wanted; both are small enough to ship as a single PR without one.
+See `docs/ROADMAP.md` Tier 3 (foundation hardening) and Tier 4. `docs/cleanup-roadmap.md` is historical — all five of its workstreams are complete and its leftover items were folded into Tier 3.
 
 ## Conventions
 

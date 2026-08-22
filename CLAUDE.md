@@ -19,11 +19,15 @@ npm run format:check     # Check formatting without writing
 npm test                 # Run tests once
 npm run test:watch       # Run tests in watch mode
 npm run test:coverage    # Generate coverage report
+npm run test:security    # Run only the security suite (needs a local Supabase stack)
 npm run db:types         # Regenerate Supabase types (production)
 npm run db:types:dev     # Regenerate Supabase types (dev)
+npm run db:types:local   # Regenerate Supabase types (local stack)
 ```
 
 ## Architecture
+
+Full architectural documentation (request flow, authorization layers, data model, service seams, known weak points): `docs/ARCHITECTURE.md`. Prioritized improvement plan: `docs/ROADMAP.md`.
 
 ### Tech Stack
 - **Framework**: Next.js 16 with App Router, React 19, TypeScript
@@ -32,7 +36,7 @@ npm run db:types:dev     # Regenerate Supabase types (dev)
 - **Forms**: React Hook Form + Zod validation
 - **Styling**: Tailwind CSS v4
 - **Email**: Resend (transactional emails for application status updates)
-- **Testing**: Vitest + React Testing Library
+- **Testing**: Vitest (two projects — `unit` in jsdom with React Testing Library, `security` in node against a real local Supabase stack)
 - **CI**: GitHub Actions (`.github/workflows/ci.yml`)
 
 ### Key Directories
@@ -70,7 +74,8 @@ src/
 │   ├── supabase/              # Supabase clients (client, server, middleware)
 │   ├── validations/           # Zod schemas (auth, application, event, vendor)
 │   └── utils.ts               # Shared utilities (cn for class merging)
-├── test/                       # Test files and setup
+├── test/                       # Unit tests and setup
+│   └── security/              # RLS/RPC/storage suite — runs against a real local stack
 └── types/
     └── database.ts            # Auto-generated Supabase types (do not edit manually)
 ```
@@ -88,7 +93,8 @@ Supporting objects:
 - `get_user_role()` SQL function — no-arg, returns `user_role` (used in RLS policies). The earlier two-arg `get_user_role(uuid)` and `user_has_role(uuid, text)` were dropped by spec 004 (`007_role_system_cleanup.sql`).
 - `handle_new_user` trigger (auto-creates profile on signup, links existing vendors by email)
 - `users_with_roles` view (joins auth.users with profiles for admin queries)
-- `public.user_roles` table — superseded by `user_profiles`. Empty of app-relevant data; pending drop in a follow-up workstream (`docs/cleanup-roadmap.md` Workstream 5).
+- `public.user_roles` table — superseded by `user_profiles` and dropped by `008_drop_user_roles.sql`.
+- `SECURITY DEFINER` RPCs for atomic multi-table writes: `submit_public_application(jsonb)` (the only public-submission write path — `anon`/`authenticated` may execute it), `create_event_with_default_questionnaire(jsonb)` and `ensure_event_questionnaire(uuid)` (organizer-only — `anon` EXECUTE revoked by migration 011).
 
 ### Authentication & Authorization Flow
 1. Middleware (`src/middleware.ts`) checks auth state and fetches role on every request
@@ -168,7 +174,7 @@ import { createServerClient } from '@/lib/supabase/server'
 
 ## Current Development Phase
 
-No active spec-kit workstream. The most recent specs (001 / 002 / 004) are all merged. Queued follow-ups (Workstreams 4 and 5) are documented in `docs/cleanup-roadmap.md`. See `specs/README.md` for an at-a-glance status of every spec.
+Spec 006 (close the public data exposure) is implemented on branch `006-close-public-data-exposure`, which also contains all of spec 005's commits. Spec 005 (dynamic questionnaires) is feature-complete but still carries two known defects — non-atomic questionnaire-builder saves and the never-populated `seeded_from_template_id` (`docs/ROADMAP.md` Tier 2). Specs 001 / 002 / 004 are merged; all `docs/cleanup-roadmap.md` workstreams are complete (that file is historical — current planning lives in `docs/ROADMAP.md`). See `specs/README.md` for an at-a-glance status of every spec.
 
 ### Epic status snapshot
 - **Epic 1** (Complete): RBAC database layer
@@ -177,7 +183,7 @@ No active spec-kit workstream. The most recent specs (001 / 002 / 004) are all m
 - **Epic 4** (Partial): Organizer invite system — UI complete; backend (4.2.x) pending service-role client
 - **Epic 5** (Complete): Event management
 - **Epic 6** (Substantially complete): Brand re-skin — stories 6.1–6.8 shipped; 6.9 (file previews) and 6.10 (mobile polish) outstanding
-- **Epic 7** (Deferred): Dynamic application forms — static form covers MVP
+- **Epic 7** (Complete): Dynamic application forms — delivered by spec 005 (per-event questionnaires with templates and show-if branching)
 
 Brand reference: [holigayeventsyyc.carrd.co](https://holigayeventsyyc.carrd.co/) — dark `#1C171C` background, Quicksand font, violet (`#A78BFA`) primary, rainbow accents.
 
@@ -231,6 +237,10 @@ Migrations in `supabase/migrations/` (applied in alphabetical order; see `supaba
 5. `005_rbac_rls_policies.sql` (active) / `005_users_with_roles_view.sql` (superseded) — Full RBAC policies, admin view
 6. `006_users_with_roles_view.sql` (active) / `006_rbac_rls_updates.sql` (effectively dead post-007) — RBAC refinements
 7. `007_role_system_cleanup.sql` — Drops 006's superseded policies + the two-arg `get_user_role(uuid)` + `user_has_role(uuid, text)`. See `specs/004-consolidate-role-migrations/`.
+8. `008_drop_user_roles.sql` — Drops the superseded `public.user_roles` table.
+9. `009_dynamic_questionnaires.sql` — Questionnaire tables (`event_questionnaires`, `event_questions`, `application_answers`, templates) + their RLS and the lock-on-publish trigger. See `specs/005-dynamic-questionnaires/`.
+10. `010_ensure_event_questionnaire.sql` — `ensure_event_questionnaire(uuid)` RPC for upgrading legacy events.
+11. `011_close_public_data_exposure.sql` — Security posture change: adds the `submit_public_application(jsonb)` RPC (the single transactional write path for public submissions), drops the seven broad `anon` policies on `vendors` / `applications` / `attachments` / `application_answers`, revokes `anon` EXECUTE on the two organizer-only RPCs, and brings the `attachments` bucket + its three `storage.objects` policies under version control. See `specs/006-close-public-data-exposure/`.
 
 ### Admin Bootstrap
 
@@ -265,7 +275,10 @@ See `.specify/memory/constitution.md` for full governance rules.
 - Supabase PostgreSQL — `public.user_profiles` (canonical role table), `public.user_roles` (superseded; expected empty; targeted for drop) (004-consolidate-role-migrations)
 - Next.js 16 (App Router/RSC), React 19, `react-hook-form` + `zod`, `sonner` (005-dynamic-questionnaires)
 - Supabase PostgreSQL — migration `009_dynamic_questionnaires.sql` adds questionnaires, templates, and answers tables; `attachments` bucket reused for `file_upload` answers (005-dynamic-questionnaires)
+- TypeScript 5.x, `strict: true` (unchanged) + PL/pgSQL for the RPC + Next.js 16 (App Router), React 19, `@supabase/ssr`, `@supabase/supabase-js` ^2.86 (already a direct dependency — used by the new test harness), Supabase CLI ^2.65.6 (devDependency), Vitest ^4 (006-close-public-data-exposure)
+- Supabase PostgreSQL (hosted dev + prod; local stack via `supabase/config.toml`) + Supabase Storage bucket `attachments` (006-close-public-data-exposure)
 
 ## Recent Changes
+- 006-close-public-data-exposure: Closed the anon-key data exposure. Migration 011 drops every broad `anon` policy on the private tables and routes public submissions through the transactional `submit_public_application(jsonb)` RPC; storage rules moved from the dashboard into SQL; `deleteFile` and `src/app/test-upload/` removed; required-answer emptiness is now enforced per answer kind on both client and server; a `src/test/security/` Vitest project proves the posture against a real Supabase stack on every PR.
 - 005-dynamic-questionnaires: Per-event dynamic questionnaires with templates, show-if branching, and lock-on-publish. Migration 009 adds 5 RLS-gated tables; vendors fill dynamic forms at `/apply`, organizers build at `/dashboard/events/[id]`.
 - 002-consolidate-vendor-portal: Added TypeScript 5.x, `strict: true` (`tsconfig.json` unchanged). + Next.js 16 (App Router), React 19, `@supabase/ssr`, Vitest — all unchanged.

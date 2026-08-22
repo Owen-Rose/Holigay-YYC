@@ -13,7 +13,7 @@ import { vendorInfoSchema } from '@/lib/validations/application';
 import { evaluateShowIf, type ShowIfRule } from '@/lib/questionnaire/show-if';
 import { submitDynamicApplication } from '@/lib/actions/answers';
 import { uploadFile } from '@/lib/actions/upload';
-import type { AnswerValue } from '@/lib/questionnaire/answer-coercion';
+import { isAnswerEmpty, type AnswerValue } from '@/lib/questionnaire/answer-coercion';
 import type { Database } from '@/types/database';
 import type { z } from 'zod';
 
@@ -72,7 +72,11 @@ export function DynamicApplicationForm({
 
   const handleAnswer = (questionId: string, value: AnswerValue | undefined) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
-    if (value !== undefined) {
+    // Clear a "required" error only once the field holds a real answer —
+    // clearing a text field re-emits {kind:'text', value:''}, which is still
+    // empty. File answers are the exception: their pre-upload placeholder has
+    // path '' by construction, so a defined value means a file was picked.
+    if (value !== undefined && (value.kind === 'file' || !isAnswerEmpty(value))) {
       setAnswerErrors((prev) => {
         const next = { ...prev };
         delete next[questionId];
@@ -91,12 +95,17 @@ export function DynamicApplicationForm({
   };
 
   const onSubmit = async (vendor: VendorFields) => {
-    // Required check on visible questions
+    // Required check on visible questions — present-but-empty is not an
+    // answer (spec 006, FR-009 / research.md R10). File questions key off the
+    // pending file, since the placeholder answer always has path ''.
     const newErrors: Record<string, string> = {};
     for (const q of questions) {
       if (!visibleQuestionIds.has(q.id)) continue;
       if (!q.required) continue;
-      if (!answers[q.id]) {
+      const ans = answers[q.id];
+      const empty =
+        q.type === 'file_upload' ? !pendingFiles[q.id] : ans === undefined || isAnswerEmpty(ans);
+      if (empty) {
         newErrors[q.id] = `${q.label} is required`;
       }
     }
@@ -168,12 +177,7 @@ export function DynamicApplicationForm({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         </div>
         <h2 className="text-foreground text-2xl font-bold">Application Submitted!</h2>
@@ -181,9 +185,7 @@ export function DynamicApplicationForm({
           Thank you for applying to <strong>{eventName}</strong>. We&apos;ll review it and get back
           to you soon.
         </p>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Application ID: {state.applicationId}
-        </p>
+        <p className="text-muted-foreground mt-1 text-sm">Application ID: {state.applicationId}</p>
         <div className="mt-6 flex justify-center gap-4">
           <Link
             href="/"
@@ -273,11 +275,7 @@ export function DynamicApplicationForm({
         </section>
       )}
 
-      <Button
-        type="submit"
-        disabled={state.status === 'submitting'}
-        className="w-full"
-      >
+      <Button type="submit" disabled={state.status === 'submitting'} className="w-full">
         {state.status === 'submitting' ? 'Submitting…' : 'Submit Application'}
       </Button>
     </form>

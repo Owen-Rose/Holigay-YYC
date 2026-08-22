@@ -79,10 +79,10 @@
 
 **Independent Test**: Dynamic submissions with present-but-empty answers per kind are rejected with per-question messages; genuinely answered and empty-optional submissions pass.
 
-- [ ] T022 [US3] Add `isAnswerEmpty(answer: AnswerValue): boolean` to src/lib/questionnaire/answer-coercion.ts — text → trimmed length 0; choice/date → `''`; choices → `[]`; file → `path === ''`; number/boolean → never empty; leaf Zod schemas unchanged (R10); plus a pure per-kind table test in src/test/answer-coercion.test.ts (create or extend)
-- [ ] T023 [US3] Server side in src/lib/actions/answers.ts: required check becomes `!answerMap.has(id) || isAnswerEmpty(...)` with per-question error messages; skip empty *optional* answers when building the RPC payload (no empty-value rows stored) — FR-009, R10 (depends on T018)
-- [ ] T024 [US3] Client side in src/app/(public)/apply/_components/dynamic-application-form.tsx: replace the object-truthiness required check with `isAnswerEmpty`; file questions key off `pendingFiles` presence; reuse the existing per-question error rendering (FR-009)
-- [ ] T025 [US3] Tests: add FR-009 per-kind required-empty server cases to src/test/answers-actions.test.ts; extend src/test/dynamic-application-form.test.tsx with client cases (empty text, unchecked multi-select, missing file → no submit call; optional-empty → submits)
+- [X] T022 [US3] Add `isAnswerEmpty(answer: AnswerValue): boolean` to src/lib/questionnaire/answer-coercion.ts — text → trimmed length 0; choice/date → `''`; choices → `[]`; file → `path === ''`; number/boolean → never empty; leaf Zod schemas unchanged (R10); plus a pure per-kind table test in src/test/answer-coercion.test.ts (create or extend)
+- [X] T023 [US3] Server side in src/lib/actions/answers.ts: required check becomes `!answerMap.has(id) || isAnswerEmpty(...)` with per-question error messages; skip empty *optional* answers when building the RPC payload (no empty-value rows stored) — FR-009, R10 (depends on T018)
+- [X] T024 [US3] Client side in src/app/(public)/apply/_components/dynamic-application-form.tsx: replace the object-truthiness required check with `isAnswerEmpty`; file questions key off `pendingFiles` presence; reuse the existing per-question error rendering (FR-009)
+- [X] T025 [US3] Tests: add FR-009 per-kind required-empty server cases to src/test/answers-actions.test.ts; extend src/test/dynamic-application-form.test.tsx with client cases (empty text, unchecked multi-select, missing file → no submit call; optional-empty → submits)
 
 **Checkpoint**: `npm test` — unit + form tests green; US3 acceptance scenarios pass.
 
@@ -94,8 +94,8 @@
 
 **Independent Test**: Fresh `db reset` + suite pass locally; `supabase stop` + `npm test` skips with exit 0; PR shows the security job passing under 5 minutes.
 
-- [ ] T026 [US4] Add a parallel `security-tests` job to .github/workflows/ci.yml: checkout → node 20 + npm cache → `npm ci` → `supabase/setup-cli@v1` pinned `2.65.6` → `supabase start -x <heavy services from T004>` → `npm run test:security` with `CI_REQUIRE_SECURITY_TESTS=1`; existing lint-test-build job untouched (R15, SC-004)
-- [ ] T027 [US4] Verify local skip behavior (US4-AC4): `npx supabase stop` → `npm test` → unit project runs, security project reports skipped, exit code 0; then restart the stack and verify `CI_REQUIRE_SECURITY_TESTS=1 npm run test:security` passes
+- [X] T026 [US4] Add a parallel `security-tests` job to .github/workflows/ci.yml: checkout → node 20 + npm cache → `npm ci` → `supabase/setup-cli@v1` pinned `2.65.6` → `supabase start -x <heavy services from T004>` → `npm run test:security` with `CI_REQUIRE_SECURITY_TESTS=1`; existing lint-test-build job untouched (R15, SC-004)
+- [X] T027 [US4] Verify local skip behavior (US4-AC4): `npx supabase stop` → `npm test` → unit project runs, security project reports skipped, exit code 0; then restart the stack and verify `CI_REQUIRE_SECURITY_TESTS=1 npm run test:security` passes
 - [ ] T028 [US4] Push the branch / open the PR and verify the `security-tests` job passes in under 5 minutes of CI time (SC-004, US4-AC3)
 
 **Checkpoint**: All four stories independently verified; CI gate proven.
@@ -104,9 +104,9 @@
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T029 [P] Update docs: CLAUDE.md (migrations list gains 011; Recent Changes entry for 006), specs/README.md spec-status table
-- [ ] T030 [P] Re-run the full quickstart.md manual probe block against the local stack as a final posture check (private tables `[]`, public reads populated, anon RPCs denied, anon download denied)
-- [ ] T031 Run the full gates `npm run lint && npm test && npm run build`; confirm zero hand-edits to src/types/database.ts (FR-013)
+- [X] T029 [P] Update docs: CLAUDE.md (migrations list gains 011; Recent Changes entry for 006), specs/README.md spec-status table
+- [X] T030 [P] Re-run the full quickstart.md manual probe block against the local stack as a final posture check (private tables `[]`, public reads populated, anon RPCs denied, anon download denied)
+- [X] T031 Run the full gates `npm run lint && npm test && npm run build`; confirm zero hand-edits to src/types/database.ts (FR-013)
 
 > Rollout (dev `db push` → probe → prod) is deploy-time work tracked by quickstart.md's checklist, not a code task.
 

@@ -1,5 +1,9 @@
 # Pre-feature Cleanup Roadmap
 
+> **Superseded (2026-07-08):** all five workstreams below are complete. Current planning
+> lives in [ROADMAP.md](./ROADMAP.md); the unfinished "opportunistic" and "skipped" items
+> were folded into its Tier 3. This file is kept as a historical record.
+
 **Created:** 2026-04-21, after `001-consolidate-role-helpers` landed. Captures cleanup work to complete before resuming feature development.
 
 ## How to use this document

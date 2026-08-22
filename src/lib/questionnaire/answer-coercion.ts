@@ -131,3 +131,31 @@ export function coerceJsonbToAnswer(value: Json, type: QuestionType): AnswerValu
 
   return null;
 }
+
+// =============================================================================
+// isAnswerEmpty
+// Per-kind emptiness for required-answer enforcement (spec 006, FR-009 / R10).
+//
+// Emptiness is a semantic check on *required* questions, not a shape
+// constraint — the leaf schemas above stay permissive so optional questions can
+// still carry empty values through the pipeline. Both the apply form and
+// submitDynamicApplication call this one helper.
+// =============================================================================
+
+export function isAnswerEmpty(answer: AnswerValue): boolean {
+  switch (answer.kind) {
+    case 'text':
+      return answer.value.trim().length === 0;
+    case 'choice':
+    case 'date':
+      return answer.value === '';
+    case 'choices':
+      return answer.value.length === 0;
+    case 'file':
+      return answer.path === '';
+    case 'number':
+    case 'boolean':
+      // 0 and false are real answers.
+      return false;
+  }
+}

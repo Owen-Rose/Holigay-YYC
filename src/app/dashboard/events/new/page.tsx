@@ -12,9 +12,9 @@ export default function NewEventPage() {
   async function handleSubmit(data: EventFormInput) {
     const result = await createEvent(data);
 
-    if (result.success) {
+    if (result.success && result.id) {
       // Brief delay so the user sees the success message before redirect
-      setTimeout(() => router.push('/dashboard/events'), 1000);
+      setTimeout(() => router.push(`/dashboard/events/${result.id}`), 1000);
     }
 
     return { success: result.success, error: result.error ?? undefined };
@@ -46,6 +46,10 @@ export default function NewEventPage() {
         <h1 className="text-foreground text-2xl font-bold">Create Event</h1>
         <p className="text-muted mt-1 text-sm">
           Set up a new market event for vendors to apply to.
+        </p>
+        <p className="text-muted mt-1 text-sm">
+          After saving, you&apos;ll be able to customize the questionnaire vendors fill out when
+          applying.
         </p>
       </div>
 

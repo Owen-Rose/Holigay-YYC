@@ -8,6 +8,7 @@ import { answerValueSchema } from '@/lib/validations/questionnaire';
 import {
   buildAnswersSchema,
   coerceAnswerToJsonb,
+  isAnswerEmpty,
   type AnswerValue,
 } from '@/lib/questionnaire/answer-coercion';
 import { evaluateShowIf, type ShowIfRule } from '@/lib/questionnaire/show-if';
@@ -155,11 +156,14 @@ export async function submitDynamicApplication(
     }
   }
 
-  // Required check on visible questions only
+  // Required check on visible questions only. A present-but-empty answer is
+  // not an answer: emptiness is defined per kind by isAnswerEmpty (spec 006,
+  // FR-009 / research.md R10).
   for (const q of questions) {
     if (!visibleQuestionIds.has(q.id)) continue;
     if (!q.required) continue;
-    if (!answerMap.has(q.id)) {
+    const ans = answerMap.get(q.id);
+    if (ans === undefined || isAnswerEmpty(ans)) {
       return {
         success: false,
         error: `Answer required for: ${q.label}`,
@@ -187,7 +191,13 @@ export async function submitDynamicApplication(
     },
     legacy: null,
     answers: questions
-      .filter((q) => visibleQuestionIds.has(q.id) && answerMap.has(q.id))
+      .filter((q) => {
+        if (!visibleQuestionIds.has(q.id)) return false;
+        // Empty *optional* answers are not stored (R10). Required answers can
+        // never be empty here — the check above already returned.
+        const ans = answerMap.get(q.id);
+        return ans !== undefined && !isAnswerEmpty(ans);
+      })
       .map((q) => ({
         event_question_id: q.id,
         value: coerceAnswerToJsonb(answerMap.get(q.id)!),
