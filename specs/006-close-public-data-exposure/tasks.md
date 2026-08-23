@@ -96,7 +96,7 @@
 
 - [X] T026 [US4] Add a parallel `security-tests` job to .github/workflows/ci.yml: checkout → node 20 + npm cache → `npm ci` → `supabase/setup-cli@v1` pinned `2.65.6` → `supabase start -x <heavy services from T004>` → `npm run test:security` with `CI_REQUIRE_SECURITY_TESTS=1`; existing lint-test-build job untouched (R15, SC-004)
 - [X] T027 [US4] Verify local skip behavior (US4-AC4): `npx supabase stop` → `npm test` → unit project runs, security project reports skipped, exit code 0; then restart the stack and verify `CI_REQUIRE_SECURITY_TESTS=1 npm run test:security` passes
-- [ ] T028 [US4] Push the branch / open the PR and verify the `security-tests` job passes in under 5 minutes of CI time (SC-004, US4-AC3)
+- [X] T028 [US4] Push the branch / open the PR and verify the `security-tests` job passes in under 5 minutes of CI time (SC-004, US4-AC3) — PR #7: `security-tests` green in **3m32s** (40 tests, 5 suites, no skips); re-confirmed on the `dev` push in 2m19s
 
 **Checkpoint**: All four stories independently verified; CI gate proven.
 

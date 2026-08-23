@@ -23,8 +23,8 @@ in-flight feature safely, then paying down consistency debt.
 | RBAC (DB + app), vendor dashboard, event management | ✅ Complete (Epics 1–3, 5; specs 001/002/004 merged) |
 | Brand re-skin | ✅ Mostly (6.9 file previews, 6.10 mobile polish outstanding) |
 | Organizer invites (Epic 4) | UI only — backend stub awaits a service-role client |
-| **Public data exposure (spec 006)** | ✅ **Closed** — implemented on `006-close-public-data-exposure`, unmerged. Migration 011 + `submit_public_application` RPC + `src/test/security/` suite; CI gate added. Remaining: push to verify the CI job (T028), then roll out dev → prod per the spec's `quickstart.md` |
-| **Dynamic questionnaires (spec 005)** | **In flight**, contained in the 006 branch: all user stories implemented and unit-tested. Required-answer semantics fixed by 006/US3; two defects still open (builder atomicity, `seeded_from_template_id`); T050 manual walkthrough still not done |
+| **Public data exposure (spec 006)** | ✅ **Closed and shipped to `dev`** (PR #7, 2026-08-22). Migration 011 applied to the dev Supabase project and the posture verified live; CI security gate green. **Prod rollout still outstanding.** |
+| **Dynamic questionnaires (spec 005)** | **Shipped to `dev`** with 006. Required-answer semantics fixed by 006/US3; two defects still open (builder atomicity, `seeded_from_template_id`); T050 manual walkthrough still not done |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
 
 ---
@@ -279,7 +279,7 @@ operational readiness, not implementation.
 
 | Milestone | Contents | Target |
 |---|---|---|
-| **M1 — Safe** ✅ | Spec 006 implemented: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it. Reached 2026-08-22; closes fully once the branch is pushed (T028) and rolled out dev → prod | weeks 1–2 |
+| **M1 — Safe** 🟡 | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Dev is closed; prod is not** — the exposure remains in the prod database until `011` is pushed there | weeks 1–2 |
 | **M2 — Feature-complete** | Spec 005 finished and merged: atomic save, `seeded_from_template_id` decided, T050 walkthrough (required-semantics and `/test-upload` already done via 006) | weeks 2–4 |
 | **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them | month 2 |
 | **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |
@@ -292,6 +292,12 @@ operational readiness, not implementation.
       dashboard.)
 - [ ] Decide the Supabase plan: free tier pauses after ~1 week idle (fatal for a
       seasonal app) — paid tier or a weekly keep-alive ping.
+      **This has now happened: on 2026-08-22 both the dev and prod projects were found
+      paused** — subdomains NXDOMAIN, empty API-key lists — blocking the spec 006
+      dev rollout until Holigay-Dev was manually restored. Note the security angle:
+      while prod is paused the data exposure is unreachable, but the permissive
+      policies are still in that database, so restoring prod re-opens the hole until
+      migration 011 is applied. Restore-and-migrate must happen back-to-back.
 - [ ] Confirm database backups are enabled on prod; do one restore drill on dev.
 - [ ] Env validation module in place; `.env` contract in CLAUDE.md current.
 - [ ] Seed the real organizer accounts (manual SQL is fine — Epic 4 backend is not

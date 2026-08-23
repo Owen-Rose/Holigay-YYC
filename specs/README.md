@@ -10,13 +10,22 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 002 | Consolidate vendor portal | ✅ Shipped | (direct commits to dev) | 2026-04-21 |
 | 003 | — (number skipped) | — | — | — |
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
-| 005 | Dynamic per-event questionnaires | 🧪 Implemented, unmerged | — | — |
-| 006 | Close the public data exposure | 🧪 Implemented, unmerged | — | — |
+| 005 | Dynamic per-event questionnaires | ✅ Shipped to `dev` | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
+| 006 | Close the public data exposure | ✅ Shipped to `dev` | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 
-### In-flight detail
+### Post-merge detail
 
-- **005** lives on `005-dynamic-questionnaires`; its commits are also contained in the 006 branch. All user stories are implemented and unit-tested, but two known defects remain before merge: non-atomic questionnaire-builder saves and the never-populated `seeded_from_template_id` column (`docs/ROADMAP.md` Tier 2). Its third known defect — required-answer semantics — was fixed by 006/US3.
-- **006** lives on `006-close-public-data-exposure`. Tasks T001–T027 and T029–T031 are done and the full gates pass locally; T028 (verify the `security-tests` CI job green in under 5 minutes) needs the branch pushed. Rollout to dev then prod follows `specs/006-close-public-data-exposure/quickstart.md`.
+005 and 006 shipped together in PR #7 — a single 13-commit fast-forward onto `dev`. Their
+histories were inseparable (all of 005's commits are ancestors of the 006 branch), so they
+merged as one unit.
+
+- **006** is complete: all 31 tasks done, migration `011` applied to the dev Supabase project
+  on 2026-08-22 and the closed posture verified against the live dev API. **Prod rollout is
+  still outstanding** — follow `specs/006-close-public-data-exposure/quickstart.md`.
+- **005** has one open task, **T050** (manual end-to-end walkthrough, `quickstart.md`), plus
+  two known defects tracked as `docs/ROADMAP.md` Tier 2: non-atomic questionnaire-builder
+  saves and the never-populated `seeded_from_template_id`. Its third defect — required-answer
+  semantics — was fixed by 006/US3.
 
 ## Queued work (no spec yet)
 

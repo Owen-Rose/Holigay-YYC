@@ -174,7 +174,7 @@ import { createServerClient } from '@/lib/supabase/server'
 
 ## Current Development Phase
 
-Spec 006 (close the public data exposure) is implemented on branch `006-close-public-data-exposure`, which also contains all of spec 005's commits. Spec 005 (dynamic questionnaires) is feature-complete but still carries two known defects — non-atomic questionnaire-builder saves and the never-populated `seeded_from_template_id` (`docs/ROADMAP.md` Tier 2). Specs 001 / 002 / 004 are merged; all `docs/cleanup-roadmap.md` workstreams are complete (that file is historical — current planning lives in `docs/ROADMAP.md`). See `specs/README.md` for an at-a-glance status of every spec.
+Specs 005 and 006 shipped to `dev` together in PR #7 (2026-08-22) — one 13-commit fast-forward; their histories were inseparable. Migration `011` is applied to the **dev** Supabase project and the closed posture is verified there; **prod has not been rolled out yet** (see `specs/006-close-public-data-exposure/quickstart.md`). Next up is spec 005's remaining work: the T050 manual walkthrough, plus the two Tier 2 defects — non-atomic questionnaire-builder saves and the never-populated `seeded_from_template_id`. Specs 001 / 002 / 004 are merged; all `docs/cleanup-roadmap.md` workstreams are complete (that file is historical — current planning lives in `docs/ROADMAP.md`). See `specs/README.md` for an at-a-glance status of every spec.
 
 ### Epic status snapshot
 - **Epic 1** (Complete): RBAC database layer
