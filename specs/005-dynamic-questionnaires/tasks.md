@@ -168,7 +168,34 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
 ## Phase 10: Polish & Cross-Cutting Concerns
 
 - [x] T049 Run `npm run lint && npm test && npm run build` — all green; fix any new TS strict / a11y warnings introduced by spec 005 components
-- [ ] T050 Execute `specs/005-dynamic-questionnaires/quickstart.md` end-to-end against the local dev environment; record any deviations and resolve before merge — **AUTOMATED PREREQS DONE; awaiting manual walk-through**
+- [~] T050 Execute `specs/005-dynamic-questionnaires/quickstart.md` end-to-end against the local dev environment — **WAIVED 2026-08-22, NOT EXECUTED.** Decision recorded rather than silently ticked: no one ran this walkthrough.
+
+  **Why waiving was judged acceptable.** Automated coverage reaches most of what the
+  walkthrough would have checked — 264 tests, of which 40 run against a real Supabase
+  stack. Every questionnaire and template server action is covered, including the
+  legacy-event upgrade path (`templates-actions.test.ts` "creates questionnaire row for a
+  legacy event"), show-if remapping on seed, and draft-status/RLS rejections. Show-if
+  evaluation and validation (cycles, forward references), lock-on-publish, and all four
+  UI components have unit coverage. The public submission path and the entire anon
+  security posture are proven against a real database, not a mock.
+
+  **What this leaves genuinely unverified** — accept knowingly:
+  1. Real-database integration for the *builder and template* paths. Only the submission
+     path has real-DB proof; everything else mocks Supabase, so RLS on the questionnaire
+     write paths is asserted by policy definition, not exercised.
+  2. Browser end-to-end continuity: build → publish → apply in a fresh session → review.
+  3. The orphaned-template edge case (quickstart steps 17-18), which needs an auth user
+     deleted out from under a template.
+  4. Drag-to-reorder as a real pointer interaction.
+  5. Quickstart steps 5-8 are multi-save sequences — precisely where the known Tier 2
+     builder-atomicity defect lives. Waiving here means that defect stays undiagnosed;
+     it is deferred, not absent.
+
+  **Risk accepted because** the builder is organizer-facing in a single-tenant app with a
+  handful of internal users, the security-critical work (spec 006) has independent real-DB
+  proof, and the two open Tier 2 defects are already tracked in `docs/ROADMAP.md`. Revisit
+  when Tier 2 item 1 (atomic builder save) is implemented — that work should land with real
+  integration tests covering 1 and 2 above, which retires this waiver properly.
 - [x] T051 Update `CLAUDE.md` "Active Technologies" + "Recent Changes" sections to reference spec 005 once shipped; trim the spec 005 entry in "Active Technologies" to a single line matching the existing one-line-per-spec pattern; ensure `specs/README.md` index reflects spec 005 state
 
 ---

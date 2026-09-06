@@ -127,10 +127,11 @@ The feature is close. Known defects, in priority order:
    always no-ops (no UPDATE policy on `event_questionnaires` — known, commented). Either
    set it inside the seed RPC/transaction, or delete the column. Don't keep a field
    that's never populated.
-4. **Finish the branch** (effort: S): run the T050 manual walkthrough from
-   `specs/005-dynamic-questionnaires/` (especially the legacy-event upgrade path — the
-   least-exercised code). The `events/new` redirect tweak and the removal of
-   `src/app/test-upload/` both landed with spec 006.
+4. ~~**Finish the branch**~~ — closed 2026-08-22. The `events/new` redirect tweak and the
+   removal of `src/app/test-upload/` landed with spec 006. The T050 manual walkthrough was
+   **waived, not executed** (reasoning in `specs/005-dynamic-questionnaires/tasks.md`). Its
+   main residual gap: the builder and template write paths have no real-database integration
+   test — fold that into item 1's atomic-save work rather than reviving the manual script.
 
 ---
 
@@ -280,7 +281,7 @@ operational readiness, not implementation.
 | Milestone | Contents | Target |
 |---|---|---|
 | **M1 — Safe** 🟡 | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Dev is closed; prod is not** — the exposure remains in the prod database until `011` is pushed there | weeks 1–2 |
-| **M2 — Feature-complete** | Spec 005 finished and merged: atomic save, `seeded_from_template_id` decided, T050 walkthrough (required-semantics and `/test-upload` already done via 006) | weeks 2–4 |
+| **M2 — Feature-complete** | Spec 005 shipped to `dev` 2026-08-22 with T050 waived. Remaining for M2: atomic builder save (with real-DB integration tests, which also retire the T050 waiver) and a decision on `seeded_from_template_id` | weeks 2–4 |
 | **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them | month 2 |
 | **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |
 

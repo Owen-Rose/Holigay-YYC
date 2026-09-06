@@ -10,7 +10,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 002 | Consolidate vendor portal | ✅ Shipped | (direct commits to dev) | 2026-04-21 |
 | 003 | — (number skipped) | — | — | — |
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
-| 005 | Dynamic per-event questionnaires | ✅ Shipped to `dev` | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
+| 005 | Dynamic per-event questionnaires | ✅ Shipped to `dev` (T050 waived) | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 | 006 | Close the public data exposure | ✅ Shipped to `dev` | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 
 ### Post-merge detail
@@ -22,9 +22,10 @@ merged as one unit.
 - **006** is complete: all 31 tasks done, migration `011` applied to the dev Supabase project
   on 2026-08-22 and the closed posture verified against the live dev API. **Prod rollout is
   still outstanding** — follow `specs/006-close-public-data-exposure/quickstart.md`.
-- **005** has one open task, **T050** (manual end-to-end walkthrough, `quickstart.md`), plus
-  two known defects tracked as `docs/ROADMAP.md` Tier 2: non-atomic questionnaire-builder
-  saves and the never-populated `seeded_from_template_id`. Its third defect — required-answer
+- **005** is closed with **T050 waived, not executed** (2026-08-22) — see its `tasks.md`
+  for the full reasoning and the five things that leaves unverified. Two known defects
+  remain, tracked as `docs/ROADMAP.md` Tier 2: non-atomic questionnaire-builder saves and
+  the never-populated `seeded_from_template_id`. Its third defect — required-answer
   semantics — was fixed by 006/US3.
 
 ## Queued work (no spec yet)
