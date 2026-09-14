@@ -171,5 +171,5 @@ npx supabase db push
 | Environment | Migration 012 applied | Probe | Notes |
 |---|---|---|---|
 | local | 2026-09-14 (`supabase db reset`) | Q1–Q16, TW1–TW10 green | — |
-| dev | — | — | pending |
+| dev | 2026-09-14 (`db push`, only 012 pending; history intact) | anon-key probe: `save_event_questionnaire` present and `42501` for anon, both older RPCs `42501`, public event read OK; `migration list --linked` shows 012; types from dev match the committed file apart from the generator's cosmetic block | Organizer-side builder probe (single save, seed sets `seeded_from_template_id`) waits for PR #8 to merge and deploy — the dev deploy still runs the per-question code, which 012 leaves working |
 | prod | — | — | pending; promote `dev` → `main` after |
