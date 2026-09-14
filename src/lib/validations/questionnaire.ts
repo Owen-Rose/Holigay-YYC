@@ -139,8 +139,9 @@ export const templateInputSchema = z
 export type TemplateInput = z.infer<typeof templateInputSchema>;
 
 // =============================================================================
-// questionnaireInputSchema — for validating a full event questionnaire update
-// Same show-if rules pass applied to the complete set.
+// questionnaireInputSchema — the full-state payload for saveEventQuestionnaire
+// (and the template seed), validated before the save_event_questionnaire RPC.
+// Same show-if rules pass applied to the complete set; ids must be unique.
 // =============================================================================
 
 const questionnaireQuestionSchema = questionFieldsSchema
@@ -150,12 +151,25 @@ const questionnaireQuestionSchema = questionFieldsSchema
   })
   .superRefine(enforceOptionConstraints);
 
+/** Soft cap from the 005 contract; the RPC enforces the same bound (P0004). */
+export const MAX_QUESTIONS_PER_QUESTIONNAIRE = 200;
+
 export const questionnaireInputSchema = z
   .object({
     eventId: z.string().uuid(),
-    questions: z.array(questionnaireQuestionSchema),
+    questions: z.array(questionnaireQuestionSchema).max(MAX_QUESTIONS_PER_QUESTIONNAIRE),
   })
   .superRefine((data, ctx) => {
+    const ids = data.questions.map((q) => q.id).filter((id): id is string => id != null);
+    if (new Set(ids).size !== ids.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['questions'],
+        message: 'Duplicate question id',
+      });
+      return;
+    }
+
     const result = validateShowIfRules(
       data.questions.map((q, i) => ({
         id: q.id ?? `__new_${i}`,
