@@ -291,10 +291,10 @@ operational readiness, not implementation.
 |---|---|---|
 | **M1 — Safe** ✅ | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Prod closed 2026-09-13**: `009`–`011` pushed to the prod project (history repaired first — its `schema_migrations` was empty like dev's), all object markers verified, `dev` promoted to `main` (`3dc243c`). Residual: the manual probe checklist and one live test submission on prod | done |
 | **M2 — Feature-complete** ✅ | Spec 005 shipped to `dev` 2026-08-22 with T050 waived; Phase 11 (2026-09-14) landed the atomic builder save with real-DB suites (retiring the waiver's main gap) and populated `seeded_from_template_id`. Migration `012` on dev and prod, dev probe passed, promoted to `main` 2026-09-14 | done |
-| **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them | month 2 |
+| **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them. **Sequenced in [M3-PLAN.md](./M3-PLAN.md)** (2026-09-13): three tracks, dashboard-vs-repo split, UAT script, exit criteria | month 2 |
 | **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |
 
-**Production-readiness checklist (M3):**
+**Production-readiness checklist (M3):** (order, owners and the UAT script: [M3-PLAN.md](./M3-PLAN.md))
 
 - [ ] **Verify a sending domain in Resend** and set `EMAIL_FROM_ADDRESS`. The current
       fallback `onboarding@resend.dev` cannot deliver to real vendors — production email
