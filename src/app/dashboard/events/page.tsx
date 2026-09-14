@@ -177,7 +177,11 @@ function EventRow({ event }: { event: EventWithCount }) {
 
         {/* Status actions */}
         <div className="col-span-4 text-right sm:col-span-2">
-          <EventStatusActions eventId={event.id} status={event.status} />
+          <EventStatusActions
+            eventId={event.id}
+            status={event.status}
+            applicationCount={event.application_count}
+          />
         </div>
       </div>
     </Link>
