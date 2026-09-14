@@ -1,5 +1,5 @@
 ---
-description: "Implementation task list for spec 005 — Per-Event Dynamic Questionnaires"
+description: 'Implementation task list for spec 005 — Per-Event Dynamic Questionnaires'
 ---
 
 # Tasks: Per-Event Dynamic Questionnaires
@@ -180,7 +180,7 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
   security posture are proven against a real database, not a mock.
 
   **What this leaves genuinely unverified** — accept knowingly:
-  1. Real-database integration for the *builder and template* paths. Only the submission
+  1. Real-database integration for the _builder and template_ paths. Only the submission
      path has real-DB proof; everything else mocks Supabase, so RLS on the questionnaire
      write paths is asserted by policy definition, not exercised.
   2. Browser end-to-end continuity: build → publish → apply in a fresh session → review.
@@ -196,7 +196,31 @@ description: "Implementation task list for spec 005 — Per-Event Dynamic Questi
   proof, and the two open Tier 2 defects are already tracked in `docs/ROADMAP.md`. Revisit
   when Tier 2 item 1 (atomic builder save) is implemented — that work should land with real
   integration tests covering 1 and 2 above, which retires this waiver properly.
+
 - [x] T051 Update `CLAUDE.md` "Active Technologies" + "Recent Changes" sections to reference spec 005 once shipped; trim the spec 005 entry in "Active Technologies" to a single line matching the existing one-line-per-spec pattern; ensure `specs/README.md` index reflects spec 005 state
+
+---
+
+## Phase 11: Tier 2 — Atomic questionnaire save (post-ship, 2026-09)
+
+**Goal**: Retire `docs/ROADMAP.md` Tier 2 items 1 and 3. One `saveEventQuestionnaire` server action → one `save_event_questionnaire(uuid, jsonb, uuid)` SECURITY DEFINER RPC (migration 012) replaces the four per-question actions; seeding from a template goes through the same RPC and finally populates `seeded_from_template_id`. Real-database tests for the builder and template write paths land in `src/test/security/`, which retires the T050 waiver's gaps 1, 3 and 5.
+
+**Independent Test**: `npm run test:security` proves Q1–Q16 and TW1–TW10 against the local stack; `npm test` proves the reworked unit suites; the manual check in `quickstart.md` steps 5–9 now completes in a single save.
+
+- [ ] T052 Extend `src/test/security/harness.ts` — refactor `createAuthedOrganizer` into `createAuthedUser(suffix, role)`, add `createAuthedVendor`, and add `extraEventIds` / `extraTemplateIds` to `SecurityFixtures` so `cleanupFixtures` purges rows a suite creates on its own
+- [ ] T053 Add `src/test/security/questionnaire-save.test.ts` (Q1–Q16) — anon and vendor get `42501`; organizer creates the questionnaire row for a legacy draft event, saves edit+reorder+delete+add in one call, and a CHECK failure mid-batch leaves every row untouched (atomicity); `P0004` for forward show-if, foreign id, duplicate id; `P0001` for active or locked; `23503` when an answered question is dropped; `p_seeded_from_template_id` written; vendor cannot call `ensure_event_questionnaire` / `create_event_with_default_questionnaire`
+- [ ] T054 Add `src/test/security/template-writes.test.ts` (TW1–TW10) — organizer creates/updates own template; a second organizer can read but not update/delete/insert under it; vendor reads nothing and cannot insert; orphaned template (`created_by = NULL`) is admin-only (T050 gap 3)
+- [ ] T055 Add `supabase/migrations/012_atomic_questionnaire_save.sql` — §1 re-create `event_questions_event_questionnaire_id_position_key` as `DEFERRABLE INITIALLY IMMEDIATE`; §2 `save_event_questionnaire` (role gate via `get_user_role()`, payload checks, `ensure_event_questionnaire` reuse, lock check, ownership gate, show-if-earlier gate, `SET CONSTRAINTS … DEFERRED`, delete-missing / upsert-by-id / position = ordinal, `seeded_from_template_id` + `updated_at`, `RETURNS SETOF event_questions`) with `COMMENT`, `REVOKE ALL FROM PUBLIC`, `GRANT EXECUTE TO authenticated`; §3 the same role gate in `ensure_event_questionnaire` and `create_event_with_default_questionnaire` (both were callable by any signed-in vendor)
+- [ ] T056 `supabase db reset` + `npm run db:types:local` so `Database['public']['Functions']['save_event_questionnaire']` exists; T053/T054 green
+- [ ] T057 [P] `src/lib/validations/questionnaire.ts` — `questionnaireInputSchema` goes live: `.max(200)` questions and unique-id refine; `src/test/questionnaire-input-schema.test.ts` covers accept / forward ref / cycle / multi_select trigger / select without options / > 200 / duplicate ids
+- [ ] T058 [P] `src/lib/questionnaire/save-errors.ts` — `mapSaveQuestionnaireError` (`42501`, `P0002`, `P0001`, `P0004`, `23503`, fallback) mirroring `src/lib/submission/errors.ts`; `src/test/save-errors.test.ts`
+- [ ] T059 `src/lib/actions/_internal/save-questionnaire.ts` (`saveQuestionnaireViaRpc`) + `saveEventQuestionnaire` in `src/lib/actions/questionnaires.ts`; delete `addEventQuestion` / `updateEventQuestion` / `deleteEventQuestion` / `reorderEventQuestions` and their helpers; rework `questionnaires-actions.test.ts`, `lock-on-publish.test.ts`, `show-if-validator.test.ts`
+- [ ] T060 `src/app/dashboard/events/[id]/questionnaire-builder.tsx` — `addQuestion` assigns `crypto.randomUUID()`, `handleSave` makes one call and adopts the returned rows, `router.refresh()` on success; drop `deletedIds` / `initialOrderRef`; rework `questionnaire-builder.test.tsx`
+- [ ] T061 `seedEventQuestionnaireFromTemplate` in `src/lib/actions/templates.ts` — build `[...existing, ...templateCopies]` (fresh UUIDs, `remapShowIf`) and call the RPC with `seededFromTemplateId`; remove the delete/insert pair and the no-op update; rework the seed block of `templates-actions.test.ts`
+- [ ] T062 Docs — this file (T050 note), `contracts/questionnaire-actions.md`, `contracts/templates-actions.md`, `data-model.md`, `quickstart.md`; `docs/ROADMAP.md` Tier 2 + milestones; `docs/ARCHITECTURE.md` §6 / §9 / §10; `specs/README.md`; `CLAUDE.md`; `supabase/migrations/README.md` (backfill 009–011, add 012)
+- [ ] T063 `npm run lint && npm test && npm run build` + `npm run test:security` green; PR to `dev`
+
+> Prod rollout of migration 012 (`supabase db push` to dev, then prod) is deploy-time work, recorded in `quickstart.md` like 006's rollout record — not a code task.
 
 ---
 

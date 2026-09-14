@@ -97,23 +97,34 @@ export function serviceClient(): Client {
   return createClient<Database>(SUPABASE_URL, SERVICE_ROLE_KEY, clientOptions);
 }
 
-export type AuthedOrganizer = {
+export type AuthedUser = {
   client: Client;
   userId: string;
   email: string;
 };
 
+/** Alias used by the spec 006 suites. */
+export type AuthedOrganizer = AuthedUser;
+
 /**
- * Creates a confirmed auth user, promotes it to `organizer` in user_profiles
- * (handle_new_user has already inserted the row as `vendor`), and returns a
- * client carrying its session.
+ * Creates a confirmed auth user with the given role and returns a client
+ * carrying its session. `handle_new_user` inserts the profile as `vendor`;
+ * organizers are promoted with the service client afterwards.
  *
- * Note: [auth.rate_limit] sign_in_sign_ups is 30 per 5 minutes — call this once
- * per suite file, never per test.
+ * Note: [auth.rate_limit] sign_in_sign_ups is 30 per 5 minutes — keep it to a
+ * handful of calls per suite file, never one per test.
  */
-export async function createAuthedOrganizer(suffix: string): Promise<AuthedOrganizer> {
+export async function createAuthedUser(
+  suffix: string,
+  role: 'organizer' | 'vendor'
+): Promise<AuthedUser> {
   const service = serviceClient();
-  const email = `sec-organizer-${suffix}@example.com`;
+  // The seeded vendors row already uses `sec-vendor-<suffix>@…`; a vendor
+  // *user* gets a distinct address so handle_new_user does not link the two.
+  const email =
+    role === 'organizer'
+      ? `sec-organizer-${suffix}@example.com`
+      : `sec-vendor-user-${suffix}@example.com`;
   const password = 'sec-harness-password';
 
   const { data: created, error: createError } = await service.auth.admin.createUser({
@@ -122,24 +133,36 @@ export async function createAuthedOrganizer(suffix: string): Promise<AuthedOrgan
     email_confirm: true,
   });
   if (createError || !created.user) {
-    throw new Error(`[security harness] could not create organizer: ${createError?.message}`);
+    throw new Error(`[security harness] could not create ${role}: ${createError?.message}`);
   }
 
-  const { error: roleError } = await service
-    .from('user_profiles')
-    .update({ role: 'organizer' })
-    .eq('id', created.user.id);
-  if (roleError) {
-    throw new Error(`[security harness] could not promote organizer: ${roleError.message}`);
+  if (role !== 'vendor') {
+    const { error: roleError } = await service
+      .from('user_profiles')
+      .update({ role })
+      .eq('id', created.user.id);
+    if (roleError) {
+      throw new Error(`[security harness] could not promote ${role}: ${roleError.message}`);
+    }
   }
 
   const client = createClient<Database>(SUPABASE_URL, ANON_KEY, clientOptions);
   const { error: signInError } = await client.auth.signInWithPassword({ email, password });
   if (signInError) {
-    throw new Error(`[security harness] organizer sign-in failed: ${signInError.message}`);
+    throw new Error(`[security harness] ${role} sign-in failed: ${signInError.message}`);
   }
 
   return { client, userId: created.user.id, email };
+}
+
+/** Organizer session. Pass a distinct suffix per user within one suite. */
+export function createAuthedOrganizer(suffix: string): Promise<AuthedUser> {
+  return createAuthedUser(suffix, 'organizer');
+}
+
+/** Vendor session — the "authenticated but not privileged" caller. */
+export function createAuthedVendor(suffix: string): Promise<AuthedUser> {
+  return createAuthedUser(suffix, 'vendor');
 }
 
 // -----------------------------------------------------------------------------
@@ -181,6 +204,10 @@ export type SecurityFixtures = {
   storagePrefix: string;
   /** Extra auth users to delete in cleanup (push organizer ids here). */
   authUserIds: string[];
+  /** Events a suite creates itself; purged (with cascades) in cleanup. */
+  extraEventIds: string[];
+  /** Templates a suite creates itself; purged in cleanup. */
+  extraTemplateIds: string[];
 };
 
 /** One question per AnswerValue kind; required text / multi-select / file per R14. */
@@ -383,6 +410,8 @@ export async function seedFixtures(): Promise<SecurityFixtures> {
       seededApplicationId: application!.id,
       storagePrefix,
       authUserIds: [],
+      extraEventIds: [],
+      extraTemplateIds: [],
     };
   } catch (error) {
     await purgeRun(suffix, [activeEventId, draftEventId, activeEventBId]);
@@ -404,7 +433,18 @@ export async function cleanupFixtures(fixtures: SecurityFixtures): Promise<void>
     fixtures.activeEventId,
     fixtures.draftEventId,
     fixtures.activeEventBId,
+    ...fixtures.extraEventIds,
   ]);
+
+  if (fixtures.extraTemplateIds.length > 0) {
+    const { error } = await service
+      .from('questionnaire_templates')
+      .delete()
+      .in('id', fixtures.extraTemplateIds);
+    if (error) {
+      console.warn(`[security harness] could not delete templates: ${error.message}`);
+    }
+  }
 
   const { data: objects } = await service.storage
     .from('attachments')

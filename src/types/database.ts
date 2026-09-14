@@ -456,6 +456,30 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      save_event_questionnaire: {
+        Args: {
+          p_event_id: string
+          p_questions: Json
+          p_seeded_from_template_id?: string
+        }
+        Returns: {
+          event_questionnaire_id: string
+          help_text: string | null
+          id: string
+          label: string
+          options: Json | null
+          position: number
+          required: boolean
+          show_if: Json | null
+          type: Database["public"]["Enums"]["question_type"]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "event_questions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       submit_public_application: {
         Args: { p_submission: Json }
         Returns: {
