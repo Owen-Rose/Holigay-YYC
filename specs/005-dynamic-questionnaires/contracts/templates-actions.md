@@ -148,13 +148,15 @@ const seedSchema = z.object({
 
 **Authorization**: `requireRole('organizer')`. Event must be `draft` (verified via app-layer guard + RLS).
 
-**Behavior**:
+**Behavior** *(revised in Phase 11 — the seed now goes through the same atomic RPC as the builder)*:
 1. Verify event exists and is in `draft` status (return failure if not).
-2. Read `template_questions` for the given template (ordered).
-3. If `replaceExisting`, DELETE existing `event_questions` for the event's questionnaire.
-4. INSERT a copy of each template question into `event_questions`, preserving order; copy `show_if` rules verbatim (questionIds must be remapped: walk in position order, build oldId → newId map, rewrite show_if.questionId).
-5. Set `event_questionnaires.seeded_from_template_id = templateId` (informational).
+2. Verify the template exists ("Template not found" otherwise); read its `template_questions` (ordered).
+3. If not `replaceExisting`, read the event's current `event_questions` (ordered) — they are re-sent unchanged ahead of the copies, because the RPC takes the full desired state.
+4. Build the copies with fresh UUIDs, remapping `show_if.questionId` via the oldId → newId map.
+5. One call to `save_event_questionnaire(eventId, [...existing, ...copies], templateId)` through `src/lib/actions/_internal/save-questionnaire.ts`. The RPC creates the questionnaire row for legacy events, writes every question, and sets `event_questionnaires.seeded_from_template_id = templateId` in the same transaction (this write used to no-op under RLS).
 6. `revalidatePath('/dashboard/events/[id]', 'page')`.
+
+Errors from the RPC map through `mapSaveQuestionnaireError` (see `questionnaire-actions.md`).
 
 **Returns**: `{ success, error, data: { eventQuestionnaireId, questionsCount } | null }`.
 

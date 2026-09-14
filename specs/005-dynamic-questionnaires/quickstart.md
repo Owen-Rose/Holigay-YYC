@@ -26,13 +26,17 @@ Bootstrap admin per `CLAUDE.md` "Admin Bootstrap" if needed.
 2. Go to `/dashboard/events/new`. Create a draft event "Test Holigay Spring 2026".
 3. After redirect to `/dashboard/events/[id]`, scroll to the Questionnaire builder section.
 4. Confirm the three default questions are pre-rendered: Booth Preference (single_select), Product Categories (multi_select with 11 options), Special Requirements (long_text). **(FR-011)**
-5. Add a `yes_no` question: "Are you a first-time vendor?". Save.
+5. Add a `yes_no` question: "Are you a first-time vendor?".
 6. Add a `single_select` question: "Tent type" with options Pop-up / Frame / None.
-7. Mark "Are you a first-time vendor?" as required. Save.
-8. Reorder: drag "Tent type" above "Are you a first-time vendor?". Save.
-9. Refresh the page. Verify all five questions persist in the saved order.
+7. Mark "Are you a first-time vendor?" as required.
+8. Reorder: move "Tent type" above "Are you a first-time vendor?".
+9. Save once. Confirm a single request in the network tab and one "Questionnaire saved" toast. Refresh the page. Verify all five questions persist in the saved order.
 
 ✅ Acceptance: Story 1 scenarios 1, 2, 3, plus reorder behavior.
+
+> Since Phase 11 the builder saves the whole questionnaire in one `save_event_questionnaire`
+> call (migration 012). Steps 5–9 as a *single* save, plus the atomic-rollback case, are
+> covered against a real database by `src/test/security/questionnaire-save.test.ts` (Q3–Q5).
 
 **Negative**: Sign in as `vendor@example.com`, navigate to `/dashboard/events/[id]`. Confirm middleware redirect to `/unauthorized`. (FR-017, Story 1 scenario 4)
 
@@ -136,3 +140,36 @@ supabase db reset --local      # if you used local
 | 5 | Templates: save, seed, decoupled edits, orphan handling | `/dashboard/templates`, `/dashboard/templates/[id]` |
 | 6 | Show-if equals on yes_no/single_select; forward + trigger-type guards | builder show-if panel |
 | 7 | Lock-on-publish at app + RLS layers | direct SQL |
+
+---
+
+## Phase 11 rollout — migration `012_atomic_questionnaire_save.sql`
+
+Same shape as spec 006's rollout: dev project first, probe, then prod. The migration is
+self-contained (one constraint swap, one new function, two `CREATE OR REPLACE`) and the
+matching app code must deploy with it — the builder calls `save_event_questionnaire`
+and the four per-question actions are gone.
+
+```bash
+# dev project
+npx supabase link --project-ref kcokcufmzyckbodelqpb
+npx supabase db push            # applies 012 only
+npm run db:types:dev            # confirm src/types/database.ts is unchanged
+
+# probe (signed in as an organizer on the dev deploy): open a draft event,
+# add two questions where the second shows-if on the first, reorder, delete
+# one, save once → one request, state persists on reload. Seed from a
+# template → event_questionnaires.seeded_from_template_id is set.
+
+# prod project — after the dev probe passes
+npx supabase link --project-ref hgmfjvjlxrhdojwlkgap
+npx supabase db push
+```
+
+### Rollout record
+
+| Environment | Migration 012 applied | Probe | Notes |
+|---|---|---|---|
+| local | 2026-09-14 (`supabase db reset`) | Q1–Q16, TW1–TW10 green | — |
+| dev | — | — | pending |
+| prod | — | — | pending; promote `dev` → `main` after |

@@ -71,7 +71,7 @@ One per event, 1:1.
 |---|---|---|---|
 | `id` | `uuid` | PK | |
 | `event_id` | `uuid` | NOT NULL, `unique`, `references events(id) on delete cascade` | 1:1 |
-| `seeded_from_template_id` | `uuid` | nullable, `references questionnaire_templates(id) on delete set null` | Informational only (FR-010) |
+| `seeded_from_template_id` | `uuid` | nullable, `references questionnaire_templates(id) on delete set null` | Informational only (FR-010). Written by `save_event_questionnaire` when seeding (migration 012) |
 | `locked_at` | `timestamptz` | nullable | Set on event publish (FR-019) |
 | `created_at` | `timestamptz` | NOT NULL, `default now()` | |
 | `updated_at` | `timestamptz` | NOT NULL, `default now()` | |
@@ -79,7 +79,7 @@ One per event, 1:1.
 **RLS**:
 - SELECT (`anon` + `authenticated`): unconditional — public `/apply` reads questionnaires for active events (FR-021); attempts on inactive events still pass RLS but UI gating prevents access. (Same posture as the existing public read on `events`.)
 - INSERT (`authenticated`): `with check (get_user_role() in ('organizer','admin') and exists (select 1 from events e where e.id = event_id and e.status = 'draft'))`. The `events.status = 'draft'` clause is the data-layer gate (FR-020, R3).
-- UPDATE / DELETE (`authenticated`): no policy → forbidden for app code. The `locked_at` column is written exclusively by the `lock_event_questionnaire_on_publish` trigger defined in migration 009 (see trigger section below), which runs in the table-owner context and bypasses RLS. App code never touches this table after INSERT.
+- UPDATE / DELETE (`authenticated`): no policy → forbidden for app code. The `locked_at` column is written exclusively by the `lock_event_questionnaire_on_publish` trigger defined in migration 009 (see trigger section below), which runs in the table-owner context and bypasses RLS. The only other writer is the `save_event_questionnaire` RPC (migration 012, `SECURITY DEFINER`), which stamps `updated_at` and, when seeding, `seeded_from_template_id`. App code never issues a direct UPDATE on this table.
 
 ---
 
@@ -91,7 +91,7 @@ Same shape as `template_questions`, immutable once parent questionnaire is locke
 |---|---|---|
 | `id` | `uuid` | PK |
 | `event_questionnaire_id` | `uuid` | NOT NULL, `references event_questionnaires(id) on delete cascade` |
-| `position` | `integer` | NOT NULL, `unique (event_questionnaire_id, position)`, `check (position >= 0)` |
+| `position` | `integer` | NOT NULL, `unique (event_questionnaire_id, position) — `DEFERRABLE INITIALLY IMMEDIATE` since migration 012 so the save RPC can renumber in one statement`, `check (position >= 0)` |
 | `type` | `question_type` | NOT NULL |
 | `label` | `text` | NOT NULL |
 | `help_text` | `text` | nullable |

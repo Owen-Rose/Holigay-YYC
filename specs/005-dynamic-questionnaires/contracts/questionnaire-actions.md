@@ -33,85 +33,63 @@ type GetEventQuestionnaireResponse = {
 
 ---
 
-## `addEventQuestion(input)`
+## `saveEventQuestionnaire(eventId: string, questions: unknown)`
 
-```ts
-const addQuestionSchema = z.object({
-  eventId: z.string().uuid(),
-  question: questionInputSchema,
-  position: z.number().int().min(0),     // insert position (existing siblings shift right)
-});
-```
+*Phase 11 (2026-09) — replaces the four per-question actions (`addEventQuestion`,
+`updateEventQuestion`, `deleteEventQuestion`, `reorderEventQuestions`) that shipped with
+the original spec. Their contracts are kept in git history; the builder no longer calls
+them and they no longer exist.*
 
-**Authorization**: `requireRole('organizer')`. Event status MUST be `draft` (FR-017).
+`questions` is the **complete** questionnaire in display order. Array index becomes
+`position`; persisted questions carry their `id`, new ones carry a client-assigned UUID
+(the builder assigns it in `addQuestion`, so a later question can already reference it in a
+show-if rule). Validated by `questionnaireInputSchema` (`validations/questionnaire.ts`):
+per-question field rules, option constraints, ≤ 200 questions, unique ids, and the full
+`validateShowIfRules` pass (forward refs, cycles, trigger type, option keys).
 
-**Behavior**:
-1. App-layer guard: SELECT `events.status` for `eventId`; if not `draft`, return failure (defense in depth + clearer error than the RLS denial).
-2. SELECT existing positions; shift positions ≥ `input.position` up by 1.
-3. INSERT new question at `input.position`.
-4. Validate show-if (forward-ref / cycle / trigger-type) over the new full question set.
-5. `revalidatePath('/dashboard/events/[id]', 'page')`.
-
-**Returns**: `{ success, error, data: { questionId: string } | null }`.
-
----
-
-## `updateEventQuestion(input)`
-
-```ts
-const updateQuestionSchema = z.object({
-  questionId: z.string().uuid(),
-  question: questionInputSchema,
-});
-```
-
-**Authorization**: `requireRole('organizer')`. Parent event MUST be `draft`.
+**Authorization**: `requireRole('organizer')`, then `requireDraftEvent` (clearer message for
+the common case). The RPC re-checks role, draft status and lock itself.
 
 **Behavior**:
-1. Resolve `event_questionnaire_id` and `event_id` for the question.
-2. App-layer guard on event status.
-3. UPDATE the row in place (position unchanged).
-4. Re-validate show-if over the full sibling set after the update is applied (in-memory).
-5. `revalidatePath('/dashboard/events/[id]', 'page')`.
+1. Zod `safeParse` — any failure returns before the database is touched.
+2. One call to `save_event_questionnaire(p_event_id, p_questions, p_seeded_from_template_id := NULL)`
+   via the shared helper `src/lib/actions/_internal/save-questionnaire.ts`.
+3. `revalidatePath('/dashboard/events/[id]', 'page')` on success.
 
-**Returns**: `{ success, error, data: null }`.
+**Returns**: `{ success, error, data: EventQuestionRow[] | null }` — the saved rows ordered
+by position, which the builder adopts as its new state.
 
----
+**Error mapping** (`src/lib/questionnaire/save-errors.ts`; raw messages are logged, never
+surfaced):
 
-## `deleteEventQuestion(questionId: string)`
+| SQLSTATE | Raised when | Message |
+|---|---|---|
+| `42501` | caller is not organizer/admin (or has no EXECUTE) | You do not have permission to edit this questionnaire |
+| `P0002` | event or template not found | Event or template not found |
+| `P0001` | event not draft, or `locked_at` set | This event has been published; its questionnaire is locked |
+| `P0004` | non-array, > 200, missing/duplicate id, id belongs to another questionnaire, show_if not earlier in payload | Questionnaire payload is invalid. Reload the page and try again. |
+| `23503` | a removed question already has `application_answers` | Cannot remove a question that already has answers |
+| other | CHECK violations, transport | Failed to save questionnaire |
 
-**Authorization**: `requireRole('organizer')`. Parent event MUST be `draft`.
+### RPC: `save_event_questionnaire(uuid, jsonb, uuid) RETURNS SETOF event_questions`
 
-**Behavior**:
-1. App-layer guard on event status.
-2. Reject if any sibling question has a `show_if.questionId` referencing this question — surface a "this question is referenced by Q3 ('…') — remove that rule first" error. (Cycle prevention is the stronger behavior than auto-clearing the dependent rule, which would silently change unrelated questions.)
-3. DELETE the row.
-4. Re-pack `position` of remaining siblings (no gaps).
-5. `revalidatePath('/dashboard/events/[id]', 'page')`.
+Migration `012_atomic_questionnaire_save.sql`. `SECURITY DEFINER`, `EXECUTE` granted to
+`authenticated` only. One transaction:
 
-**Returns**: `{ success, error, data: null }`.
+1. Role gate: `get_user_role() IN ('organizer','admin')` else `42501`.
+2. Payload shape checks (`P0004`).
+3. `ensure_event_questionnaire(p_event_id)` — `P0002` / `P0001`, creates the row for legacy
+   events — then `SELECT … FOR UPDATE` on the questionnaire row; `locked_at IS NOT NULL` → `P0001`.
+4. Template existence when `p_seeded_from_template_id` is given (`P0002`).
+5. Ownership: every payload id that already exists must belong to this questionnaire (`P0004`).
+6. Every `show_if.questionId` must be an earlier element of the payload (`P0004`).
+7. `SET CONSTRAINTS event_questions_event_questionnaire_id_position_key DEFERRED` (made
+   `DEFERRABLE INITIALLY IMMEDIATE` by the same migration); `DELETE` rows not in the payload;
+   `INSERT … ON CONFLICT (id) DO UPDATE` with `position = ordinal − 1`.
+8. `UPDATE event_questionnaires SET seeded_from_template_id = COALESCE(p_seeded_from_template_id, seeded_from_template_id), updated_at = now()`.
+9. `RETURN QUERY` the questionnaire's rows ordered by position.
 
----
-
-## `reorderEventQuestions(input)`
-
-```ts
-const reorderSchema = z.object({
-  eventId: z.string().uuid(),
-  orderedQuestionIds: z.array(z.string().uuid()).min(1),
-});
-```
-
-**Authorization**: `requireRole('organizer')`. Event MUST be `draft`.
-
-**Behavior**:
-1. App-layer guard on event status.
-2. Verify `orderedQuestionIds` is exactly the current set for that event's questionnaire (size + identity match) — return failure on mismatch.
-3. UPDATE positions atomically via `UPDATE … FROM (VALUES …) AS …` (or two-step: set to negatives then to final positives) to avoid the unique-constraint collision.
-4. Re-run `validateShowIfRules` over the full question set with updated positions applied (positions changed → previously-valid forward-refs may have flipped; any violation rejects the entire reorder).
-5. `revalidatePath('/dashboard/events/[id]', 'page')`.
-
-**Returns**: `{ success, error, data: null }`.
+Proven against a real stack by `src/test/security/questionnaire-save.test.ts` (Q1–Q16).
 
 ---
 

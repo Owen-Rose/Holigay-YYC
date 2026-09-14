@@ -166,7 +166,7 @@ How coupled are we, really? Coupling is concentrated in exactly one place.
 | Service surface | Where | Size | Swap cost |
 |---|---|---|---|
 | Email (Resend) | `src/lib/email/client.ts` behind `sendEmail()` | 1 file + 3 call sites | **Trivial** — cleanest seam in the app. Templates are plain TS; provider-agnostic. |
-| Storage | `src/lib/actions/upload.ts`, `attachments-list.tsx` | 5 calls, 2 files | **Small** — standard upload/signed-URL. Gotcha: bucket policies exist only in the Supabase dashboard, not in migrations. |
+| Storage | `src/lib/actions/upload.ts`, `attachments-list.tsx` | 5 calls, 2 files | **Small** — standard upload/signed-URL. Bucket + policies live in migration 011 (dashboard-only config until spec 006). |
 | DB queries (supabase-js) | 13 files in `src/lib/`, ~90 `.from()` + 3 `.rpc()` calls | Wide but shallow | **Tedious, not hard** — no DAL exists; you'd edit every action file, but there's no hidden logic in the client. |
 | Auth + session + RLS | `src/lib/supabase/{server,client,middleware}.ts`, `src/middleware.ts`, ~11 `auth.*` call sites, 3 FKs into `auth.users`, every RLS policy via `auth.uid()` | The whole security architecture | **Expensive** — this is the real lock-in. See §8. |
 
@@ -257,29 +257,42 @@ Vitest runs **two projects** (`vitest.config.ts`):
 - **`security`** (node, serial, `src/test/security/`) — added by spec 006. Runs against a
   **real local Supabase stack** with all migrations applied, so it tests the policies that
   actually ship rather than a mock of them. `harness.ts` builds anon / service-role /
-  authenticated-organizer clients and seeds + tears down its own fixtures per run. Five
-  suites: anon reads, anon writes, storage, the submission RPC's success and failure modes,
-  and organizer dashboard reads. It **self-skips** when no stack is reachable (so
+  authenticated organizer / vendor clients and seeds + tears down its own fixtures per run.
+  Seven suites: anon reads, anon writes, storage, the submission RPC's success and failure
+  modes, organizer dashboard reads, the atomic questionnaire save (`save_event_questionnaire`
+  posture, ownership, lock, and mid-batch rollback), and template writes under RLS. It
+  **self-skips** when no stack is reachable (so
   `npm test` stays green offline) and is forced to run in CI by
   `CI_REQUIRE_SECURITY_TESTS=1` in the parallel `security-tests` job.
 
 **Still not covered:** `admin.ts` (role mutation), `auth.ts`, `export.ts`, `vendors.ts`.
-On the RLS side the security suite covers the anon surface, storage, and the submission
-path; **cross-vendor isolation** (vendor A reading vendor B's applications) and
-**lock-on-publish** are still verified only by hand — the obvious next suites.
+On the RLS side the security suite covers the anon surface, storage, the submission path,
+the builder/template write paths, and lock-on-publish (through the save RPC);
+**cross-vendor isolation** (vendor A reading vendor B's applications) is still verified
+only by hand — the obvious next suite.
 
 ## 10. Where the weak points are
 
 Kept deliberately short — the full analysis and fix plan is in [ROADMAP.md](./ROADMAP.md):
 
-1. **The questionnaire builder saves non-atomically** — N sequential server actions
-   per save; a mid-batch failure strands half-saved state. (The atomic input schema
-   `questionnaireInputSchema` exists but was never wired up.) Now the top item.
-2. Consistency drift per §7; remaining test gaps per §9 — notably cross-vendor isolation
-   and lock-on-publish, both still hand-verified.
-3. `seeded_from_template_id` on `event_questionnaires` is written by code that always
-   no-ops, so the column is never populated. Decide: set it inside the seed transaction,
-   or drop it.
+1. Consistency drift per §7; remaining test gaps per §9 — notably cross-vendor isolation,
+   still hand-verified.
+2. `updateTemplate` still replaces a template's questions with delete-all-then-reinsert
+   across two PostgREST calls (non-atomic). Same fix shape as the questionnaire save; low
+   stakes, tracked in ROADMAP Tier 3.
+
+**Resolved by spec 005 Phase 11** (2026-09-14):
+
+- ~~The questionnaire builder saves non-atomically~~ — one `saveEventQuestionnaire` action
+  validated by `questionnaireInputSchema` calls `save_event_questionnaire` (migration 012),
+  which deletes-missing / upserts / renumbers in a single transaction and re-checks role,
+  draft status, lock, and row ownership as definer. Proven by
+  `src/test/security/questionnaire-save.test.ts`.
+- ~~`seeded_from_template_id` is never populated~~ — the template seed goes through the same
+  RPC and the column is written in the seed transaction.
+- The two older organizer RPCs (`ensure_event_questionnaire`,
+  `create_event_with_default_questionnaire`) were callable by any signed-in vendor; 012 adds
+  the same in-function role gate.
 
 **Resolved by spec 006** (kept here for traceability — the original review ranked the first
 of these as the single most serious problem in the system):

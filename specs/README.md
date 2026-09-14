@@ -10,7 +10,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 002 | Consolidate vendor portal | ✅ Shipped | (direct commits to dev) | 2026-04-21 |
 | 003 | — (number skipped) | — | — | — |
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
-| 005 | Dynamic per-event questionnaires | ✅ Shipped; on `main`/prod 2026-09-13 (T050 waived) | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
+| 005 | Dynamic per-event questionnaires | ✅ Shipped; on `main`/prod 2026-09-13. Phase 11 (atomic save, migration `012`) on `dev` 2026-09-14 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7), Phase 11 PR | 2026-08-22 |
 | 006 | Close the public data exposure | ✅ Shipped; prod migrated 2026-09-13 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 
 ### Post-merge detail
@@ -25,11 +25,14 @@ merged as one unit.
   `dev` promoted to `main` (`3dc243c`) for the Vercel Production deploy. The manual probe
   checklist and a live test submission on prod are still owed — see the "Prod rollout
   record" in `specs/006-close-public-data-exposure/quickstart.md`.
-- **005** is closed with **T050 waived, not executed** (2026-08-22) — see its `tasks.md`
-  for the full reasoning and the five things that leaves unverified. Two known defects
-  remain, tracked as `docs/ROADMAP.md` Tier 2: non-atomic questionnaire-builder saves and
-  the never-populated `seeded_from_template_id`. Its third defect — required-answer
-  semantics — was fixed by 006/US3.
+- **005** closed 2026-08-22 with **T050 waived, not executed** — see its `tasks.md` for the
+  reasoning. Its required-answer defect was fixed by 006/US3. **Phase 11** (2026-09-14,
+  branch `005-atomic-builder-save`) fixed the remaining two: the builder and the template
+  seed now write through one atomic `save_event_questionnaire` RPC (migration `012`) and
+  `seeded_from_template_id` is populated; `src/test/security/questionnaire-save.test.ts` and
+  `template-writes.test.ts` give the builder/template paths real-database coverage, retiring
+  the waiver's gaps 1, 3 and 5. Migration `012` still has to be pushed to the dev and prod
+  projects.
 
 ## Queued work (no spec yet)
 

@@ -6,7 +6,12 @@ Supersedes [cleanup-roadmap.md](./cleanup-roadmap.md) (all five of its workstrea
 
 **Update (2026-08-22):** Tier 1 shipped as **spec 006** — see the marked-up section below.
 Tier 2 item 2 and part of item 4 came with it, as did Tier 3's RLS-integration-test item.
-The rest of the document stands as written.
+
+**Update (2026-09-14):** Tier 2 items 1 and 3 shipped as **spec 005 Phase 11** (branch
+`005-atomic-builder-save`): one atomic `save_event_questionnaire` RPC behind the builder
+and the template seed, `seeded_from_template_id` populated, and real-database suites for the
+builder and template write paths (which retire the T050 waiver's main gap). Tier 2 is
+closed; the rest of the document stands as written.
 
 **Review verdict, for the record:** the foundation is solid — lean dependency set, strict
 TS with zero suppressions, one consistent mutation pattern, behavioral tests, portable
@@ -24,7 +29,7 @@ in-flight feature safely, then paying down consistency debt.
 | Brand re-skin | ✅ Mostly (6.9 file previews, 6.10 mobile polish outstanding) |
 | Organizer invites (Epic 4) | UI only — backend stub awaits a service-role client |
 | **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Manual probe checklist + live test submission on prod still owed (quickstart "Prod rollout record"). |
-| **Dynamic questionnaires (spec 005)** | **Shipped to `dev`** with 006. Required-answer semantics fixed by 006/US3; two defects still open (builder atomicity, `seeded_from_template_id`); T050 manual walkthrough still not done |
+| **Dynamic questionnaires (spec 005)** | ✅ **Feature-complete.** Shipped to `dev` with 006; on prod since 2026-09-13. Required-answer semantics fixed by 006/US3; builder atomicity and `seeded_from_template_id` fixed by Phase 11 (migration `012`, 2026-09-14). Migration 012 still to be pushed to dev/prod |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
 
 ---
@@ -109,24 +114,23 @@ submission back.
 
 The feature is close. Known defects, in priority order:
 
-1. **Make the builder save atomic** (effort: M). `questionnaire-builder.tsx:147-224`
-   currently fires one server action per deleted/updated/added question plus a reorder,
-   sequentially — a mid-batch failure strands half-saved state, and updates running
-   before the reorder can transiently violate show-if position validation (the likely
-   "some bugs to work out"). Replace with one `saveQuestionnaire(eventId, questions[])`
-   action validated by **`questionnaireInputSchema`** — already written for exactly this
-   at `validations/questionnaire.ts:153` and currently dead code — backed by a
-   `SECURITY DEFINER` RPC (delete-missing / upsert / set positions in one transaction).
-   This also collapses ~4 per-question actions in `questionnaires.ts` into one.
+1. ~~**Make the builder save atomic**~~ ✅ **Shipped 2026-09-14 (spec 005 Phase 11).**
+   `saveEventQuestionnaire(eventId, questions[])` validates with `questionnaireInputSchema`
+   and calls `save_event_questionnaire(uuid, jsonb, uuid)` (migration `012`): delete-missing,
+   upsert-by-id, position = array index, in one transaction, with role / draft / lock /
+   row-ownership re-checked inside the definer function. The four per-question actions are
+   gone. `src/test/security/questionnaire-save.test.ts` proves posture and atomicity (Q1–Q16)
+   and `template-writes.test.ts` covers template RLS (TW1–TW10). The same migration adds the
+   missing role gate to `ensure_event_questionnaire` / `create_event_with_default_questionnaire`,
+   which any signed-in vendor could call before.
 2. ~~**Fix required-answer semantics**~~ ✅ **Shipped by spec 006 / US3.**
    `isAnswerEmpty(answer)` in `src/lib/questionnaire/answer-coercion.ts` decides emptiness
    per answer kind and is applied on both sides — server in `answers.ts`, client in
    `dynamic-application-form.tsx`. Empty *optional* answers are now skipped rather than
    stored as empty-value rows.
-3. **Decide `seeded_from_template_id`** (effort: S). The write at `templates.ts:425`
-   always no-ops (no UPDATE policy on `event_questionnaires` — known, commented). Either
-   set it inside the seed RPC/transaction, or delete the column. Don't keep a field
-   that's never populated.
+3. ~~**Decide `seeded_from_template_id`**~~ ✅ **Kept and populated (Phase 11).** The
+   template seed now goes through the same RPC with `p_seeded_from_template_id`, so the
+   column is written in the seed transaction and the seed itself is atomic.
 4. ~~**Finish the branch**~~ — closed 2026-08-22. The `events/new` redirect tweak and the
    removal of `src/app/test-upload/` landed with spec 006. The T050 manual walkthrough was
    **waived, not executed** (reasoning in `specs/005-dynamic-questionnaires/tasks.md`). Its
@@ -156,8 +160,13 @@ rewrite session.
   `src/test/security/harness.ts` seeding and tearing down its own fixtures. It covers anon
   reads/writes, storage, the submission RPC's failure modes, and organizer dashboard reads.
   It self-skips when the stack is down and is forced on in CI via
-  `CI_REQUIRE_SECURITY_TESTS=1`. Cross-vendor isolation and lock-on-publish are the
-  natural next suites to add.
+  `CI_REQUIRE_SECURITY_TESTS=1`. Spec 005 Phase 11 added the builder-save and
+  template-write suites (including lock-on-publish via the RPC). Cross-vendor isolation is
+  the natural next suite to add.
+- **Make `updateTemplate` atomic.** It still does delete-all-then-reinsert across two
+  PostgREST calls (`templates.ts`); the questionnaire save shows the shape of the fix (a
+  small `SECURITY DEFINER` RPC). Low stakes — templates are organizer-only and cheap to
+  recreate — so fold it into the next PR that touches templates.
 - Leftovers absorbed from cleanup-roadmap.md: `as Role` cast in `admin.ts:103`;
   attachment orphaning on failed legacy submits (largely mooted by the Tier 1 RPC);
   tests for `admin.ts` role changes and `updateEventStatus`.
@@ -281,7 +290,7 @@ operational readiness, not implementation.
 | Milestone | Contents | Target |
 |---|---|---|
 | **M1 — Safe** ✅ | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Prod closed 2026-09-13**: `009`–`011` pushed to the prod project (history repaired first — its `schema_migrations` was empty like dev's), all object markers verified, `dev` promoted to `main` (`3dc243c`). Residual: the manual probe checklist and one live test submission on prod | done |
-| **M2 — Feature-complete** | Spec 005 shipped to `dev` 2026-08-22 with T050 waived. Remaining for M2: atomic builder save (with real-DB integration tests, which also retire the T050 waiver) and a decision on `seeded_from_template_id` | weeks 2–4 |
+| **M2 — Feature-complete** ✅ | Spec 005 shipped to `dev` 2026-08-22 with T050 waived; Phase 11 (2026-09-14) landed the atomic builder save with real-DB suites (retiring the waiver's main gap) and populated `seeded_from_template_id`. Residual: push migration `012` to dev and prod | done |
 | **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them | month 2 |
 | **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |
 
