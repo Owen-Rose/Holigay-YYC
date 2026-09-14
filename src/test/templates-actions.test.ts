@@ -92,6 +92,7 @@ function makeChain(): Record<string, unknown> {
     returns: () => chain,
     limit: () => dequeue(),
     single: () => dequeue(),
+    maybeSingle: () => dequeue(),
     insert: (rows: unknown) => {
       insertCapture = Array.isArray(rows) ? (rows as unknown[]) : [rows];
       return chain;
@@ -103,10 +104,12 @@ function makeChain(): Record<string, unknown> {
   return chain;
 }
 
+const { mockRpc } = vi.hoisted(() => ({ mockRpc: vi.fn() }));
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockImplementation(async () => ({
     from: () => makeChain(),
-    rpc: () => Promise.resolve(responseQueue.shift() ?? { data: null, error: null }),
+    rpc: mockRpc,
   })),
 }));
 
@@ -142,6 +145,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   responseQueue.length = 0;
   insertCapture = [];
+  mockRpc.mockImplementation(() =>
+    Promise.resolve(responseQueue.shift() ?? { data: null, error: null })
+  );
 
   vi.mocked(requireRole).mockResolvedValue({
     success: true,
@@ -343,27 +349,55 @@ describe('seedEventQuestionnaireFromTemplate', () => {
     templateId: TMPL_ID,
     replaceExisting: false,
   };
+  const EXISTING_ID = '77777777-7777-4777-8777-777777777777';
+  const EXISTING = {
+    id: EXISTING_ID,
+    event_questionnaire_id: EQ_ID,
+    type: 'yes_no',
+    label: 'Already here',
+    help_text: null,
+    required: false,
+    options: null,
+    show_if: null,
+    position: 0,
+  };
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-  it('copies template questions and returns questionsCount', async () => {
-    ok(EQ_ID); // ensure_event_questionnaire RPC → string uuid
+  function rpcArgs() {
+    const [name, args] = mockRpc.mock.calls[0] as [string, Record<string, unknown>];
+    return { name, args, questions: args.p_questions as Array<Record<string, unknown>> };
+  }
+
+  it('appends template copies after the existing questions in one RPC call', async () => {
+    ok({ id: TMPL_ID }); // template exists
     ok([TQ1, TQ2]); // template_questions
-    ok([{ position: 2 }]); // max existing position (limit)
-    ok(null); // event_questions insert
-    ok(null); // event_questionnaires update (best-effort)
+    ok({ id: EQ_ID }); // event_questionnaires maybeSingle
+    ok([EXISTING]); // current event_questions
+    ok([EXISTING, { ...EXISTING, id: 'x' }, { ...EXISTING, id: 'y' }]); // RPC rows
 
     const result = await seedEventQuestionnaireFromTemplate(SEED_INPUT);
 
     expect(result.success).toBe(true);
     expect(result.data?.questionsCount).toBe(2);
     expect(result.data?.eventQuestionnaireId).toBe(EQ_ID);
+    expect(insertCapture).toHaveLength(0);
+
+    expect(mockRpc).toHaveBeenCalledTimes(1);
+    const { name, args, questions } = rpcArgs();
+    expect(name).toBe('save_event_questionnaire');
+    expect(args.p_event_id).toBe(EVENT_ID);
+    expect(args.p_seeded_from_template_id).toBe(TMPL_ID);
+    expect(questions).toHaveLength(3);
+    expect(questions[0].id).toBe(EXISTING_ID);
+    expect(questions.slice(1).map((q) => q.label)).toEqual(['Business name', 'Description']);
+    expect(questions[1].id).toMatch(UUID_RE);
+    expect(questions[1].id).not.toBe(TQ1_ID);
   });
 
-  it('clears existing questions first when replaceExisting is true', async () => {
-    ok(EQ_ID); // ensure_event_questionnaire RPC → string uuid
+  it('sends only the template copies when replaceExisting is true', async () => {
+    ok({ id: TMPL_ID }); // template exists
     ok([TQ1]); // template_questions
-    ok(null); // event_questions delete
-    ok(null); // event_questions insert
-    ok(null); // event_questionnaires update
+    ok([{ ...EXISTING, id: 'x' }]); // RPC rows
 
     const result = await seedEventQuestionnaireFromTemplate({
       ...SEED_INPUT,
@@ -372,6 +406,9 @@ describe('seedEventQuestionnaireFromTemplate', () => {
 
     expect(result.success).toBe(true);
     expect(result.data?.questionsCount).toBe(1);
+    const { questions } = rpcArgs();
+    expect(questions).toHaveLength(1);
+    expect(questions[0].label).toBe('Business name');
   });
 
   it('remaps show_if.questionId to the new event question id', async () => {
@@ -379,35 +416,59 @@ describe('seedEventQuestionnaireFromTemplate', () => {
       ...TQ2,
       show_if: { questionId: TQ1_ID, operator: 'equals', value: 'yes' } as unknown as null,
     };
+    const TQ1_YES_NO: TemplateQuestionRow = { ...TQ1, type: 'yes_no' };
+    const TQ2_VALID = {
+      ...TQ2_WITH_SHOWIF,
+      show_if: { questionId: TQ1_ID, operator: 'equals', value: 'true' } as unknown as null,
+    };
 
-    ok(EQ_ID); // ensure_event_questionnaire RPC → string uuid
-    ok([TQ1, TQ2_WITH_SHOWIF]);
-    ok([]); // no existing questions → startPosition = 0
-    ok(null);
-    ok(null);
+    ok({ id: TMPL_ID }); // template exists
+    ok([TQ1_YES_NO, TQ2_VALID]); // template_questions
+    ok(null); // no questionnaire row yet (legacy event)
+    ok([]); // RPC rows (not asserted)
 
     await seedEventQuestionnaireFromTemplate(SEED_INPUT);
 
-    const rows = insertCapture as Array<{ id: string; show_if: { questionId: string } | null }>;
-    expect(rows).toHaveLength(2);
-    // TQ2's show_if must reference the newly-generated id for TQ1, not the old template id
-    expect(rows[1].show_if?.questionId).toBe(rows[0].id);
-    expect(rows[1].show_if?.questionId).not.toBe(TQ1_ID);
+    const { questions } = rpcArgs();
+    expect(questions).toHaveLength(2);
+    expect((questions[1].show_if as { questionId: string }).questionId).toBe(questions[0].id);
+    expect((questions[1].show_if as { questionId: string }).questionId).not.toBe(TQ1_ID);
   });
 
-  it('creates questionnaire row for a legacy event (no prior questionnaire row)', async () => {
+  it('reports the questionnaire id the RPC created for a legacy event', async () => {
     const NEW_EQ_ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-    ok(NEW_EQ_ID); // ensure_event_questionnaire RPC creates row, returns new uuid
+    ok({ id: TMPL_ID }); // template exists
     ok([TQ1]); // template_questions
-    ok([]); // no existing questions → startPosition = 0
-    ok(null); // event_questions insert
-    ok(null); // event_questionnaires update (best-effort)
+    ok(null); // no questionnaire row yet
+    ok([{ ...EXISTING, id: 'x', event_questionnaire_id: NEW_EQ_ID }]); // RPC rows
 
     const result = await seedEventQuestionnaireFromTemplate(SEED_INPUT);
 
     expect(result.success).toBe(true);
     expect(result.data?.eventQuestionnaireId).toBe(NEW_EQ_ID);
     expect(result.data?.questionsCount).toBe(1);
+  });
+
+  it('rejects when the template does not exist, without calling the RPC', async () => {
+    enqueue(null, { code: 'PGRST116', message: 'No rows' });
+
+    const result = await seedEventQuestionnaireFromTemplate(SEED_INPUT);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/template not found/i);
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+
+  it('maps an RPC failure to the canned save message', async () => {
+    ok({ id: TMPL_ID });
+    ok([TQ1]);
+    ok(null);
+    enqueue(null, { code: 'P0001', message: 'Questionnaire is locked' });
+
+    const result = await seedEventQuestionnaireFromTemplate(SEED_INPUT);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/published|locked/i);
   });
 
   it('rejects when the event is not in draft status', async () => {
@@ -421,5 +482,6 @@ describe('seedEventQuestionnaireFromTemplate', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/draft/i);
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 });

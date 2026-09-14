@@ -5,12 +5,14 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/roles';
 import { requireDraftEvent } from '@/lib/actions/_internal/event-status';
+import { saveQuestionnaireViaRpc } from '@/lib/actions/_internal/save-questionnaire';
 import { templateInputSchema } from '@/lib/validations/questionnaire';
 import type { ShowIfRule } from '@/lib/questionnaire/show-if';
 import type { Database, Json } from '@/types/database';
 
 type TemplateRow = Database['public']['Tables']['questionnaire_templates']['Row'];
 type TemplateQuestionRow = Database['public']['Tables']['template_questions']['Row'];
+type EventQuestionRow = Database['public']['Tables']['event_questions']['Row'];
 type UsersWithRolesRow = Database['public']['Views']['users_with_roles']['Row'];
 
 // ---------------------------------------------------------------------------
@@ -355,12 +357,13 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
     return { success: false, error: draft.error, data: null };
   }
 
-  const { data: questionnaireId, error: qError } = await supabase.rpc(
-    'ensure_event_questionnaire',
-    { p_event_id: parsed.data.eventId }
-  );
-  if (qError || !questionnaireId) {
-    return { success: false, error: 'Failed to prepare questionnaire', data: null };
+  const { data: template, error: templateError } = await supabase
+    .from('questionnaire_templates')
+    .select('id')
+    .eq('id', parsed.data.templateId)
+    .single();
+  if (templateError || !template) {
+    return { success: false, error: 'Template not found', data: null };
   }
 
   const { data: templateQuestions, error: tqError } = await supabase
@@ -368,67 +371,83 @@ export async function seedEventQuestionnaireFromTemplate(input: unknown): Promis
     .select('*')
     .eq('template_id', parsed.data.templateId)
     .order('position', { ascending: true });
-
   if (tqError) {
     return { success: false, error: 'Failed to load template questions', data: null };
   }
 
-  const questions = templateQuestions ?? [];
-
-  if (parsed.data.replaceExisting) {
-    const { error: delError } = await supabase
-      .from('event_questions')
-      .delete()
-      .eq('event_questionnaire_id', questionnaireId);
-    if (delError) {
-      return { success: false, error: 'Failed to clear existing questions', data: null };
+  // The RPC takes the full desired state, so "append" means re-sending the
+  // event's current questions (upserted unchanged) ahead of the copies.
+  let existing: EventQuestionRow[] = [];
+  if (!parsed.data.replaceExisting) {
+    const { data: questionnaire } = await supabase
+      .from('event_questionnaires')
+      .select('id')
+      .eq('event_id', parsed.data.eventId)
+      .maybeSingle();
+    if (questionnaire) {
+      const { data: rows, error: rowsError } = await supabase
+        .from('event_questions')
+        .select('*')
+        .eq('event_questionnaire_id', questionnaire.id)
+        .order('position', { ascending: true });
+      if (rowsError) {
+        return { success: false, error: 'Failed to load existing questions', data: null };
+      }
+      existing = rows ?? [];
     }
   }
 
-  let startPosition = 0;
-  if (!parsed.data.replaceExisting) {
-    const { data: existing } = await supabase
-      .from('event_questions')
-      .select('position')
-      .eq('event_questionnaire_id', questionnaireId)
-      .order('position', { ascending: false })
-      .limit(1);
-    startPosition = existing?.length ? existing[0].position + 1 : 0;
-  }
+  // Copy-on-attach: fresh ids for the copies, show-if references remapped.
+  const copies = templateQuestions ?? [];
+  const oldToNew = new Map(copies.map((tq) => [tq.id, crypto.randomUUID()]));
 
-  if (questions.length > 0) {
-    const newIds = questions.map(() => crypto.randomUUID());
-    const oldToNew = new Map<string, string>();
-    questions.forEach((tq, i) => oldToNew.set(tq.id, newIds[i]));
-
-    const rows = questions.map((tq, i) => ({
-      id: newIds[i],
-      event_questionnaire_id: questionnaireId,
-      position: startPosition + i,
+  const questions = [
+    ...existing.map((eq) => ({
+      id: eq.id,
+      type: eq.type,
+      label: eq.label,
+      help_text: eq.help_text,
+      required: eq.required,
+      options: eq.options,
+      show_if: eq.show_if,
+    })),
+    ...copies.map((tq) => ({
+      id: oldToNew.get(tq.id)!,
       type: tq.type,
       label: tq.label,
       help_text: tq.help_text,
       required: tq.required,
       options: tq.options,
-      show_if: toJson(remapShowIf(tq.show_if as ShowIfRule | null, oldToNew)),
-    }));
+      show_if: remapShowIf(tq.show_if as ShowIfRule | null, oldToNew),
+    })),
+  ];
 
-    const { error: insertError } = await supabase.from('event_questions').insert(rows);
-    if (insertError) {
-      return { success: false, error: 'Failed to seed questions from template', data: null };
-    }
+  const saved = await saveQuestionnaireViaRpc(
+    supabase,
+    parsed.data.eventId,
+    questions,
+    parsed.data.templateId
+  );
+  if (!saved.success) {
+    return { success: false, error: saved.error, data: null };
   }
 
-  // Best-effort: RLS has no UPDATE policy on event_questionnaires; this is informational only.
-  await supabase
-    .from('event_questionnaires')
-    .update({ seeded_from_template_id: parsed.data.templateId })
-    .eq('id', questionnaireId);
+  // The RPC creates the questionnaire row for legacy events; read its id back
+  // from the returned rows, or from the table when the result set is empty.
+  let eventQuestionnaireId = saved.data[0]?.event_questionnaire_id;
+  if (!eventQuestionnaireId) {
+    const { data: questionnaire } = await supabase
+      .from('event_questionnaires')
+      .select('id')
+      .eq('event_id', parsed.data.eventId)
+      .single();
+    eventQuestionnaireId = questionnaire?.id ?? '';
+  }
 
   revalidatePath(`/dashboard/events/${parsed.data.eventId}`, 'page');
   return {
     success: true,
     error: null,
-    data: { eventQuestionnaireId: questionnaireId, questionsCount: questions.length },
+    data: { eventQuestionnaireId, questionsCount: copies.length },
   };
 }
