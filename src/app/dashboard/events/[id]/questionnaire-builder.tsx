@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,7 @@ import {
   type QuestionOption,
 } from '@/components/forms/question-editor';
 import type { ShowIfRule } from '@/lib/questionnaire/show-if';
-import {
-  addEventQuestion,
-  updateEventQuestion,
-  deleteEventQuestion,
-  reorderEventQuestions,
-} from '@/lib/actions/questionnaires';
+import { saveEventQuestionnaire } from '@/lib/actions/questionnaires';
 import { seedEventQuestionnaireFromTemplate } from '@/lib/actions/templates';
 import type { Database } from '@/types/database';
 
@@ -48,6 +43,19 @@ function toQuestionDraft(q: EventQuestion): QuestionDraft {
   };
 }
 
+/** The shape saveEventQuestionnaire expects: the full list, in display order. */
+function toSaveInput(q: QuestionDraft) {
+  return {
+    id: q.id,
+    type: q.type,
+    label: q.label,
+    help_text: q.help_text || null,
+    required: q.required,
+    options: q.options.length ? q.options : null,
+    show_if: q.show_if ?? null,
+  };
+}
+
 export function QuestionnaireBuilder({
   eventId,
   initialQuestions,
@@ -60,10 +68,8 @@ export function QuestionnaireBuilder({
   const [questions, setQuestions] = useState<QuestionDraft[]>(
     initialQuestions.map(toQuestionDraft)
   );
-  const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [labelErrors, setLabelErrors] = useState<Record<number, string>>({});
-  const initialOrderRef = useRef(initialQuestions.map((q) => q.id));
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
   const [isSeedingTemplate, setIsSeedingTemplate] = useState(false);
 
@@ -100,10 +106,20 @@ export function QuestionnaireBuilder({
     );
   }
 
+  // New questions get their id here so a later question can reference them in a
+  // show-if rule before anything is saved; the RPC upserts by this id.
   function addQuestion() {
     setQuestions((prev) => [
       ...prev,
-      { type: 'short_text', label: '', help_text: '', required: false, options: [], show_if: null },
+      {
+        id: crypto.randomUUID(),
+        type: 'short_text',
+        label: '',
+        help_text: '',
+        required: false,
+        options: [],
+        show_if: null,
+      },
     ]);
   }
 
@@ -119,10 +135,6 @@ export function QuestionnaireBuilder({
   }
 
   function removeQuestion(index: number) {
-    const q = questions[index];
-    if (q.id) {
-      setDeletedIds((prev) => [...prev, q.id!]);
-    }
     setQuestions((prev) => prev.filter((_, i) => i !== index));
   }
 
@@ -157,65 +169,17 @@ export function QuestionnaireBuilder({
     setIsSaving(true);
 
     try {
-      for (const id of deletedIds) {
-        const result = await deleteEventQuestion(eventId, id);
-        if (!result.success) {
-          toast.error(result.error ?? 'Failed to delete question');
-          return;
-        }
+      // One call carries the whole questionnaire; the server applies it in a
+      // single transaction, so a failure leaves nothing half-saved.
+      const result = await saveEventQuestionnaire(eventId, questions.map(toSaveInput));
+      if (!result.success) {
+        toast.error(result.error ?? 'Failed to save questionnaire');
+        return;
       }
 
-      for (const q of questions) {
-        if (!q.id) continue;
-        const result = await updateEventQuestion(eventId, q.id, {
-          type: q.type,
-          label: q.label,
-          help_text: q.help_text || null,
-          required: q.required,
-          options: q.options.length ? q.options : null,
-          show_if: q.show_if ?? null,
-        });
-        if (!result.success) {
-          toast.error(result.error ?? 'Failed to update question');
-          return;
-        }
-      }
-
-      const addedIds: string[] = [];
-      for (const q of questions) {
-        if (q.id) continue;
-        const result = await addEventQuestion(eventId, {
-          type: q.type,
-          label: q.label,
-          help_text: q.help_text || null,
-          required: q.required,
-          options: q.options.length ? q.options : null,
-          show_if: q.show_if ?? null,
-        });
-        if (!result.success) {
-          toast.error(result.error ?? 'Failed to add question');
-          return;
-        }
-        addedIds.push(result.data.id);
-      }
-
-      let newIdx = 0;
-      const finalOrder = questions.map((q) => q.id ?? addedIds[newIdx++]);
-
-      if (finalOrder.length > 0) {
-        const result = await reorderEventQuestions(eventId, finalOrder);
-        if (!result.success) {
-          toast.error(result.error ?? 'Failed to reorder questions');
-          return;
-        }
-      }
-
+      setQuestions(result.data.map(toQuestionDraft));
       toast.success('Questionnaire saved');
-      setDeletedIds([]);
-      initialOrderRef.current = finalOrder;
-
-      let assignedIdx = 0;
-      setQuestions((prev) => prev.map((q) => (q.id ? q : { ...q, id: addedIds[assignedIdx++] })));
+      router.refresh();
     } finally {
       setIsSaving(false);
     }
@@ -282,7 +246,7 @@ export function QuestionnaireBuilder({
       )}
 
       {questions.map((q, i) => (
-        <div key={q.id ?? `new-${i}`} className="flex items-start gap-2">
+        <div key={q.id ?? i} className="flex items-start gap-2">
           <div className="flex shrink-0 flex-col gap-1 pt-5">
             <Button
               variant="ghost"
