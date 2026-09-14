@@ -1,11 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { updateEventStatus } from '@/lib/actions/events';
-import {
-  addEventQuestion,
-  updateEventQuestion,
-  deleteEventQuestion,
-  reorderEventQuestions,
-} from '@/lib/actions/questionnaires';
+import { saveEventQuestionnaire } from '@/lib/actions/questionnaires';
+import { seedEventQuestionnaireFromTemplate } from '@/lib/actions/templates';
 import { requireRole } from '@/lib/auth/roles';
 import { requireDraftEvent } from '@/lib/actions/_internal/event-status';
 import { revalidatePath } from 'next/cache';
@@ -72,7 +68,9 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 // Fixtures
 // =============================================================================
 
-const VALID_QUESTION_INPUT = { type: 'short_text', label: 'Test question', required: false };
+const EVENT_ID = '11111111-1111-4111-8111-111111111111';
+const TEMPLATE_ID = '22222222-2222-4222-8222-222222222222';
+const VALID_QUESTIONS = [{ type: 'short_text', label: 'Test question', required: false }];
 
 // =============================================================================
 // Setup
@@ -149,50 +147,44 @@ describe('questionnaire mutations rejected after publish', () => {
     });
   });
 
-  it('addEventQuestion returns failure with draft error', async () => {
-    const result = await addEventQuestion('event-1', VALID_QUESTION_INPUT);
+  it('saveEventQuestionnaire returns failure with draft error and never reaches the RPC', async () => {
+    const result = await saveEventQuestionnaire(EVENT_ID, VALID_QUESTIONS);
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/draft/i);
+    expect(responseQueue).toHaveLength(0);
   });
 
-  it('updateEventQuestion returns failure with draft error', async () => {
-    const result = await updateEventQuestion('event-1', 'q-1', VALID_QUESTION_INPUT);
-    expect(result.success).toBe(false);
-    expect(result.error).toMatch(/draft/i);
-  });
-
-  it('deleteEventQuestion returns failure with draft error', async () => {
-    const result = await deleteEventQuestion('event-1', 'q-1');
-    expect(result.success).toBe(false);
-    expect(result.error).toMatch(/draft/i);
-  });
-
-  it('reorderEventQuestions returns failure with draft error', async () => {
-    const result = await reorderEventQuestions('event-1', ['q-1', 'q-2']);
+  it('seedEventQuestionnaireFromTemplate returns failure with draft error', async () => {
+    const result = await seedEventQuestionnaireFromTemplate({
+      eventId: EVENT_ID,
+      templateId: TEMPLATE_ID,
+      replaceExisting: false,
+    });
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/draft/i);
   });
 });
 
 // =============================================================================
-// RLS backstop — data-layer rejection shape handled gracefully
+// Data-layer backstop — the RPC re-checks status and lock itself (P0001)
 // =============================================================================
 
-describe('RLS backstop', () => {
-  it('addEventQuestion surfaces a clean failure when the DB returns an RLS error', async () => {
-    // Simulates a TOCTOU window where the action-layer guard passes (requireDraftEvent
-    // returns success) but the database's RLS policy on event_questions rejects the
-    // INSERT because locked_at is set. The action must return { success: false } with
-    // a non-empty error and must not throw.
-    ok('questionnaire-1'); // ensure_event_questionnaire RPC → string uuid
-    ok([]); // max position query (empty → nextPosition = 1)
-    enqueue(null, {
-      // INSERT rejected by RLS
-      code: '42501',
-      message: 'new row violates row-level security policy for table "event_questions"',
-    });
+describe('RPC backstop', () => {
+  it('saveEventQuestionnaire surfaces a clean failure when the RPC reports the lock', async () => {
+    // TOCTOU window: requireDraftEvent passed, then the event was published
+    // before the RPC ran. save_event_questionnaire raises P0001 (migration 012).
+    enqueue(null, { code: 'P0001', message: 'Questionnaire is locked' });
 
-    const result = await addEventQuestion('event-1', VALID_QUESTION_INPUT);
+    const result = await saveEventQuestionnaire(EVENT_ID, VALID_QUESTIONS);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toMatch(/published|locked/i);
+  });
+
+  it('saveEventQuestionnaire surfaces a clean failure on a permission error', async () => {
+    enqueue(null, { code: '42501', message: 'Organizer role required' });
+
+    const result = await saveEventQuestionnaire(EVENT_ID, VALID_QUESTIONS);
 
     expect(result.success).toBe(false);
     expect(typeof result.error).toBe('string');

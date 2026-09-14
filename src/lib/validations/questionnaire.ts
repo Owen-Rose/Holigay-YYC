@@ -18,13 +18,10 @@ export const showIfInputSchema = z.object({
 });
 
 // =============================================================================
-// questionInputSchema
-// Single-question validation. Enforces:
-//   - options required (non-empty) when type is single_select or multi_select
-//   - option keys must be unique within the question
-//
-// questionFieldsSchema is the base object (no superRefine) — used by
-// templateInputSchema and questionnaireInputSchema to .extend() safely.
+// questionFieldsSchema — the shared per-question base (no superRefine), which
+// templateInputSchema and questionnaireInputSchema .extend(). Option
+// constraints (non-empty for selects, unique keys) are applied per question
+// via enforceOptionConstraints in each extending schema.
 // =============================================================================
 
 const questionFieldsSchema = z.object({
@@ -59,8 +56,6 @@ function enforceOptionConstraints(q: QuestionFields, ctx: z.RefinementCtx) {
     }
   }
 }
-
-export const questionInputSchema = questionFieldsSchema.superRefine(enforceOptionConstraints);
 
 // =============================================================================
 // answerValueSchema — discriminated union per R1 shapes
