@@ -29,7 +29,7 @@ in-flight feature safely, then paying down consistency debt.
 | Brand re-skin | ✅ Mostly (6.9 file previews, 6.10 mobile polish outstanding) |
 | Organizer invites (Epic 4) | UI only — backend stub awaits a service-role client |
 | **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Manual probe checklist + live test submission on prod still owed (quickstart "Prod rollout record"). |
-| **Dynamic questionnaires (spec 005)** | ✅ **Feature-complete.** Shipped to `dev` with 006; on prod since 2026-09-13. Required-answer semantics fixed by 006/US3; builder atomicity and `seeded_from_template_id` fixed by Phase 11 (migration `012`, 2026-09-14). Migration 012 still to be pushed to dev/prod |
+| **Dynamic questionnaires (spec 005)** | ✅ **Feature-complete.** Shipped to `dev` with 006; on prod since 2026-09-13. Required-answer semantics fixed by 006/US3; builder atomicity and `seeded_from_template_id` fixed by Phase 11 (migration `012`, 2026-09-14). Migration 012 on dev and prod since 2026-09-14 |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
 
 ---
@@ -290,7 +290,7 @@ operational readiness, not implementation.
 | Milestone | Contents | Target |
 |---|---|---|
 | **M1 — Safe** ✅ | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Prod closed 2026-09-13**: `009`–`011` pushed to the prod project (history repaired first — its `schema_migrations` was empty like dev's), all object markers verified, `dev` promoted to `main` (`3dc243c`). Residual: the manual probe checklist and one live test submission on prod | done |
-| **M2 — Feature-complete** ✅ | Spec 005 shipped to `dev` 2026-08-22 with T050 waived; Phase 11 (2026-09-14) landed the atomic builder save with real-DB suites (retiring the waiver's main gap) and populated `seeded_from_template_id`. Residual: push migration `012` to dev and prod | done |
+| **M2 — Feature-complete** ✅ | Spec 005 shipped to `dev` 2026-08-22 with T050 waived; Phase 11 (2026-09-14) landed the atomic builder save with real-DB suites (retiring the waiver's main gap) and populated `seeded_from_template_id`. Migration `012` on dev and prod, dev probe passed, promoted to `main` 2026-09-14 | done |
 | **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them | month 2 |
 | **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |
 
