@@ -10,8 +10,8 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 002 | Consolidate vendor portal | ✅ Shipped | (direct commits to dev) | 2026-04-21 |
 | 003 | — (number skipped) | — | — | — |
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
-| 005 | Dynamic per-event questionnaires | ✅ Shipped to `dev` (T050 waived) | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
-| 006 | Close the public data exposure | ✅ Shipped to `dev` | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
+| 005 | Dynamic per-event questionnaires | ✅ Shipped; on `main`/prod 2026-09-13 (T050 waived) | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
+| 006 | Close the public data exposure | ✅ Shipped; prod migrated 2026-09-13 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 
 ### Post-merge detail
 
@@ -20,8 +20,11 @@ histories were inseparable (all of 005's commits are ancestors of the 006 branch
 merged as one unit.
 
 - **006** is complete: all 31 tasks done, migration `011` applied to the dev Supabase project
-  on 2026-08-22 and the closed posture verified against the live dev API. **Prod rollout is
-  still outstanding** — follow `specs/006-close-public-data-exposure/quickstart.md`.
+  on 2026-08-22 and the closed posture verified against the live dev API. **Prod rolled out
+  2026-09-13**: `009`–`011` applied to the prod project, all object markers verified, and
+  `dev` promoted to `main` (`3dc243c`) for the Vercel Production deploy. The manual probe
+  checklist and a live test submission on prod are still owed — see the "Prod rollout
+  record" in `specs/006-close-public-data-exposure/quickstart.md`.
 - **005** is closed with **T050 waived, not executed** (2026-08-22) — see its `tasks.md`
   for the full reasoning and the five things that leaves unverified. Two known defects
   remain, tracked as `docs/ROADMAP.md` Tier 2: non-atomic questionnaire-builder saves and

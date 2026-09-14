@@ -23,7 +23,7 @@ in-flight feature safely, then paying down consistency debt.
 | RBAC (DB + app), vendor dashboard, event management | ✅ Complete (Epics 1–3, 5; specs 001/002/004 merged) |
 | Brand re-skin | ✅ Mostly (6.9 file previews, 6.10 mobile polish outstanding) |
 | Organizer invites (Epic 4) | UI only — backend stub awaits a service-role client |
-| **Public data exposure (spec 006)** | ✅ **Closed and shipped to `dev`** (PR #7, 2026-08-22). Migration 011 applied to the dev Supabase project and the posture verified live; CI security gate green. **Prod rollout still outstanding.** |
+| **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Manual probe checklist + live test submission on prod still owed (quickstart "Prod rollout record"). |
 | **Dynamic questionnaires (spec 005)** | **Shipped to `dev`** with 006. Required-answer semantics fixed by 006/US3; two defects still open (builder atomicity, `seeded_from_template_id`); T050 manual walkthrough still not done |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
 
@@ -280,7 +280,7 @@ operational readiness, not implementation.
 
 | Milestone | Contents | Target |
 |---|---|---|
-| **M1 — Safe** 🟡 | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Dev is closed; prod is not** — the exposure remains in the prod database until `011` is pushed there | weeks 1–2 |
+| **M1 — Safe** ✅ | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Prod closed 2026-09-13**: `009`–`011` pushed to the prod project (history repaired first — its `schema_migrations` was empty like dev's), all object markers verified, `dev` promoted to `main` (`3dc243c`). Residual: the manual probe checklist and one live test submission on prod | done |
 | **M2 — Feature-complete** | Spec 005 shipped to `dev` 2026-08-22 with T050 waived. Remaining for M2: atomic builder save (with real-DB integration tests, which also retire the T050 waiver) and a decision on `seeded_from_template_id` | weeks 2–4 |
 | **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them | month 2 |
 | **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |

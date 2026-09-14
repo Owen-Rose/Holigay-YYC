@@ -71,7 +71,8 @@ Two parallel jobs in `.github/workflows/ci.yml`:
 
 ## Rollout (dev first, then prod)
 
-> **Status: dev ✅ done 2026-08-22 · prod ⬜ outstanding.**
+> **Status: dev ✅ done 2026-08-22 · prod ✅ done 2026-09-13** (migrations) — see
+> "Prod rollout record" below for what was verified and what is still owed.
 >
 > Lessons from the dev rollout, which apply to prod:
 > 1. **Both Supabase projects were auto-paused** (free-tier idle). Restore the project
@@ -124,6 +125,34 @@ and deploy the app back-to-back (barely-used app; no window needed).
      migration-named policies exist (`attachments_anon_insert`,
      `attachments_authenticated_select`, `attachments_authenticated_delete`)
      and the old dashboard-named ones are gone.
+
+### Prod rollout record (2026-09-13)
+
+What happened, so the next person doesn't re-derive it:
+
+- **Prod's `schema_migrations` was empty too**, exactly like dev. `migration list --linked`
+  showed nothing in the Remote column. Real state was established with an object-existence
+  query in the SQL Editor (`to_regclass` / `to_regprocedure` / `pg_policies` for one marker
+  per migration): prod genuinely had `001`–`008` and nothing from `009` onward. The
+  "through 008" note above was correct.
+- `migration repair --status applied 001 002 003 004 005 006 007 008` (one line), then
+  `db push` applied `009`, `010`, `011` in order. Both needed `SUPABASE_DB_PASSWORD` — the
+  pinned CLI's login-role failure (lesson 2) reproduced on prod.
+- **Post-push SQL check: all eight markers true**, including the three `attachments_*`
+  storage policies — the R8 storage risk did not materialise on hosted prod either.
+- App deploy: `dev` promoted to `main` as merge commit `3dc243c` (tree identical to `dev`
+  head `9c5d4c2`); Vercel Production tracks `main`. The window between `db push` and the
+  deploy was ~30 minutes with the old code's public form non-functional — acceptable per the
+  "barely-used app" note above.
+
+**Still owed on prod** (not done during the rollout session):
+
+- [ ] The manual probe checklist above against the prod URL (SC-001).
+- [ ] One real submission per form variant against a test event; confirm email +
+      dashboard + signed-URL download; clean up test rows.
+- [ ] Dashboard → Storage → Policies visual confirmation that no old dashboard-named
+      policies linger alongside the three migration-named ones.
+- [ ] Rotate the prod database password (it was handled locally during the rollout).
 
 ## Where things live
 
