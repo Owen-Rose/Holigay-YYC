@@ -10,7 +10,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 002 | Consolidate vendor portal | ✅ Shipped | (direct commits to dev) | 2026-04-21 |
 | 003 | — (number skipped) | — | — | — |
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
-| 005 | Dynamic per-event questionnaires | ✅ Shipped; on `main`/prod 2026-09-13. Phase 11 (atomic save, migration `012`) on `dev` 2026-09-14 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7), Phase 11 PR | 2026-08-22 |
+| 005 | Dynamic per-event questionnaires | ✅ Shipped; on `main`/prod 2026-09-13. Phase 11 (atomic save, migration `012`) on `dev` 2026-09-14 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7), [#8](https://github.com/Owen-Rose/Holigay-YYC/pull/8) | 2026-08-22 |
 | 006 | Close the public data exposure | ✅ Shipped; prod migrated 2026-09-13 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 
 ### Post-merge detail
