@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { exportApplicationsCSV } from '@/lib/actions/export';
 import type { ApplicationFilters } from '@/lib/actions/applications';
 
@@ -23,17 +24,15 @@ interface ExportButtonProps {
  */
 export function ExportButton({ filters = {} }: ExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function handleExport() {
     setIsExporting(true);
-    setError(null);
 
     try {
       const result = await exportApplicationsCSV(filters);
 
       if (!result.success || !result.data) {
-        setError(result.error || 'Failed to export applications');
+        toast.error(result.error || 'Failed to export applications');
         return;
       }
 
@@ -51,9 +50,11 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
       // Cleanup
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+
+      toast.success('Export downloaded');
     } catch (err) {
       console.error('Export error:', err);
-      setError('An unexpected error occurred');
+      toast.error('An unexpected error occurred');
     } finally {
       setIsExporting(false);
     }
@@ -64,14 +65,14 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-border bg-surface text-foreground hover:bg-surface-bright focus:ring-primary/50 focus:ring-offset-background inline-flex items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Export applications to CSV"
       >
         {isExporting ? (
           <>
             {/* Loading spinner */}
             <svg
-              className="h-4 w-4 animate-spin text-gray-500"
+              className="text-muted h-4 w-4 animate-spin"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -115,13 +116,6 @@ export function ExportButton({ filters = {} }: ExportButtonProps) {
           </>
         )}
       </button>
-
-      {/* Error message */}
-      {error && (
-        <span className="text-sm text-red-600" role="alert">
-          {error}
-        </span>
-      )}
     </div>
   );
 }

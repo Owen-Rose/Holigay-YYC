@@ -4,6 +4,7 @@ import { getApplicationById, type ApplicationDetail } from '@/lib/actions/applic
 import { StatusUpdateButtons } from './status-buttons';
 import { OrganizerNotes } from './organizer-notes';
 import { AttachmentsList } from './attachments-list';
+import { DynamicAnswers } from './dynamic-answers';
 import { Card, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';
 
@@ -56,8 +57,8 @@ function InfoSection({ title, children }: { title: string; children: React.React
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="py-2">
-      <dt className="text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="mt-1 text-sm text-gray-900">{value || '—'}</dd>
+      <dt className="text-muted text-sm font-medium">{label}</dt>
+      <dd className="text-foreground mt-1 text-sm">{value || '—'}</dd>
     </div>
   );
 }
@@ -69,13 +70,13 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 function VendorInfo({ vendor }: { vendor: ApplicationDetail['vendor'] }) {
   return (
     <InfoSection title="Vendor Information">
-      <dl className="divide-y divide-gray-100">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Business Name" value={vendor.business_name} />
         <InfoRow label="Contact Name" value={vendor.contact_name} />
         <InfoRow
           label="Email"
           value={
-            <a href={`mailto:${vendor.email}`} className="text-blue-600 hover:text-blue-800">
+            <a href={`mailto:${vendor.email}`} className="text-primary hover:text-primary-hover">
               {vendor.email}
             </a>
           }
@@ -89,7 +90,7 @@ function VendorInfo({ vendor }: { vendor: ApplicationDetail['vendor'] }) {
                 href={vendor.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800"
+                className="text-primary hover:text-primary-hover"
               >
                 {vendor.website}
               </a>
@@ -109,7 +110,7 @@ function VendorInfo({ vendor }: { vendor: ApplicationDetail['vendor'] }) {
 function EventInfo({ event }: { event: ApplicationDetail['event'] }) {
   return (
     <InfoSection title="Event Details">
-      <dl className="divide-y divide-gray-100">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Event Name" value={event.name} />
         <InfoRow label="Date" value={formatDate(event.event_date)} />
         <InfoRow label="Location" value={event.location} />
@@ -130,7 +131,7 @@ function EventInfo({ event }: { event: ApplicationDetail['event'] }) {
 function ApplicationDetails({ application }: { application: ApplicationDetail }) {
   return (
     <InfoSection title="Application Details">
-      <dl className="divide-y divide-gray-100">
+      <dl className="divide-border-subtle divide-y">
         <InfoRow label="Booth Preference" value={application.booth_preference} />
         <InfoRow
           label="Product Categories"
@@ -140,7 +141,7 @@ function ApplicationDetails({ application }: { application: ApplicationDetail })
                 {application.product_categories.map((category) => (
                   <span
                     key={category}
-                    className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800"
+                    className="bg-foreground/10 text-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                   >
                     {category}
                   </span>
@@ -178,7 +179,7 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       <div className="mb-6">
         <Link
           href="/dashboard/applications"
-          className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
+          className="text-muted hover:text-foreground inline-flex items-center gap-1 text-sm"
         >
           <svg
             className="h-4 w-4"
@@ -200,8 +201,8 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       {/* Page Title and Status */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{application.vendor.business_name}</h1>
-          <p className="mt-1 text-sm text-gray-600">Application for {application.event.name}</p>
+          <h1 className="text-foreground text-2xl font-bold">{application.vendor.business_name}</h1>
+          <p className="text-muted mt-1 text-sm">Application for {application.event.name}</p>
         </div>
         <StatusBadge status={application.status} />
       </div>
@@ -218,7 +219,11 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
       </div>
 
       <div className="mt-6">
-        <ApplicationDetails application={application} />
+        {application.dynamicAnswers !== null ? (
+          <DynamicAnswers answers={application.dynamicAnswers} />
+        ) : (
+          <ApplicationDetails application={application} />
+        )}
       </div>
 
       {/* Attachments Section */}

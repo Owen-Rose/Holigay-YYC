@@ -1,0 +1,31 @@
+-- Holigay Vendor Market - Drop user_roles Table
+-- Migration: 008_drop_user_roles.sql
+-- Spec: cleanup-roadmap.md Workstream 5
+-- Follow-up to spec 004 (007_role_system_cleanup.sql), which dropped the
+-- user_has_role() and two-arg get_user_role(uuid) functions but deferred
+-- the table drop because prod had 1 stale admin row.
+--
+-- Pre-008 state (prod):
+--   - public.user_roles table exists (created by superseded 003_user_roles.sql)
+--   - 1 row in user_roles: an early admin bootstrap (user_id 22d56e26-…),
+--     verified safe to discard — the same user has the canonical admin record
+--     in user_profiles since 2026-02-07. See specs/004-consolidate-role-migrations/
+--     research.md §R2-B for the cross-check.
+--   - 2 surviving policies on user_roles ("Users can view own role",
+--     "Users can insert own role") — both reference auth.uid() directly,
+--     not the dropped user_has_role() function. They cascade away with the table.
+--
+-- Pre-008 state (dev):
+--   - user_roles table does NOT exist (dev was set up from a cleaner baseline
+--     that never ran the abandoned 003_user_roles.sql / 004_user_roles_rls.sql
+--     chain). DROP TABLE IF EXISTS is a no-op here.
+--
+-- Pre-008 state (local fresh `supabase db reset`):
+--   - user_roles table does NOT exist after Workstream 4's filesystem
+--     reorganization, which moved 003_user_roles.sql into _superseded/
+--     so the CLI no longer applies it. DROP TABLE IF EXISTS is a no-op here too.
+--
+-- After 008, prod and dev schemas converge: no user_roles table anywhere,
+-- and `npm run db:types` and `npm run db:types:dev` produce identical output.
+
+DROP TABLE IF EXISTS public.user_roles CASCADE;

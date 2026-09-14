@@ -60,21 +60,41 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Fetch the user's role for role-based routing decisions
-  let role: Role = 'vendor';
+  // Fetch the user's role for role-based routing decisions.
+  // A null role signals "unresolved" — either the user is unauthenticated or the
+  // profile lookup errored. Role-based redirects below only fire when role is set,
+  // so a failed lookup cannot silently demote an organizer/admin to vendor.
+  let role: Role | null = null;
   if (user) {
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    // Default to 'vendor' if profile doesn't exist yet (e.g. trigger hasn't fired)
-    role = profile?.role ?? 'vendor';
+    if (profileError) {
+      if (profileError.code === 'PGRST116') {
+        // No profile row yet — signup trigger may not have fired yet. Preserve
+        // the prior default so freshly-signed-up users can still reach the vendor portal.
+        role = 'vendor';
+      } else {
+        console.error('[Middleware] Failed to fetch user role:', profileError);
+        // On a real DB error, refuse to guess. If the request targets a route where
+        // role matters, send the user to the unauthorized page; otherwise pass through
+        // so we don't loop on public routes that don't depend on role.
+        if (isProtectedRoute || isAuthRoute) {
+          const errUrl = new URL('/unauthorized', request.url);
+          errUrl.searchParams.set('reason', 'role-lookup-failed');
+          return NextResponse.redirect(errUrl);
+        }
+      }
+    } else {
+      role = profile.role;
+    }
   }
 
-  // Role-based route redirects (only for authenticated users)
-  if (user) {
+  // Role-based route redirects (only when a role was actually resolved)
+  if (user && role) {
     // Vendors accessing organizer dashboard → send to vendor dashboard
     const isOrganizerRoute = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
     if (role === 'vendor' && isOrganizerRoute) {

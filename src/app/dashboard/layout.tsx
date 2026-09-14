@@ -4,20 +4,36 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { signOut } from '@/lib/actions/auth';
+import { RoleProvider, useRole } from '@/lib/context/role-context';
+import { RoleBadge } from '@/components/dashboard/role-badge';
 
 // Navigation items for the sidebar
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Events', href: '/dashboard/events', icon: CalendarIcon },
+  { name: 'Templates', href: '/dashboard/templates', icon: TemplatesIcon },
   { name: 'Applications', href: '/dashboard/applications', icon: ClipboardIcon },
   { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RoleProvider>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </RoleProvider>
+  );
+}
+
+// Inner component that can access the role context
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { role } = useRole();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Check if user is admin for showing admin nav link
+  const isAdmin = role === 'admin';
 
   // Close sidebar when route changes (mobile)
   useEffect(() => {
@@ -48,18 +64,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }
 
+  // Check if admin routes are active
+  const isAdminActive = pathname.startsWith('/dashboard/admin');
+  const isTeamActive = pathname.startsWith('/dashboard/team');
+
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen">
       {/* Mobile Header */}
-      <header className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 lg:hidden">
+      <header className="border-border-subtle bg-surface fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b px-4 lg:hidden">
         <button
           onClick={() => setIsSidebarOpen(true)}
-          className="flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          className="text-muted hover:bg-surface-bright hover:text-foreground flex h-11 w-11 items-center justify-center rounded-md"
           aria-label="Open navigation menu"
         >
           <MenuIcon className="h-6 w-6" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900">Holigay Market</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-foreground text-lg font-bold">Holigay Market</h1>
+          <RoleBadge />
+        </div>
         {/* Spacer for centering */}
         <div className="w-11" />
       </header>
@@ -67,7 +90,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-gray-900/50 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -75,16 +98,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-white shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
+        className={`bg-surface fixed inset-y-0 left-0 z-40 flex w-64 flex-col shadow-lg transition-transform duration-200 ease-in-out lg:z-10 lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo/Brand */}
-        <div className="flex h-14 items-center justify-between border-b border-gray-200 px-4 lg:h-16 lg:justify-center lg:px-0">
-          <h1 className="text-xl font-bold text-gray-900">Holigay Market</h1>
+        <div className="border-border-subtle flex h-14 items-center justify-between border-b px-4 lg:h-16 lg:px-4">
+          <div className="flex items-center gap-2">
+            <h1 className="text-foreground text-xl font-bold">Holigay Market</h1>
+            <RoleBadge />
+          </div>
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className="flex h-11 w-11 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-900 lg:hidden"
+            className="text-muted hover:bg-surface-bright hover:text-foreground flex h-11 w-11 items-center justify-center rounded-md lg:hidden"
             aria-label="Close navigation menu"
           >
             <CloseIcon className="h-6 w-6" />
@@ -94,32 +120,71 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === '/dashboard' ? pathname === item.href : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'bg-primary-soft text-primary'
+                    : 'text-muted hover:bg-surface-bright hover:text-foreground'
                 }`}
               >
-                <item.icon className={`h-5 w-5 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
+                <item.icon
+                  className={`h-5 w-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+                />
                 {item.name}
               </Link>
             );
           })}
+
+          {/* Admin link - only visible to admins */}
+          {isAdmin && (
+            <>
+              {/* Separator */}
+              <div className="border-border-subtle my-2 border-t" />
+
+              <Link
+                href="/dashboard/admin"
+                className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  isAdminActive
+                    ? 'bg-purple-500/15 text-purple-400'
+                    : 'text-muted hover:bg-surface-bright hover:text-foreground'
+                }`}
+              >
+                <ShieldIcon
+                  className={`h-5 w-5 ${isAdminActive ? 'text-purple-400' : 'text-muted-foreground'}`}
+                />
+                User Management
+              </Link>
+
+              <Link
+                href="/dashboard/team"
+                className={`flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  isTeamActive
+                    ? 'bg-purple-500/15 text-purple-400'
+                    : 'text-muted hover:bg-surface-bright hover:text-foreground'
+                }`}
+              >
+                <TeamIcon
+                  className={`h-5 w-5 ${isTeamActive ? 'text-purple-400' : 'text-muted-foreground'}`}
+                />
+                Team
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Logout Button */}
-        <div className="border-t border-gray-200 p-3">
+        <div className="border-border-subtle border-t p-3">
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-muted flex min-h-[44px] w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <LogoutIcon className="h-5 w-5 text-gray-400" />
+            <LogoutIcon className="text-muted-foreground h-5 w-5" />
             {isLoggingOut ? 'Signing out...' : 'Sign Out'}
           </button>
         </div>
@@ -254,6 +319,63 @@ function LogoutIcon({ className }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"
+      />
+    </svg>
+  );
+}
+
+// Team icon for team management link
+function TeamIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+      />
+    </svg>
+  );
+}
+
+// Templates icon
+function TemplatesIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+      />
+    </svg>
+  );
+}
+
+// Shield icon for admin link
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"
       />
     </svg>
   );

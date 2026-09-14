@@ -19,10 +19,10 @@ function StatCard({ title, value, icon, href }: StatCardProps) {
     <Card variant="interactive">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
+          <p className="text-muted text-sm font-medium">{title}</p>
+          <p className="text-foreground mt-2 text-3xl font-bold">{value}</p>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/15 text-teal-400">
           {icon}
         </div>
       </div>
@@ -55,13 +55,13 @@ function formatDate(dateString: string): string {
 function RecentApplications({ applications }: { applications: VendorApplication[] }) {
   if (applications.length === 0) {
     return (
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="text-lg font-medium text-gray-900">Recent Applications</h2>
+      <div className="border-border-subtle bg-surface rounded-lg border p-6">
+        <h2 className="text-foreground text-lg font-medium">Recent Applications</h2>
         <div className="mt-6 text-center">
-          <ClipboardIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-4 text-sm text-gray-500">No applications yet.</p>
-          <p className="mt-1 text-sm text-gray-500">
-            <Link href="/apply" className="text-teal-600 hover:text-teal-500">
+          <ClipboardIcon className="text-muted-foreground mx-auto h-12 w-12" />
+          <p className="text-muted mt-4 text-sm">No applications yet.</p>
+          <p className="text-muted mt-1 text-sm">
+            <Link href="/apply" className="text-teal-400 hover:text-teal-300">
               Apply to an event
             </Link>{' '}
             to get started.
@@ -72,35 +72,35 @@ function RecentApplications({ applications }: { applications: VendorApplication[
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <h2 className="text-lg font-medium text-gray-900">Recent Applications</h2>
+    <div className="border-border-subtle bg-surface rounded-lg border">
+      <div className="border-border-subtle flex items-center justify-between border-b px-6 py-4">
+        <h2 className="text-foreground text-lg font-medium">Recent Applications</h2>
         <Link
           href="/vendor-dashboard/applications"
-          className="text-sm font-medium text-teal-600 hover:text-teal-500"
+          className="text-sm font-medium text-teal-400 hover:text-teal-300"
         >
           View all
         </Link>
       </div>
-      <ul className="divide-y divide-gray-200">
+      <ul className="divide-border-subtle divide-y">
         {applications.map((application) => (
           <li key={application.id}>
             <Link
               href={`/vendor-dashboard/applications/${application.id}`}
-              className="block px-6 py-4 hover:bg-gray-50"
+              className="hover:bg-surface-bright block px-6 py-4"
             >
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p className="text-foreground truncate text-sm font-medium">
                     {application.event.name}
                   </p>
-                  <p className="mt-1 truncate text-sm text-gray-500">
+                  <p className="text-muted mt-1 truncate text-sm">
                     {formatDate(application.event.event_date)} &middot; {application.event.location}
                   </p>
                 </div>
                 <div className="ml-4 flex flex-shrink-0 items-center gap-3">
                   <StatusBadge status={application.status} />
-                  <span className="hidden text-xs text-gray-500 sm:inline">
+                  <span className="text-muted-foreground hidden text-xs sm:inline">
                     {formatDate(application.submitted_at)}
                   </span>
                 </div>
@@ -120,11 +120,11 @@ function RecentApplications({ applications }: { applications: VendorApplication[
 function NoVendorProfile() {
   return (
     <div className="text-center">
-      <ClipboardIcon className="mx-auto h-12 w-12 text-gray-400" />
-      <h2 className="mt-4 text-lg font-medium text-gray-900">No vendor profile linked</h2>
-      <p className="mt-2 text-sm text-gray-500">
+      <ClipboardIcon className="text-muted-foreground mx-auto h-12 w-12" />
+      <h2 className="text-foreground mt-4 text-lg font-medium">No vendor profile linked</h2>
+      <p className="text-muted mt-2 text-sm">
         Your account isn&apos;t linked to a vendor yet.{' '}
-        <Link href="/apply" className="text-teal-600 hover:text-teal-500">
+        <Link href="/apply" className="text-teal-400 hover:text-teal-300">
           Submit an application
         </Link>{' '}
         to create your vendor profile.
@@ -221,7 +221,7 @@ export default async function VendorDashboardPage() {
     return (
       <div>
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Vendor Dashboard</h1>
+          <h1 className="text-foreground text-2xl font-bold">Vendor Dashboard</h1>
         </div>
         <NoVendorProfile />
       </div>
@@ -234,10 +234,8 @@ export default async function VendorDashboardPage() {
     <div>
       {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Vendor Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Track your event applications and their status.
-        </p>
+        <h1 className="text-foreground text-2xl font-bold">Vendor Dashboard</h1>
+        <p className="text-muted mt-1 text-sm">Track your event applications and their status.</p>
       </div>
 
       {/* Status Cards */}

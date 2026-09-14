@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getCurrentUserRole, requireRole, isOrganizerOrAdmin } from '@/lib/auth/roles';
+import { getCurrentUserRole, requireRole, type RoleResponse } from '@/lib/auth/roles';
 
 // Mock the Supabase server client
 const mockGetUser = vi.fn();
@@ -35,40 +35,52 @@ beforeEach(() => {
 // =============================================================================
 
 describe('getCurrentUserRole', () => {
-  it('returns null when user is not authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+  it('returns error response when user is not authenticated', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
 
-    const role = await getCurrentUserRole();
-    expect(role).toBeNull();
+    const result: RoleResponse = await getCurrentUserRole();
+    expect(result).toMatchObject({
+      success: false,
+      error: 'Not authenticated',
+      data: null,
+    });
   });
 
-  it('returns the role from user_profiles', async () => {
+  it('returns success response with role from user_profiles', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-123' } },
+      error: null,
     });
     mockSingle.mockResolvedValue({
       data: { role: 'organizer' },
       error: null,
     });
 
-    const role = await getCurrentUserRole();
-
-    expect(role).toBe('organizer');
+    const result: RoleResponse = await getCurrentUserRole();
+    expect(result).toMatchObject({
+      success: true,
+      error: null,
+      data: { role: 'organizer', userId: 'user-123' },
+    });
     expect(mockSelect).toHaveBeenCalledWith('role');
     expect(mockEq).toHaveBeenCalledWith('id', 'user-123');
   });
 
-  it('returns null when profile does not exist', async () => {
+  it('defaults to vendor role when profile does not exist (PGRST116)', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-123' } },
+      error: null,
     });
     mockSingle.mockResolvedValue({
       data: null,
       error: { code: 'PGRST116' },
     });
 
-    const role = await getCurrentUserRole();
-    expect(role).toBeNull();
+    await expect(getCurrentUserRole()).resolves.toMatchObject({
+      success: true,
+      error: null,
+      data: { role: 'vendor', userId: 'user-123' },
+    });
   });
 });
 
@@ -77,84 +89,120 @@ describe('getCurrentUserRole', () => {
 // =============================================================================
 
 describe('requireRole', () => {
-  it('returns the role when it matches an allowed role', async () => {
+  it('returns success when user role meets the minimum', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-123' } },
+      error: null,
     });
     mockSingle.mockResolvedValue({
       data: { role: 'admin' },
       error: null,
     });
 
-    const role = await requireRole(['organizer', 'admin']);
-    expect(role).toBe('admin');
+    await expect(requireRole('organizer')).resolves.toMatchObject({
+      success: true,
+      data: { role: 'admin', userId: 'user-123' },
+    });
   });
 
-  it('throws when user is not authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+  it('returns error response when user is not authenticated', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
 
-    await expect(requireRole(['admin'])).rejects.toThrow('Not authenticated');
+    await expect(requireRole('admin')).resolves.toMatchObject({
+      success: false,
+      error: 'Not authenticated',
+      data: null,
+    });
   });
 
-  it('throws when user role is not in allowed list', async () => {
+  it('returns error response when user role is below minimum', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-123' } },
+      error: null,
     });
     mockSingle.mockResolvedValue({
       data: { role: 'vendor' },
       error: null,
     });
 
-    await expect(requireRole(['organizer', 'admin'])).rejects.toThrow(
-      'Unauthorized: insufficient role'
-    );
+    await expect(requireRole('organizer')).resolves.toMatchObject({
+      success: false,
+      error: 'Requires organizer role or higher',
+      data: null,
+    });
   });
 });
 
 // =============================================================================
-// isOrganizerOrAdmin
+// requireRole hierarchy (SC-003 / FR-009)
 // =============================================================================
 
-describe('isOrganizerOrAdmin', () => {
-  it('returns true for organizer', async () => {
+describe('requireRole hierarchy', () => {
+  it('admin satisfies requireRole("organizer")', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-123' } },
+      error: null,
+    });
+    mockSingle.mockResolvedValue({
+      data: { role: 'admin' },
+      error: null,
+    });
+
+    await expect(requireRole('organizer')).resolves.toMatchObject({
+      success: true,
+      error: null,
+      data: { role: 'admin', userId: 'user-123' },
+    });
+  });
+
+  it('organizer satisfies requireRole("organizer")', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'user-123' } },
+      error: null,
     });
     mockSingle.mockResolvedValue({
       data: { role: 'organizer' },
       error: null,
     });
 
-    expect(await isOrganizerOrAdmin()).toBe(true);
-  });
-
-  it('returns true for admin', async () => {
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: 'user-123' } },
-    });
-    mockSingle.mockResolvedValue({
-      data: { role: 'admin' },
+    await expect(requireRole('organizer')).resolves.toMatchObject({
+      success: true,
       error: null,
+      data: { role: 'organizer', userId: 'user-123' },
     });
-
-    expect(await isOrganizerOrAdmin()).toBe(true);
   });
 
-  it('returns false for vendor', async () => {
+  it('vendor fails requireRole("organizer")', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-123' } },
+      error: null,
     });
     mockSingle.mockResolvedValue({
       data: { role: 'vendor' },
       error: null,
     });
 
-    expect(await isOrganizerOrAdmin()).toBe(false);
+    await expect(requireRole('organizer')).resolves.toMatchObject({
+      success: false,
+      error: 'Requires organizer role or higher',
+      data: null,
+    });
   });
 
-  it('returns false when not authenticated', async () => {
-    mockGetUser.mockResolvedValue({ data: { user: null } });
+  it('organizer fails requireRole("admin")', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'user-123' } },
+      error: null,
+    });
+    mockSingle.mockResolvedValue({
+      data: { role: 'organizer' },
+      error: null,
+    });
 
-    expect(await isOrganizerOrAdmin()).toBe(false);
+    await expect(requireRole('admin')).resolves.toMatchObject({
+      success: false,
+      error: 'Requires admin role or higher',
+      data: null,
+    });
   });
 });

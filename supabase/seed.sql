@@ -1,0 +1,6 @@
+-- Intentionally empty.
+--
+-- supabase/config.toml declares [db.seed] sql_paths = ["./seed.sql"]. Without
+-- this file the path dangles, and CLI behavior on a missing seed path has
+-- varied across versions. This project seeds nothing on `supabase db reset`;
+-- the security suite creates its own fixtures (src/test/security/harness.ts).

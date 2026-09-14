@@ -39,7 +39,7 @@ function getFileIcon(fileType: string): React.ReactNode {
   if (isImage) {
     return (
       <svg
-        className="h-8 w-8 text-purple-500"
+        className="h-8 w-8 text-purple-400"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={1.5}
@@ -57,7 +57,7 @@ function getFileIcon(fileType: string): React.ReactNode {
   if (isPdf) {
     return (
       <svg
-        className="h-8 w-8 text-red-500"
+        className="h-8 w-8 text-red-400"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={1.5}
@@ -75,7 +75,7 @@ function getFileIcon(fileType: string): React.ReactNode {
   // Default document icon
   return (
     <svg
-      className="h-8 w-8 text-gray-400"
+      className="text-muted-foreground h-8 w-8"
       fill="none"
       viewBox="0 0 24 24"
       strokeWidth={1.5}
@@ -125,17 +125,17 @@ function AttachmentItem({ attachment }: { attachment: Attachment }) {
   }
 
   return (
-    <div className="flex items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+    <div className="border-border-subtle bg-surface-bright flex items-center gap-4 rounded-lg border p-4">
       <div className="flex-shrink-0">{getFileIcon(attachment.file_type)}</div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-gray-900">{attachment.file_name}</p>
-        <p className="text-xs text-gray-500">
+        <p className="text-foreground truncate text-sm font-medium">{attachment.file_name}</p>
+        <p className="text-muted text-xs">
           {formatFileSize(attachment.file_size)} &middot;{' '}
           {new Date(attachment.uploaded_at).toLocaleDateString()}
         </p>
         {error && (
-          <p className="mt-1 text-xs text-red-600" role="alert">
+          <p className="mt-1 text-xs text-red-400" role="alert">
             {error}
           </p>
         )}
@@ -144,7 +144,7 @@ function AttachmentItem({ attachment }: { attachment: Attachment }) {
       <button
         onClick={handleDownload}
         disabled={isDownloading}
-        className="flex-shrink-0 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 transition-colors ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="bg-surface text-foreground ring-border hover:bg-surface-bright flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium shadow-sm ring-1 transition-colors ring-inset disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isDownloading ? (
           <span className="flex items-center gap-1">
@@ -199,8 +199,8 @@ export function AttachmentsList({ attachments }: AttachmentsListProps) {
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">
+    <div className="border-border-subtle bg-surface rounded-lg border p-6">
+      <h2 className="text-foreground mb-4 text-lg font-semibold">
         Attached Files ({attachments.length})
       </h2>
 

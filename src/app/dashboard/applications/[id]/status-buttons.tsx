@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { updateApplicationStatus } from '@/lib/actions/applications';
 import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
@@ -16,7 +17,7 @@ interface StatusUpdateButtonsProps {
 }
 
 // =============================================================================
-// Status Button Configuration
+// Status Button Configuration (dark-theme friendly)
 // =============================================================================
 
 const statusButtonConfig: Record<
@@ -25,23 +26,23 @@ const statusButtonConfig: Record<
 > = {
   pending: {
     label: 'Pending',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    hoverClassName: 'hover:bg-yellow-200',
+    className: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
+    hoverClassName: 'hover:bg-yellow-500/25',
   },
   approved: {
     label: 'Approve',
-    className: 'bg-green-100 text-green-800 border-green-300',
-    hoverClassName: 'hover:bg-green-200',
+    className: 'bg-green-500/15 text-green-400 border-green-500/30',
+    hoverClassName: 'hover:bg-green-500/25',
   },
   rejected: {
     label: 'Reject',
-    className: 'bg-red-100 text-red-800 border-red-300',
-    hoverClassName: 'hover:bg-red-200',
+    className: 'bg-red-500/15 text-red-400 border-red-500/30',
+    hoverClassName: 'hover:bg-red-500/25',
   },
   waitlisted: {
     label: 'Waitlist',
-    className: 'bg-blue-100 text-blue-800 border-blue-300',
-    hoverClassName: 'hover:bg-blue-200',
+    className: 'bg-primary/15 text-primary border-primary/30',
+    hoverClassName: 'hover:bg-primary/25',
   },
 };
 
@@ -52,22 +53,25 @@ const statusButtonConfig: Record<
 export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpdateButtonsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   async function handleStatusChange(newStatus: ApplicationStatus) {
     if (newStatus === currentStatus) return;
-
-    setError(null);
 
     startTransition(async () => {
       const result = await updateApplicationStatus(applicationId, newStatus);
 
       if (!result.success) {
-        setError(result.error || 'Failed to update status');
+        toast.error(result.error || 'Failed to update status');
         return;
       }
 
-      // Refresh the page to show updated status
+      // Status updated; surface email-delivery failures instead of a
+      // misleading success toast.
+      if (result.warning) {
+        toast.warning(result.warning);
+      } else {
+        toast.success(`Application ${newStatus}`);
+      }
       router.refresh();
     });
   }
@@ -76,8 +80,8 @@ export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpda
   const availableStatuses = APPLICATION_STATUSES.filter((status) => status !== currentStatus);
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-medium text-gray-700">Update Application Status</h3>
+    <div className="border-border-subtle bg-surface rounded-lg border p-4">
+      <h3 className="text-muted mb-3 text-sm font-medium">Update Application Status</h3>
 
       <div className="flex flex-wrap gap-2">
         {availableStatuses.map((status) => {
@@ -99,12 +103,6 @@ export function StatusUpdateButtons({ applicationId, currentStatus }: StatusUpda
           );
         })}
       </div>
-
-      {error && (
-        <p className="mt-2 text-sm text-red-600" role="alert">
-          {error}
-        </p>
-      )}
     </div>
   );
 }
