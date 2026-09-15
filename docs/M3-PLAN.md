@@ -148,15 +148,111 @@ In `src/lib/actions/answers.ts` around line 220–243, capture the `sendEmail` r
 - [ ] One restore drill recorded in `docs/runbooks/backup-restore.md`.
 - [ ] Passwords rotated on dev and prod; CLI relinked to dev.
 - [ ] The four "Still owed on prod" boxes in `specs/006-close-public-data-exposure/quickstart.md` ticked.
-- [ ] UAT findings log committed; every blocker fixed and merged; `main` = `dev`.
+- [ ] Solo rehearsal findings log committed; every blocker fixed and merged; `main` = `dev`. (The organizer session is M4's entry gate, not an M3 exit criterion.)
 - [ ] `npm run smoke` passes against prod.
+
+## Execution structure (added 2026-09-14): spec 007, solo-first
+
+**Decision.** M3 becomes one spec-kit spec, `specs/007-production-readiness/`. Reason: multi-session scope (roadmap decision table), and the constitution names `tasks.md` as the task source of truth. Precedent: specs 005 and 006 already track manual rollout work as tasks and use `quickstart.md` as the ops record with evidence. Commits are tagged `[007-Txx]`. `docs/M3-PLAN.md` stays as the reasoning record; `spec.md` distils it and links back.
+
+**Solo-first.** Everything technical in M3 is done and verified by Owen alone. A **solo technical rehearsal** of the full UAT script on the dev preview is M3's gate. The organizer session becomes the entry gate for M4 (usability and judgement calls only), so M3 no longer waits on anyone but the DNS owner.
+
+### Spec contents
+
+- `spec.md` — user stories, each independently testable:
+  - US1 (P1) Vendors and organizers receive email from the real domain, and a failed send is never silent. (A1, A2, A3)
+  - US2 (P1) The projects never pause and their data can be restored. (A4, C2)
+  - US3 (P2) Owen can prove prod healthy in ten minutes on event day. (C1, C5, C7)
+  - US4 (P2) The full event lifecycle works end to end on a preview with no one intervening. (B1, rehearsal, B4)
+  - US5 (P3) Organizers exist on both projects and can sign in. (A5, A6, C6)
+- `plan.md` — technical context and constitution check; it will note the one new file-level pattern (`src/lib/env.ts` + `env-public.ts`) and the one new runtime surface (`/api/keepalive` + `vercel.json`), no new dependencies.
+- `tasks.md` — phases below. Manual tasks are prefixed **[manual]** with "evidence:" naming what gets recorded in `quickstart.md`.
+- `quickstart.md` — the ops record: per-project tables (dev / prod) for domain verification, SMTP, keep-alive first run, rotation dates, restore-drill result, prod probe output, prod smoke result; the same shape as 006's "Prod rollout record".
+- `contracts/keepalive-route.md` and `contracts/env-contract.md` — small, so the next person does not read code to learn the env names.
+- No `data-model.md`, no migration.
+
+### tasks.md phases and dependencies
+
+```
+Phase 1 Setup          T001 scaffold spec (docs PR)             — no deps
+Phase 2 Foundational   T002 [manual] Resend domain → DNS handoff → verified   — external, start day one
+                       T003 [manual] EMAIL_FROM_ADDRESS + RESEND_API_KEY on Vercel Preview+Production
+Phase 3 US1 email      T004 env module + tests + docs (PR)      — merge after T003
+                       T005 answers.ts warning parity (PR)      — independent
+                       T006 [manual] verify domain delivery from local dev via /api/test-email  — needs T002
+Phase 4 US2 uptime     T007 keep-alive route + vercel.json + tests (PR)     — independent
+                       T008 [manual] CRON_SECRET + targets on Vercel; first cron run green
+                       T009 backup/restore runbook (PR)         — independent
+                       T010 [manual] restore drill on dev, recorded            — needs T009
+Phase 5 US3 smoke      T011 smoke-check.mjs + runbook + seed-role.sql (PR)  — independent
+                       T012 [manual] prod probe once by hand + storage-policy visual check
+Phase 6 US5 accounts   T013 [manual] Supabase auth SMTP + Site/redirect URLs, dev and prod  — needs T002
+                       T014 [manual] organizer accounts on dev; T015 on prod
+Phase 7 US4 lifecycle  T016 UAT script + findings template (PR)  — independent
+                       T017 [manual] solo rehearsal on dev preview, findings logged  — needs T003–T005, T007, T013, T014
+                       T018 fixes from rehearsal (PR each; spec only if schema/RLS/auth)
+Phase 8 Close          T019 [manual] rotate DB passwords dev + prod; relink CLI to dev
+                       T020 promote dev → main
+                       T021 [manual] prod smoke run = 006 live-submission residual; tick 006 quickstart boxes
+                       T022 docs close-out: roadmap checkboxes, specs/README, CLAUDE.md phase note
+```
+
+Critical path: T002 → T003 → T004 → T017 → T018 → T020 → T021. Everything else is parallel filler while DNS propagates.
+
+### Session plan
+
+Each session opens with the next unblocked task in `tasks.md`; each repo task is one branch off `dev`, one PR, merged before the next starts on the same files.
+
+| Session | Repo work (Claude) | Owen, in between |
+|---|---|---|
+| S1 | T001 scaffold spec 007 (docs-only PR). Then T004 env module | Start T002 today; set T003 once verified |
+| S2 | T005 answers parity, T007 keep-alive (two PRs) | T008 after the keep-alive deploy; T006 once DNS is live |
+| S3 | T011 smoke script + runbook; T009 backup runbook; drive T010 with Owen at the keyboard | T012, T013, T014 |
+| S4 | T016 UAT script; drive T017 rehearsal with Owen (Chrome tools available for observation) | — |
+| S5 | T018 fixes; T022 docs | T019, T020, T021 |
+
+### Per-task discipline
+
+- Repo tasks: TDD for the route, the env schema and the action change (constitution Principle II); presentational or docs work verified by running it. Before each PR: `npm run lint && npm test && npm run build` with the local stack up; `docker restart supabase_kong_Holigay` if auth health returns 502 after a reset.
+- Manual tasks: done by Owen in the dashboard; Claude supplies the exact steps and expected screen states, and the task is ticked only when evidence is in `quickstart.md`.
+- Merge order for T004: Vercel vars first, then merge, then confirm the preview build is green.
 
 ## Explicitly out of M3
 
 Epic 4 invite backend (manual SQL suffices at two organizers), browser-automation tests, Sentry or structured logging, paid Supabase or Vercel tiers, email via `after()`, retiring the legacy form, and any builder extension the UAT requests (scope-line table applies).
 
-## First moves next session
+## How the solo rehearsal fits the spec-kit flow
 
-1. Owen: start A1 (add the domain in Resend, send the DNS records to the DNS owner). This is the critical path.
-2. Claude: A2 branch (env module), then A3 and A4 as separate branches. Local gate before each PR: `npm run lint && npm test && npm run build` with the local stack up.
-3. Claude: B1 (UAT script doc) and C1 (smoke runbook + script) can follow while DNS propagates.
+- `/speckit.specify` turns the description into `spec.md` with user stories. The rehearsal is **US4**: its acceptance scenarios are the eleven lifecycle steps written as Given/When/Then, and its "Independent Test" is literally "run the script on the dev preview playing both roles; every expected result observed". The other stories carry their own measurable acceptance (email from the verified domain, cron log green, restore row counts match, smoke script exits 0).
+- `/speckit.plan` produces `plan.md` plus `quickstart.md` and `contracts/`. Here `quickstart.md` is the ops record (per-project evidence tables), and the two contracts document the env names and the keep-alive route.
+- `/speckit.tasks` produces `tasks.md`. Manual dashboard work is a task like any other, prefixed **[manual]** with an "evidence:" clause; precedent is 006 T004 (boot the stack and probe) and 005 T062 (record the migration on prod). The rehearsal is one task whose output is a committed findings file under `specs/007-production-readiness/rehearsal/<date>.md`; a follow-up task holds the fixes.
+- Execution is per session, not `/speckit.implement` in one go: open `tasks.md`, take the next unblocked task, branch, TDD where the constitution requires it, gate, PR, tick.
+
+### If the Resend domain is delayed
+
+Resend gates only the email-specific proofs: T006 (delivery from the domain), T013 (auth SMTP needs a verified sender), the two email steps of T017, T021's email check, and the final promotion once the env guard is live. Sixteen of the 22 tasks do not touch it. Two adjustments keep the rest moving:
+
+- **Env guard keys on `VERCEL_ENV === 'production'`, not `NODE_ENV`.** Preview builds then pass without `EMAIL_FROM_ADDRESS`; only a Production deploy fails without it, which is the behaviour wanted anyway. T004 merges with no Vercel prerequisite.
+- **Rehearsal runs with the fallback sender.** `onboarding@resend.dev` delivers only to the Resend account owner's address, so Owen's own mailbox as the vendor email makes steps 3 and 7 observable. Record them as "passed on fallback sender"; re-run those two steps after verification. Organizer accounts (T014/T015) use dashboard Add User with auto-confirm, so they need no SMTP.
+
+### Kickoff prompt for the fresh session
+
+```
+/speckit.specify Production readiness for the Holigay Vendor Market — milestone M3.
+Read docs/M3-PLAN.md and ~/.claude/plans/plan-milestone-m3-production-ready-synthetic-river.md
+first: they are the brainstorm output and are authoritative for scope, sequence, the five
+user stories and the task phases. Spec number 007, short name production-readiness.
+All work is solo. Dashboard work is tracked as [manual] tasks with evidence recorded in
+quickstart.md, as specs 005 and 006 did. The M3 gate is a solo technical rehearsal of the
+full event lifecycle on the dev preview (US4); the organizer session is M4, out of scope.
+No schema, RLS or auth changes. The Resend domain may be delayed: mark the tasks that depend
+on it and keep every other task executable without it (see "If the Resend domain is delayed").
+First task: sync the "Execution structure" section from the plan file into docs/M3-PLAN.md.
+No Claude co-authoring trailers on commits or PRs.
+```
+
+## First moves next session (S1)
+
+1. Owen: start T002 (add the domain in Resend, send the DNS records to the DNS owner). This is the critical path.
+2. Claude: T001 — scaffold `specs/007-production-readiness/` (`spec.md`, `plan.md`, `tasks.md`, `quickstart.md`, two contracts) from this plan and `docs/M3-PLAN.md`; add the 007 row to `specs/README.md`; docs-only PR to `dev`.
+3. Claude: T004 env-module branch, test-first. Hold the merge until T003 is set on Vercel.
