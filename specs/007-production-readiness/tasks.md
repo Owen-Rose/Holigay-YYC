@@ -17,7 +17,7 @@
 
 **Purpose**: Finish the spec scaffold so the task list is the source of truth.
 
-- [ ] T001 Finish the spec scaffold: add the row `| 007 | Production readiness (M3) | 🚧 In progress | — | — |` to the Status table in specs/README.md; commit this tasks.md; open the docs-only PR from `007-production-readiness` to `dev` (spec.md, plan.md, research.md, contracts/, quickstart.md are already on the branch) and put its link in the README row
+- [X] T001 Finish the spec scaffold: add the row `| 007 | Production readiness (M3) | 🚧 In progress | — | — |` to the Status table in specs/README.md; commit this tasks.md; open the docs-only PR from `007-production-readiness` to `dev` (spec.md, plan.md, research.md, contracts/, quickstart.md are already on the branch) and put its link in the README row — PR [#9](https://github.com/Owen-Rose/Holigay-YYC/pull/9)
 
 ---
 

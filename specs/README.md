@@ -12,6 +12,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 004 | Consolidate role-system migrations | ✅ Shipped | [#4](https://github.com/Owen-Rose/Holigay-YYC/pull/4) | 2026-04-25 |
 | 005 | Dynamic per-event questionnaires | ✅ Shipped; on `main`/prod 2026-09-13. Phase 11 (atomic save, migration `012`) on `dev` 2026-09-14 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7), [#8](https://github.com/Owen-Rose/Holigay-YYC/pull/8) | 2026-08-22 |
 | 006 | Close the public data exposure | ✅ Shipped; prod migrated 2026-09-13 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
+| 007 | Production readiness (M3) | 🚧 In progress | [#9](https://github.com/Owen-Rose/Holigay-YYC/pull/9) | — |
 
 ### Post-merge detail
 
@@ -31,8 +32,9 @@ merged as one unit.
   seed now write through one atomic `save_event_questionnaire` RPC (migration `012`) and
   `seeded_from_template_id` is populated; `src/test/security/questionnaire-save.test.ts` and
   `template-writes.test.ts` give the builder/template paths real-database coverage, retiring
-  the waiver's gaps 1, 3 and 5. Migration `012` still has to be pushed to the dev and prod
-  projects.
+  the waiver's gaps 1, 3 and 5. Migration `012` was applied to dev and prod on 2026-09-14
+  and `dev` was promoted to `main` the same day — see the "Phase 11 rollout" table in
+  `specs/005-dynamic-questionnaires/quickstart.md`.
 
 ## Queued work (no spec yet)
 
