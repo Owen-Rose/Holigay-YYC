@@ -58,7 +58,7 @@ key is sufficient and no user data is involved.
 | Situation | HTTP | Body |
 |---|---|---|
 | Header missing or wrong secret | `401` | `{ "ok": false, "error": "unauthorized" }` |
-| `CRON_SECRET` or targets unset/unparseable | `500` | `{ "ok": false, "error": "misconfigured" }` |
+| `KEEPALIVE_SUPABASE_TARGETS` unset or unparseable (secret already verified) | `500` | `{ "ok": false, "error": "misconfigured" }` |
 | All targets read OK | `200` | as above, `ok: true` |
 | Any target failed | `500` | `ok: false`; the failed entry carries `ok: false`, its `status` (or `0`), and `error` text |
 
