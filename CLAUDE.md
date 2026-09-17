@@ -151,18 +151,39 @@ Zod schemas in `src/lib/validations/` define validation rules and infer TypeScri
 
 ## Environment Variables
 
-Required in `.env.local`:
+Variables are parsed and validated at first import by two Zod modules — a missing
+or malformed value fails with one error naming every problem, not eight scattered
+`undefined`s. Full contract: `specs/007-production-readiness/contracts/env-contract.md`.
+
+- `src/lib/env-public.ts` — the `NEXT_PUBLIC_*` pair. Safe to import from client
+  components, server code and the edge middleware. Reads `process.env.NEXT_PUBLIC_X`
+  as **literal property accesses** so Next.js inlines them into the browser bundle;
+  a dynamic lookup would be `undefined` there.
+- `src/lib/env.ts` — server-only (throws if `window` exists). Exports `isProduction`,
+  `resendApiKey`, `emailFromAddress`, `cronSecret`, `keepaliveTargets`.
+
+Required in `.env.local` (and for `npm run build`):
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-RESEND_API_KEY=re_...              # Email sending (logged to console if unset)
 ```
 
 Optional:
 ```
+RESEND_API_KEY=re_...              # Email sending (logged to console if unset)
 SUPABASE_SERVICE_ROLE_KEY=eyJ...   # Server-only, needed for organizer invites (Epic 4)
 EMAIL_FROM_ADDRESS=Holigay Vendor Market <noreply@yourdomain.com>  # Custom sender
 ```
+
+**Production strictness keys on `VERCEL_ENV === 'production'`, never `NODE_ENV`.**
+Vercel builds previews with `NODE_ENV=production`, so keying on it would break every
+preview. On a Production deploy of `main`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS`
+are required and a sender containing `resend.dev` is refused — that test sender
+delivers only to the Resend account owner's mailbox, so using it in production means
+every vendor email silently vanishes. Previews and local builds stay lenient.
+
+Tests that import the real env modules need `// @vitest-environment node` (the unit
+project runs jsdom, where the server-only guard would always fire).
 
 ## Path Alias
 

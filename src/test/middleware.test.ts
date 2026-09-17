@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // =============================================================================
@@ -23,17 +23,19 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }));
 
+// @/lib/env-public validates at module load, and the import below evaluates the
+// whole graph before any beforeEach could stub process.env. Mocking the module
+// is the same seam as the @supabase/ssr mock above and cannot leak across files.
+vi.mock('@/lib/env-public', () => ({
+  supabaseUrl: 'https://example.supabase.co',
+  supabaseAnonKey: 'test-anon-key',
+}));
+
 // Import AFTER the mock so middleware picks up the stubbed createServerClient.
 import { middleware } from '@/middleware';
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://example.supabase.co');
-  vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key');
-});
-
-afterEach(() => {
-  vi.unstubAllEnvs();
 });
 
 function makeRequest(pathname: string): NextRequest {

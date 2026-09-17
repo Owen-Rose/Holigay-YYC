@@ -1,3 +1,4 @@
+import { emailFromAddress, resendApiKey } from '@/lib/env';
 import { Resend } from 'resend';
 
 // =============================================================================
@@ -7,39 +8,34 @@ import { Resend } from 'resend';
 /**
  * Default sender email address
  *
- * In development, Resend requires using their test domain (onboarding@resend.dev)
- * or a verified domain. For production, configure your own domain.
+ * Both values come from the environment contract (@/lib/env), which requires a
+ * verified-domain sender on a Vercel Production deploy and refuses the
+ * resend.dev test domain there. Outside production the fallback below applies —
+ * Resend delivers it only to the account owner's mailbox.
  *
+ * @see specs/007-production-readiness/contracts/env-contract.md
  * @see https://resend.com/docs/dashboard/domains/introduction
  */
-const DEFAULT_FROM_EMAIL =
-  process.env.EMAIL_FROM_ADDRESS || 'Holigay Vendor Market <onboarding@resend.dev>';
+const DEFAULT_FROM_EMAIL = emailFromAddress ?? 'Holigay Vendor Market <onboarding@resend.dev>';
 
 /**
  * Initialize Resend client
  *
  * The client is lazily initialized to avoid errors when the API key is not set.
- * In development without an API key, email operations will be logged but not sent.
+ * Without an API key, email operations will be logged but not sent; the env
+ * contract is what guarantees a key exists on a production deploy.
  */
 let resendClient: Resend | null = null;
 
 function getResendClient(): Resend | null {
   if (resendClient) return resendClient;
 
-  const apiKey = process.env.RESEND_API_KEY;
-
-  if (!apiKey) {
-    // Fail loud in production so a misconfigured deploy can't silently
-    // log-and-pretend-to-succeed. Callers (sendEmail) translate the throw
-    // into a structured { success: false } response.
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('RESEND_API_KEY is required in production but is not set');
-    }
+  if (!resendApiKey) {
     console.warn('[Email] RESEND_API_KEY is not set. Emails will be logged but not sent.');
     return null;
   }
 
-  resendClient = new Resend(apiKey);
+  resendClient = new Resend(resendApiKey);
   return resendClient;
 }
 
@@ -125,21 +121,7 @@ type EmailLogEntry = {
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
   const { to, subject, html, text, from = DEFAULT_FROM_EMAIL, replyTo, cc, bcc } = options;
 
-  let resend: Resend | null;
-  try {
-    resend = getResendClient();
-  } catch (err) {
-    // getResendClient throws in production when RESEND_API_KEY is missing.
-    // Surface this as a structured failure so callers can warn the user
-    // instead of letting the exception bubble through try/catch at call sites.
-    const errorMessage = err instanceof Error ? err.message : 'Email client is not configured';
-    console.error('[Email] Email client initialization failed:', err);
-    return {
-      success: false,
-      messageId: null,
-      error: errorMessage,
-    };
-  }
+  const resend = getResendClient();
 
   // Development fallback: log email instead of sending
   if (!resend) {
@@ -206,12 +188,13 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
  * Checks if email sending is configured and available
  *
  * Useful for conditionally showing email-related features in the UI
- * or deciding whether to attempt email operations.
+ * or deciding whether to attempt email operations. Reflects the configuration
+ * read at boot by @/lib/env, not a live process.env lookup.
  *
- * @returns true if RESEND_API_KEY is configured
+ * @returns true if RESEND_API_KEY was configured at startup
  */
 export function isEmailConfigured(): boolean {
-  return !!process.env.RESEND_API_KEY;
+  return !!resendApiKey;
 }
 
 /**

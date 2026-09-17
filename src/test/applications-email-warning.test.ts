@@ -1,3 +1,8 @@
+// @vitest-environment node
+//
+// Runs under Node, not the unit project's jsdom default: the partial mock below
+// keeps the real @/lib/email/client, which pulls in @/lib/env and its browser
+// guard.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ApplicationSubmitInput } from '@/lib/validations/application';
 

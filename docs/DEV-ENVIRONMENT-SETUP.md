@@ -6,7 +6,7 @@
 
 | Component | Production | Development |
 |-----------|-----------|-------------|
-| Git branch | `main` | `develop` |
+| Git branch | `main` | `dev` |
 | Vercel | Production deployment | Preview deployments |
 | Supabase | `hgmfjvjlxrhdojwlkgap` | (your dev project ref) |
 | `.env.local` | — | Points at dev Supabase |
@@ -127,28 +127,18 @@ JOIN auth.users u ON u.id = p.id;
 2. Sign up at `localhost:3000/signup` with each test email
 3. Promote admin/organizer via SQL as above
 
-## Part 7: Rename Git Branch (staging → develop)
+## Part 7: Branch Model
+
+`dev` is the integration branch and `main` is production. Feature work branches off
+`dev`, merges back via PR, and `dev` is promoted to `main` with a fast-forward merge
+when a milestone ships. (The historical `staging` branch was renamed to `dev` and no
+longer exists.)
 
 ```bash
-# Fetch latest
-git fetch origin
-
-# Create develop from staging
-git branch develop origin/staging
-
-# Push develop to remote
-git push origin develop
-
-# Delete old staging branch
-git push origin --delete staging
-
-# Clean up
-git fetch --prune
-
-# Sync develop with main
-git checkout develop
+# Sync dev with main after a promotion
+git checkout dev
 git merge main
-git push origin develop
+git push origin dev
 git checkout main
 ```
 
@@ -158,21 +148,31 @@ git checkout main
 1. Go to **Settings > Git**
 2. Confirm production branch is `main`
 
-### Preview environment variables
+### Environment variables
 1. Go to **Settings > Environment Variables**
-2. Add/update these for **Preview** environment only:
+2. Add/update:
 
 | Variable | Value | Environment |
 |----------|-------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Dev Supabase URL | Preview |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Dev anon key | Preview |
 | `RESEND_API_KEY` | Same or test key | Preview |
+| `RESEND_API_KEY` | Live key | **Production (required)** |
+| `EMAIL_FROM_ADDRESS` | `Name <noreply@verified-domain>` | Preview |
+| `EMAIL_FROM_ADDRESS` | `Name <noreply@verified-domain>` | **Production (required)** |
 
 3. Confirm **Production** variables still point at the production Supabase project
 
+> **The two Production rows are build-time requirements.** `VERCEL_ENV=production`
+> makes `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` mandatory, and refuses any sender on
+> the `resend.dev` domain — a Production deploy without them fails the build on
+> purpose, because that test sender delivers only to the Resend account owner. Preview
+> deploys are lenient. See
+> `specs/007-production-readiness/contracts/env-contract.md`.
+
 Result:
 - Vercel production (`main`) → production Supabase
-- Vercel preview (`develop` + PR branches) → dev Supabase
+- Vercel preview (`dev` + PR branches) → dev Supabase
 
 ## Part 9: Update db:types Script
 
@@ -188,19 +188,19 @@ Both should produce identical output since the schemas are the same.
 ## Part 10: Workflow Going Forward
 
 ```
-1. git checkout develop
-2. git pull origin develop
+1. git checkout dev
+2. git pull origin dev
 3. git checkout -b feature/task-X.Y.Z
 4. ... work, commit ...
 5. git push origin feature/task-X.Y.Z
-6. Create PR: feature/task-X.Y.Z → develop
+6. Create PR: feature/task-X.Y.Z → dev
 7. Vercel creates preview deployment automatically
 8. Test on preview URL with test users
-9. Merge PR to develop
-10. When ready for production: merge develop → main
+9. Merge PR to dev
+10. When ready for production: merge dev → main
 ```
 
-For solo work, pushing directly to `develop` and skipping PRs is also fine. The key point is that `develop` is your testing ground and `main` stays production-ready.
+For solo work, pushing directly to `dev` and skipping PRs is also fine. The key point is that `dev` is your testing ground and `main` stays production-ready.
 
 ---
 
@@ -213,6 +213,6 @@ For solo work, pushing directly to `develop` and skipping PRs is also fine. The 
 - [ ] Update `.env.local` to point at dev project (Part 5)
 - [ ] Disable email confirmation on dev project (Part 6)
 - [ ] Create 3 test users: admin, vendor, organizer (Part 6)
-- [ ] Rename `staging` → `develop`, sync with main (Part 7)
-- [ ] Configure Vercel preview env vars (Part 8)
+- [ ] Confirm `dev` exists and is synced with `main` (Part 7)
+- [ ] Configure Vercel env vars, including the two required Production rows (Part 8)
 - [ ] Add `db:types:dev` script to package.json (Part 9)
