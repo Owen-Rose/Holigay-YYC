@@ -196,9 +196,9 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
 // Full factory mock, deliberately not `importOriginal`: pulling in the real
 // client would drag @/lib/env and its server-only guard into this jsdom suite.
-// The resolved value is armed in beforeEach, not here — vi.clearAllMocks() wipes
-// a factory-inline mockResolvedValue, which would leave sendEmail resolving
-// undefined and send every test down the email-failed path.
+// The default resolved value lives in beforeEach rather than here because the
+// email-failure cases below override it on this shared mock, and that override
+// would otherwise carry into whichever test runs next.
 vi.mock('@/lib/email/client', () => ({
   sendEmail: vi.fn(),
 }));
@@ -232,7 +232,7 @@ function lastRpcPayload() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // Re-arm after clearAllMocks, which strips the resolved value.
+  // Reset to the happy path; individual cases override this for failure modes.
   sendEmailMock.mockResolvedValue({ success: true, messageId: 'msg-1', error: null });
   for (const key of Object.keys(selectQueues)) {
     delete selectQueues[key];
