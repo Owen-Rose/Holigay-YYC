@@ -128,10 +128,17 @@ function parseKeepaliveTargets(raw: string | undefined): KeepaliveTarget[] | nul
 /** True only on a Vercel Production deploy — NOT `NODE_ENV === 'production'`. */
 export const isProduction: boolean = env.VERCEL_ENV === 'production';
 
-/** Undefined outside production, where emails are logged instead of sent. */
+/**
+ * Undefined when unset. Required only on a Vercel Production deploy; anywhere
+ * else sendEmail logs instead of sending when this is missing.
+ */
 export const resendApiKey: string | undefined = env.RESEND_API_KEY;
 
-/** Undefined outside production, where the resend.dev test sender is used. */
+/**
+ * Undefined when unset. Required (and refused on resend.dev) only on a Vercel
+ * Production deploy; anywhere else the email client falls back to the resend.dev
+ * test sender when this is missing.
+ */
 export const emailFromAddress: string | undefined = env.EMAIL_FROM_ADDRESS;
 
 /** Null unless a secret of at least 16 characters is configured. */

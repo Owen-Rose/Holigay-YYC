@@ -21,7 +21,7 @@ Single-tenant app — built specifically for the Holigay Events YYC team.
 ```bash
 git clone <repo> && cd Holigay-YYC
 npm install
-cp .env.local.example .env.local   # then fill in Supabase + Resend keys
+cp .env.example .env.local         # then fill in Supabase + Resend keys
 npm run dev                        # http://localhost:3000
 ```
 

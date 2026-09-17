@@ -172,8 +172,11 @@ How coupled are we, really? Coupling is concentrated in exactly one place.
 
 Email behavior worth knowing: sends are awaited inline in the request, best-effort —
 failure sets a `warning` field on the action response (surfaced as a toast) while the
-DB write stays committed. No queue, no retry. In dev without `RESEND_API_KEY`, emails
-log to console and pretend to succeed; in prod a missing key fails loudly.
+DB write stays committed. No queue, no retry. Without `RESEND_API_KEY`, emails log to
+console and pretend to succeed. A Vercel Production deploy (`VERCEL_ENV=production`)
+cannot reach that state: `src/lib/env.ts` fails the build at import time if
+`RESEND_API_KEY` or `EMAIL_FROM_ADDRESS` is missing, or if the sender is on the
+`resend.dev` test domain.
 
 ## 7. Conventions (and where they drift)
 
@@ -211,8 +214,12 @@ Zod-inferred types cover inputs; query-result shapes are mostly hand-written. On
 hack: the `users_with_roles` view is queried as `.from('users_with_roles' as 'user_profiles')`
 because generated types don't include views cleanly.
 
-**Env vars:** read ad-hoc with `process.env.X!` — no startup validation. A missing var
-is a runtime crash at first use, except `RESEND_API_KEY` which is checked properly.
+**Env vars:** parsed once at first import by two Zod modules that throw one aggregated
+error naming every problem. `src/lib/env-public.ts` owns the `NEXT_PUBLIC_*` pair (literal
+`process.env.X` reads so Next inlines them; importable anywhere). `src/lib/env.ts` is
+server-only and owns the rest; its production-only rules key on `VERCEL_ENV`, never
+`NODE_ENV`. Contract: `specs/007-production-readiness/contracts/env-contract.md`. The two
+dev-only API routes keep a raw `NODE_ENV` gate by design.
 
 **Code hygiene** (verified at review time): zero `as any`, zero `@ts-ignore`, zero
 `eslint-disable`, one TODO (`team.ts` invite stub). Error reporting is `console.error`

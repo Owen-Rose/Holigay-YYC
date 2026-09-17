@@ -151,8 +151,10 @@ rewrite session.
 - **Read-auth consistency**: add `requireRole('organizer')` to organizer-facing reads in
   `applications.ts`/`events.ts` (as `templates.ts` already does). RLS remains the
   authority; this restores the two-layer convention and makes intent legible.
-- **Env validation module** (`src/lib/env.ts`, Zod-parsed at import) replacing scattered
-  `process.env.X!`.
+- ~~**Env validation module**~~ ✅ **Shipped by spec 007 T004** — `src/lib/env-public.ts`
+  and `src/lib/env.ts`, Zod-parsed at import, replaced every `process.env.X!` read.
+  Production strictness keys on `VERCEL_ENV`; contract in
+  `specs/007-production-readiness/contracts/env-contract.md`.
 - **Split `applications.ts`** (1,037 lines) into submit / queries / status-mutations
   when next doing surgery there.
 - ~~**RLS integration tests**~~ ✅ **Shipped by spec 006** — `src/test/security/` is a
