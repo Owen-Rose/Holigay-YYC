@@ -53,9 +53,11 @@ passwords, no vendor PII.
 
 | Task | Project / env | Date | Evidence | Status |
 |---|---|---|---|---|
+| T008a Interim GitHub Actions keep-alive added; four repo secrets set | GitHub | | Workflow file; secret names (no values) | ☐ |
+| T008a First green run (`workflow_dispatch`, then a scheduled one) | GitHub Actions log | | Run timestamps; both targets 2xx | ☐ |
 | T008 `CRON_SECRET` + `KEEPALIVE_SUPABASE_TARGETS` (dev **and** prod pairs) set | Vercel Production | | | ☐ |
 | T008 First cron run green | Vercel Cron log | | Run timestamp; response `ok: true` | ☐ |
-| T008 Dev project still active seven days after the first run | Supabase dev | | Dashboard status; preview `/apply` loads | ☐ |
+| T008 Dev project still active seven days after the first run (T008a's run counts while the Vercel cron waits on T020) | Supabase dev | | Dashboard status; preview `/apply` loads | ☐ |
 | T010 Backup taken from dev (schema + data + bucket) | Supabase dev → local files | | Schemas included in the dump; file counts | ☐ |
 | T010 Restore drill into the local stack | local | | Row counts per table (source vs restored); one signed-URL download OK | ☐ |
 | T010 CLI relinked to dev after the drill | CLI | | `supabase projects list` shows dev linked | ☐ |
@@ -74,9 +76,11 @@ passwords, no vendor PII.
 
 | Task | Project / env | Date | Evidence | Status |
 |---|---|---|---|---|
-| T013 Built-in auth mailer restriction confirmed | Supabase dev | | Exact dashboard wording | ☐ |
-| T013 Custom SMTP via Resend configured; Site URL + redirect URLs set; "Confirm email" state recorded | Supabase dev | | URLs entered; confirm-email on/off | ☐ |
-| T013 Same | Supabase prod | | | ☐ |
+| T013a Built-in auth mailer restriction wording recorded | Supabase dev | | Exact dashboard wording | ☐ |
+| T013a Site URL + redirect URLs set; "Confirm email" state recorded | Supabase dev | | URLs entered; confirm-email on/off | ☐ |
+| T013a Same | Supabase prod | | | ☐ |
+| T013b Custom SMTP via Resend configured | Supabase dev | | Sender address; test sign-up mail from the verified domain | ☐ |
+| T013b Same | Supabase prod | | | ☐ |
 | T014 Organizer accounts created (dashboard Add user, auto-confirm) + role set via `scripts/seed-role.sql`; each signs in and lands on `/dashboard` | Supabase dev | | Number of accounts; sign-in observed | ☐ |
 | T015 Same | Supabase prod | | | ☐ |
 
@@ -109,11 +113,13 @@ passwords, no vendor PII.
   `docs/runbooks/event-week-smoke.md` (the UI refuses to delete an event that has
   applications).
 
-## If the Resend domain is delayed
+## While there is no Resend or DNS access (the operating plan from 2026-09-16)
 
-Resend gates only the email-specific proofs: T006, T013 (auth SMTP needs a verified
-sender), the two email steps of T017, T021's email check, and the final promotion once
-the env guard is live. Everything else proceeds. Two adjustments:
+The task list was re-sequenced so the four tasks that need the mail provider — T002, T003,
+T013b, T006 — sit in Phase 8, after everything else. They gate only the email-specific
+proofs: the two email steps of T017, T021's email check, and the promotion itself (T020),
+because the env guard fails a Production build without the sender variables. Eighteen of
+the twenty-four tasks, the M3 gate included, proceed without them. Three adjustments:
 
 - **The env guard keys on `VERCEL_ENV === 'production'`, not `NODE_ENV`.** Preview builds
   pass without `EMAIL_FROM_ADDRESS`; only a Production deploy fails without it. T004 merges
@@ -122,7 +128,11 @@ the env guard is live. Everything else proceeds. Two adjustments:
   the Resend account owner's address, so using the maintainer's own mailbox as the vendor
   email keeps steps 3 and 7 observable. Record them as "passed on fallback sender" and
   re-run those two steps after verification. Organizer accounts use dashboard Add User
-  with auto-confirm, so they need no SMTP.
+  with auto-confirm, so they need no SMTP, and T013a sets the redirect URLs without it.
+- **The Vercel cron stays dormant until the promotion**, since Vercel runs crons only on
+  Production deploys. T008a (a GitHub Actions schedule hitting both projects' REST
+  endpoints with anon keys in repo secrets) keeps them awake in the meantime and is
+  deleted at T008.
 
 ## Prod probe checklist (T012; copied from spec 006 so this file is self-contained)
 

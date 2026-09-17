@@ -199,6 +199,13 @@ Phase 8 Close          T019 [manual] rotate DB passwords dev + prod; relink CLI 
 
 Critical path: T002 → T003 → T004 → T017 → T018 → T020 → T021. Everything else is parallel filler while DNS propagates.
 
+> **Re-sequenced 2026-09-16 — `specs/007-production-readiness/tasks.md` is authoritative for order.**
+> Resend and DNS access is not available, so the four tasks that need it (T002, T003, T013b, T006)
+> moved to the end, T013 split into T013a (auth URLs, dashboard only) and T013b (custom SMTP), and
+> T008a was added as an interim GitHub Actions keep-alive because Vercel crons only fire on
+> Production deploys, which now waits on T020. Task IDs and scope are unchanged. The critical path
+> while access is missing is T004 → T007 → T017 → T018; once it exists, T002 → T003 → T020 → T021.
+
 ### Session plan
 
 Each session opens with the next unblocked task in `tasks.md`; each repo task is one branch off `dev`, one PR, merged before the next starts on the same files.
@@ -230,10 +237,11 @@ Epic 4 invite backend (manual SQL suffices at two organizers), browser-automatio
 
 ### If the Resend domain is delayed
 
-Resend gates only the email-specific proofs: T006 (delivery from the domain), T013 (auth SMTP needs a verified sender), the two email steps of T017, T021's email check, and the final promotion once the env guard is live. Sixteen of the 22 tasks do not touch it. Two adjustments keep the rest moving:
+Resend gates only the email-specific proofs: T006 (delivery from the domain), T013b (auth SMTP needs a verified sender), the two email steps of T017, T021's email check, and the final promotion once the env guard is live. Eighteen of the 24 tasks do not touch it. **This became the operating plan on 2026-09-16** — see the re-sequencing note above. Three adjustments keep the rest moving:
 
 - **Env guard keys on `VERCEL_ENV === 'production'`, not `NODE_ENV`.** Preview builds then pass without `EMAIL_FROM_ADDRESS`; only a Production deploy fails without it, which is the behaviour wanted anyway. T004 merges with no Vercel prerequisite.
 - **Rehearsal runs with the fallback sender.** `onboarding@resend.dev` delivers only to the Resend account owner's address, so Owen's own mailbox as the vendor email makes steps 3 and 7 observable. Record them as "passed on fallback sender"; re-run those two steps after verification. Organizer accounts (T014/T015) use dashboard Add User with auto-confirm, so they need no SMTP.
+- **Interim keep-alive on GitHub Actions (T008a).** Vercel runs crons only on Production deploys, so `vercel.json`'s schedule is dormant until T020. A scheduled Actions workflow reading one row from each project keeps them awake meanwhile; T008 deletes it.
 
 ### Kickoff prompt for the fresh session
 

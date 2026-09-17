@@ -192,7 +192,7 @@ wraps the right flags and excludes Supabase-managed schemas); Supabase's paid PI
 
 ## R8. Auth mail and URLs on the hosted projects
 
-**Decision**: Manual task T013, per project (dev, prod): in Authentication → Emails /
+**Decision**: Manual tasks T013a (URLs, mailer baseline) and T013b (custom SMTP), per project (dev, prod): in Authentication → Emails /
 SMTP Settings, confirm the built-in mailer's restriction wording (team members only,
 rate-limited), enable Custom SMTP with Resend (`smtp.resend.com`, port 465, username
 `resend`, password = the Resend API key, sender = an address on the verified domain);
@@ -209,7 +209,7 @@ Resend's SMTP gateway means one provider, one API key, one verified domain.
 viable for organizers); disable email confirmation on hosted projects (rejected: the
 default posture should match what launch needs; recorded as a state, not changed).
 
-**Note**: T013 needs T002's verified domain for the sender; organizer accounts (T014/T015)
+**Note**: T013b needs T002's verified domain for the sender; organizer accounts (T014/T015)
 do not, because dashboard Add User auto-confirms.
 
 ## R9. Organizer accounts
