@@ -31,13 +31,26 @@ type TargetResult = {
 };
 
 /**
- * The response carries URLs but never keys. A thrown fetch error can quote the
- * request it failed on, so every configured key is stripped from the message
- * rather than trusted not to appear in it — every key, not just this target's,
- * so the guarantee holds however a client library words its errors.
+ * Node's fetch reports every network-level failure as "fetch failed" and keeps
+ * the reason (`getaddrinfo ENOTFOUND …`, `ECONNREFUSED`) in `cause`. A paused
+ * Supabase project presents as NXDOMAIN, so without the cause the one failure
+ * this route exists to catch would reach the cron log with its reason stripped.
  */
-function redact(message: string, anonKeys: string[]): string {
-  return anonKeys.reduce((text, key) => text.split(key).join('[redacted]'), message);
+function describeError(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+
+  const cause = error.cause instanceof Error ? error.cause.message : error.cause;
+
+  return cause ? `${error.message}: ${String(cause)}` : error.message;
+}
+
+/**
+ * The response carries URLs but never keys. A thrown fetch error can quote the
+ * request it failed on, so every configured key is stripped from the text
+ * rather than trusted not to appear in it.
+ */
+function redact(text: string, anonKeys: string[]): string {
+  return anonKeys.reduce((redacted, key) => redacted.split(key).join('[redacted]'), text);
 }
 
 /**
@@ -45,10 +58,7 @@ function redact(message: string, anonKeys: string[]): string {
  * (active events are public), so the anon key suffices and no user data is
  * touched. Never throws: a failure becomes a failed entry.
  */
-async function checkTarget(
-  { url, anonKey }: KeepaliveTarget,
-  anonKeys: string[]
-): Promise<TargetResult> {
+async function checkTarget({ url, anonKey }: KeepaliveTarget): Promise<TargetResult> {
   const startedAt = Date.now();
 
   try {
@@ -66,14 +76,12 @@ async function checkTarget(
       ...(response.ok ? {} : { error: `HTTP ${response.status}` }),
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-
     return {
       url,
       ok: false,
       status: 0,
       ms: Date.now() - startedAt,
-      error: redact(message, anonKeys),
+      error: describeError(error),
     };
   }
 }
@@ -113,8 +121,8 @@ export async function GET(request: Request): Promise<NextResponse> {
   // Check every target concurrently
   // -------------------------------------------------------------------------
   const anonKeys = keepaliveTargets.map((target) => target.anonKey);
-  const targets = await Promise.all(
-    keepaliveTargets.map((target) => checkTarget(target, anonKeys))
+  const targets = (await Promise.all(keepaliveTargets.map(checkTarget))).map((target) =>
+    target.error ? { ...target, error: redact(target.error, anonKeys) } : target
   );
   const ok = targets.every((target) => target.ok);
 

@@ -208,6 +208,32 @@ describe('GET /api/keepalive target checks', () => {
       error: 'The operation was aborted due to timeout',
     });
   });
+
+  // Node's fetch reports every network-level failure as "fetch failed" and
+  // keeps the reason in `cause` — and a paused Supabase project presents as
+  // NXDOMAIN, so the one failure this cron exists to catch would otherwise
+  // reach the cron log with its reason stripped.
+  it('joins the failure cause into the error text when fetch throws with one', async () => {
+    stubEnv({ CRON_SECRET: SECRET, KEEPALIVE_SUPABASE_TARGETS: TWO_TARGETS });
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.startsWith(PROD_URL)) {
+        throw new Error('fetch failed', {
+          cause: new Error('getaddrinfo ENOTFOUND prod.supabase.co'),
+        });
+      }
+      return reply(200);
+    });
+
+    const { response, body } = await callRoute(authorized());
+
+    expect(response.status).toBe(500);
+    expect(body.targets?.[1]).toMatchObject({
+      url: PROD_URL,
+      ok: false,
+      status: 0,
+      error: 'fetch failed: getaddrinfo ENOTFOUND prod.supabase.co',
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------
