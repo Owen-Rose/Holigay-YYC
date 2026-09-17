@@ -168,7 +168,7 @@ How coupled are we, really? Coupling is concentrated in exactly one place.
 | Email (Resend) | `src/lib/email/client.ts` behind `sendEmail()` | 1 file + 3 call sites | **Trivial** — cleanest seam in the app. Templates are plain TS; provider-agnostic. |
 | Storage | `src/lib/actions/upload.ts`, `attachments-list.tsx` | 5 calls, 2 files | **Small** — standard upload/signed-URL. Bucket + policies live in migration 011 (dashboard-only config until spec 006). |
 | DB queries (supabase-js) | 13 files in `src/lib/`, ~90 `.from()` + 3 `.rpc()` calls | Wide but shallow | **Tedious, not hard** — no DAL exists; you'd edit every action file, but there's no hidden logic in the client. |
-| Auth + session + RLS | `src/lib/supabase/{server,client,middleware}.ts`, `src/middleware.ts`, ~11 `auth.*` call sites, 3 FKs into `auth.users`, every RLS policy via `auth.uid()` | The whole security architecture | **Expensive** — this is the real lock-in. See §8. |
+| Auth + session + RLS | `src/lib/supabase/{server,client}.ts`, `src/middleware.ts`, ~11 `auth.*` call sites, 3 FKs into `auth.users`, every RLS policy via `auth.uid()` | The whole security architecture | **Expensive** — this is the real lock-in. See §8. |
 
 Email behavior worth knowing: sends are awaited inline in the request, best-effort —
 failure sets a `warning` field on the action response (surfaced as a toast) while the

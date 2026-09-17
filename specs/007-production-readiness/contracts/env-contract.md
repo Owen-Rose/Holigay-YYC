@@ -19,7 +19,7 @@ keying on it would break every preview.
 
 | Variable | Read by | Local | Preview | Production | Validation |
 |---|---|---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | `env-public` → `src/middleware.ts`, `src/lib/supabase/{client,server,middleware}.ts` | required | required | required | valid URL |
+| `NEXT_PUBLIC_SUPABASE_URL` | `env-public` → `src/middleware.ts`, `src/lib/supabase/{client,server}.ts` | required | required | required | valid URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same | required | required | required | non-empty |
 | `RESEND_API_KEY` | `env` → `src/lib/email/client.ts` | optional — emails are logged, not sent | optional | **required** | non-empty |
 | `EMAIL_FROM_ADDRESS` | `env` → `src/lib/email/client.ts` | optional — falls back to the test sender | optional | **required** | `Name <local@domain>` or bare address; **must not contain `resend.dev`** |

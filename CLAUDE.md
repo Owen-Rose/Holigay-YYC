@@ -71,7 +71,7 @@ src/
 │   ├── constants/             # App constants (application-status, roles)
 │   ├── context/               # React context providers (role-context)
 │   ├── email/                 # Email client + templates (application-received, status-update)
-│   ├── supabase/              # Supabase clients (client, server, middleware)
+│   ├── supabase/              # Supabase clients (client, server)
 │   ├── validations/           # Zod schemas (auth, application, event, vendor)
 │   └── utils.ts               # Shared utilities (cn for class merging)
 ├── test/                       # Unit tests and setup
@@ -140,7 +140,6 @@ Zod schemas in `src/lib/validations/` define validation rules and infer TypeScri
 ### Supabase Clients
 - `client.ts` - Browser client for client components
 - `server.ts` - Server client for server actions and RSC
-- `middleware.ts` - Helper for Next.js middleware session refresh
 
 ### Email System
 - `src/lib/email/client.ts` - Resend client configuration
