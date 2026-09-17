@@ -43,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local backups (docs/runbooks/backup-restore.md) — dumps and bucket copies
+# contain real data and must never be committed.
+/backup/

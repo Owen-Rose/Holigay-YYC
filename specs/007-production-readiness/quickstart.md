@@ -41,58 +41,58 @@ passwords, no vendor PII.
 
 ### Email (US1)
 
-| Task | Project / env | Date | Evidence | Status |
-|---|---|---|---|---|
-| T002 Resend domain added; DNS records handed to the DNS owner | Resend | | Domain name; date records were sent | ☐ |
-| T002 Domain shows **Verified** in Resend | Resend | | | ☐ |
-| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set | Vercel Preview | | | ☐ |
-| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set | Vercel Production | | | ☐ |
-| T006 Test email from the verified domain received via local `/api/test-email` | local → real mailbox | | From-name shown by the mail client; not in spam | ☐ |
+| Task                                                                          | Project / env        | Date | Evidence                                        | Status |
+| ----------------------------------------------------------------------------- | -------------------- | ---- | ----------------------------------------------- | ------ |
+| T002 Resend domain added; DNS records handed to the DNS owner                 | Resend               |      | Domain name; date records were sent             | ☐      |
+| T002 Domain shows **Verified** in Resend                                      | Resend               |      |                                                 | ☐      |
+| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set                              | Vercel Preview       |      |                                                 | ☐      |
+| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set                              | Vercel Production    |      |                                                 | ☐      |
+| T006 Test email from the verified domain received via local `/api/test-email` | local → real mailbox |      | From-name shown by the mail client; not in spam | ☐      |
 
 ### Uptime and backups (US2)
 
-| Task | Project / env | Date | Evidence | Status |
-|---|---|---|---|---|
-| T008a Interim GitHub Actions keep-alive added; four repo secrets set | GitHub | | Workflow file; secret names (no values) | ☐ |
-| T008a First green run (`workflow_dispatch`, then a scheduled one) | GitHub Actions log | | Run timestamps; both targets 2xx | ☐ |
-| T008 `CRON_SECRET` + `KEEPALIVE_SUPABASE_TARGETS` (dev **and** prod pairs) set | Vercel Production | | | ☐ |
-| T008 First cron run green | Vercel Cron log | | Run timestamp; response `ok: true` | ☐ |
-| T008 Dev project still active seven days after the first run (T008a's run counts while the Vercel cron waits on T020) | Supabase dev | | Dashboard status; preview `/apply` loads | ☐ |
-| T010 Backup taken from dev (schema + data + bucket) | Supabase dev → local files | | Schemas included in the dump; file counts | ☐ |
-| T010 Restore drill into the local stack | local | | Row counts per table (source vs restored); one signed-URL download OK | ☐ |
-| T010 CLI relinked to dev after the drill | CLI | | `supabase projects list` shows dev linked | ☐ |
+| Task                                                                                                                  | Project / env              | Date       | Evidence                                                                                                                                                                                                                                                                                  | Status |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| T008a Interim GitHub Actions keep-alive added; four repo secrets set                                                  | GitHub                     | 2026-09-16 | `.github/workflows/keepalive.yml` on **`main`** (PR [#14](https://github.com/Owen-Rose/Holigay-YYC/pull/14)); secrets `KEEPALIVE_DEV_URL`, `KEEPALIVE_DEV_ANON_KEY`, `KEEPALIVE_PROD_URL`, `KEEPALIVE_PROD_ANON_KEY` (names only). Both URL/key pairs probed HTTP 200 before being stored | ☑      |
+| T008a First green run (`workflow_dispatch`, then a scheduled one)                                                     | GitHub Actions log         | 2026-09-16 | [Run 35187768073](https://github.com/Owen-Rose/Holigay-YYC/actions/runs/35187768073) 05:57:14Z — conclusion `success`; dev returned `[]`, prod returned one active event row; secrets masked in the log. First **scheduled** run still to observe (12:00 UTC daily)                       | ☑      |
+| T008 `CRON_SECRET` + `KEEPALIVE_SUPABASE_TARGETS` (dev **and** prod pairs) set                                        | Vercel Production          |            |                                                                                                                                                                                                                                                                                           | ☐      |
+| T008 First cron run green                                                                                             | Vercel Cron log            |            | Run timestamp; response `ok: true`                                                                                                                                                                                                                                                        | ☐      |
+| T008 Dev project still active seven days after the first run (T008a's run counts while the Vercel cron waits on T020) | Supabase dev               |            | Dashboard status; preview `/apply` loads                                                                                                                                                                                                                                                  | ☐      |
+| T010 Backup taken from dev (schema + data + bucket)                                                                   | Supabase dev → local files |            | Schemas included in the dump; file counts                                                                                                                                                                                                                                                 | ☐      |
+| T010 Restore drill into the local stack                                                                               | local                      |            | Row counts per table (source vs restored); one signed-URL download OK                                                                                                                                                                                                                     | ☐      |
+| T010 CLI relinked to dev after the drill                                                                              | CLI                        |            | `supabase projects list` shows dev linked                                                                                                                                                                                                                                                 | ☐      |
 
 ### Smoke and prod residuals (US3, spec 006 carry-overs)
 
-| Task | Project / env | Date | Evidence | Status |
-|---|---|---|---|---|
-| T012 Prod probe checklist run by hand (curl block below) | Supabase prod, anon key | | Four private tables → `[]`; public reads → rows; RPCs denied | ☐ |
-| T012 Storage → Policies visual check: exactly the three `attachments_*` policies, nothing dashboard-named | Supabase prod dashboard | | Policy names as displayed | ☐ |
-| T021 `npm run smoke` passes against prod | terminal → prod | | Exit code 0; per-check output | ☐ |
-| T021 One live submission per form variant on a test event; emails from the verified domain; dashboard review; signed-URL download; test rows cleaned up | prod | | Which variants; which three emails arrived | ☐ |
-| T021 The four "Still owed on prod" boxes in `specs/006-close-public-data-exposure/quickstart.md` ticked | repo | | Commit | ☐ |
+| Task                                                                                                                                                    | Project / env           | Date | Evidence                                                     | Status |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ---- | ------------------------------------------------------------ | ------ |
+| T012 Prod probe checklist run by hand (curl block below)                                                                                                | Supabase prod, anon key |      | Four private tables → `[]`; public reads → rows; RPCs denied | ☐      |
+| T012 Storage → Policies visual check: exactly the three `attachments_*` policies, nothing dashboard-named                                               | Supabase prod dashboard |      | Policy names as displayed                                    | ☐      |
+| T021 `npm run smoke` passes against prod                                                                                                                | terminal → prod         |      | Exit code 0; per-check output                                | ☐      |
+| T021 One live submission per form variant on a test event; emails from the verified domain; dashboard review; signed-URL download; test rows cleaned up | prod                    |      | Which variants; which three emails arrived                   | ☐      |
+| T021 The four "Still owed on prod" boxes in `specs/006-close-public-data-exposure/quickstart.md` ticked                                                 | repo                    |      | Commit                                                       | ☐      |
 
 ### Accounts (US5)
 
-| Task | Project / env | Date | Evidence | Status |
-|---|---|---|---|---|
-| T013a Built-in auth mailer restriction wording recorded | Supabase dev | | Exact dashboard wording | ☐ |
-| T013a Site URL + redirect URLs set; "Confirm email" state recorded | Supabase dev | | URLs entered; confirm-email on/off | ☐ |
-| T013a Same | Supabase prod | | | ☐ |
-| T013b Custom SMTP via Resend configured | Supabase dev | | Sender address; test sign-up mail from the verified domain | ☐ |
-| T013b Same | Supabase prod | | | ☐ |
-| T014 Organizer accounts created (dashboard Add user, auto-confirm) + role set via `scripts/seed-role.sql`; each signs in and lands on `/dashboard` | Supabase dev | | Number of accounts; sign-in observed | ☐ |
-| T015 Same | Supabase prod | | | ☐ |
+| Task                                                                                                                                               | Project / env | Date | Evidence                                                   | Status |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ---- | ---------------------------------------------------------- | ------ |
+| T013a Built-in auth mailer restriction wording recorded                                                                                            | Supabase dev  |      | Exact dashboard wording                                    | ☐      |
+| T013a Site URL + redirect URLs set; "Confirm email" state recorded                                                                                 | Supabase dev  |      | URLs entered; confirm-email on/off                         | ☐      |
+| T013a Same                                                                                                                                         | Supabase prod |      |                                                            | ☐      |
+| T013b Custom SMTP via Resend configured                                                                                                            | Supabase dev  |      | Sender address; test sign-up mail from the verified domain | ☐      |
+| T013b Same                                                                                                                                         | Supabase prod |      |                                                            | ☐      |
+| T014 Organizer accounts created (dashboard Add user, auto-confirm) + role set via `scripts/seed-role.sql`; each signs in and lands on `/dashboard` | Supabase dev  |      | Number of accounts; sign-in observed                       | ☐      |
+| T015 Same                                                                                                                                          | Supabase prod |      |                                                            | ☐      |
 
 ### Close-out
 
-| Task | Project / env | Date | Evidence | Status |
-|---|---|---|---|---|
-| T019 Database password rotated | Supabase dev | | | ☐ |
-| T019 Database password rotated | Supabase prod | | | ☐ |
-| T019 Local password files confirmed absent; CLI relinked to dev | local | | | ☐ |
-| T020 `dev` promoted to `main` | GitHub / Vercel | | Merge commit; Vercel Production build green | ☐ |
-| T022 Roadmap M3 checkboxes, `specs/README.md`, `CLAUDE.md` phase note updated | repo | | Commit | ☐ |
+| Task                                                                          | Project / env   | Date | Evidence                                    | Status |
+| ----------------------------------------------------------------------------- | --------------- | ---- | ------------------------------------------- | ------ |
+| T019 Database password rotated                                                | Supabase dev    |      |                                             | ☐      |
+| T019 Database password rotated                                                | Supabase prod   |      |                                             | ☐      |
+| T019 Local password files confirmed absent; CLI relinked to dev               | local           |      |                                             | ☐      |
+| T020 `dev` promoted to `main`                                                 | GitHub / Vercel |      | Merge commit; Vercel Production build green | ☐      |
+| T022 Roadmap M3 checkboxes, `specs/README.md`, `CLAUDE.md` phase note updated | repo            |      | Commit                                      | ☐      |
 
 ## Solo rehearsal (US4)
 
@@ -132,7 +132,10 @@ the twenty-four tasks, the M3 gate included, proceed without them. Three adjustm
 - **The Vercel cron stays dormant until the promotion**, since Vercel runs crons only on
   Production deploys. T008a (a GitHub Actions schedule hitting both projects' REST
   endpoints with anon keys in repo secrets) keeps them awake in the meantime and is
-  deleted at T008.
+  deleted at T008. **T008a lives on `main`, not `dev`**: GitHub fires `schedule` and
+  `workflow_dispatch` only for workflow files on the default branch, so a copy on `dev`
+  would never run. It landed on `main` via PR #14 and `main` was then merged into `dev`,
+  which keeps `main` an ancestor of `dev` — T020's `git merge --ff-only dev` is unaffected.
 
 ## Prod probe checklist (T012; copied from spec 006 so this file is self-contained)
 
@@ -174,22 +177,22 @@ values, matching `.env.local`); the older `Preview (dev)` rows were left in plac
 Production was untouched. `RESEND_API_KEY` already had an all-branches entry, which is why
 only the Supabase pair broke.
 
-| Item | Evidence |
-|---|---|
+| Item                                | Evidence                                                                                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Vars added to Preview, all branches | 2026-09-16, `vercel env add` ×2; confirmed by `vercel env ls` showing `Preview` with no branch filter |
-| PR #10 preview rebuilt green | redeploy after the change |
+| PR #10 preview rebuilt green        | redeploy after the change                                                                             |
 
 ## Where things live
 
-| Thing | Path |
-|---|---|
-| Reasoning record (decisions, tracks, session plan) | `docs/M3-PLAN.md` |
-| Env contract | `specs/007-production-readiness/contracts/env-contract.md` |
-| Keep-alive contract | `specs/007-production-readiness/contracts/keepalive-route.md` |
-| Env modules (T004) | `src/lib/env-public.ts`, `src/lib/env.ts` |
-| Keep-alive route + schedule (T007) | `src/app/api/keepalive/route.ts`, `vercel.json` |
-| Smoke check + runbook (T011) | `scripts/smoke-check.mjs`, `docs/runbooks/event-week-smoke.md` |
-| Backup/restore runbook (T009) | `docs/runbooks/backup-restore.md` |
-| Role seed script (T011) | `scripts/seed-role.sql` |
-| Rehearsal script + findings (T016/T017) | `specs/007-production-readiness/rehearsal/` |
-| Spec 006 residuals being closed | `specs/006-close-public-data-exposure/quickstart.md` "Still owed on prod" |
+| Thing                                              | Path                                                                      |
+| -------------------------------------------------- | ------------------------------------------------------------------------- |
+| Reasoning record (decisions, tracks, session plan) | `docs/M3-PLAN.md`                                                         |
+| Env contract                                       | `specs/007-production-readiness/contracts/env-contract.md`                |
+| Keep-alive contract                                | `specs/007-production-readiness/contracts/keepalive-route.md`             |
+| Env modules (T004)                                 | `src/lib/env-public.ts`, `src/lib/env.ts`                                 |
+| Keep-alive route + schedule (T007)                 | `src/app/api/keepalive/route.ts`, `vercel.json`                           |
+| Smoke check + runbook (T011)                       | `scripts/smoke-check.mjs`, `docs/runbooks/event-week-smoke.md`            |
+| Backup/restore runbook (T009)                      | `docs/runbooks/backup-restore.md` (shipped 2026-09-16)                    |
+| Role seed script (T011)                            | `scripts/seed-role.sql`                                                   |
+| Rehearsal script + findings (T016/T017)            | `specs/007-production-readiness/rehearsal/`                               |
+| Spec 006 residuals being closed                    | `specs/006-close-public-data-exposure/quickstart.md` "Still owed on prod" |
