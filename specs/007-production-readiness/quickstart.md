@@ -160,6 +160,25 @@ curl -s -X POST "$URL/rest/v1/rpc/create_event_with_default_questionnaire" \
 After T011 lands, `npm run smoke` performs the same checks and this block is only the
 fallback.
 
+## Vercel Preview scoping (found by T004, 2026-09-16)
+
+`NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` were scoped to
+**Preview (dev branch only)**, so PR-branch previews had no Supabase credentials. That
+went unnoticed because the old `process.env.X!` reads sat inside `createClient()` and were
+never evaluated at build time — the previews deployed green and were broken at runtime.
+T004's import-time validation turned it into a build failure on PR #10, which is how it
+surfaced.
+
+Fixed the same day: both variables added to Preview with **no branch filter** (dev project
+values, matching `.env.local`); the older `Preview (dev)` rows were left in place and
+Production was untouched. `RESEND_API_KEY` already had an all-branches entry, which is why
+only the Supabase pair broke.
+
+| Item | Evidence |
+|---|---|
+| Vars added to Preview, all branches | 2026-09-16, `vercel env add` ×2; confirmed by `vercel env ls` showing `Preview` with no branch filter |
+| PR #10 preview rebuilt green | redeploy after the change |
+
 ## Where things live
 
 | Thing | Path |
