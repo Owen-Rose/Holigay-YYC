@@ -193,9 +193,11 @@ rewrite session.
   optional at this scale.
 - Epic 6.9 (file previews) / 6.10 (mobile polish); shared icon module to deduplicate
   inline SVGs across layouts.
-- **Supabase free-tier pause guard**: seasonal usage means projects will sit idle > 1
-  week and get paused. A weekly keep-alive ping (or a paid tier) prevents "the site is
-  down" on event week.
+- **Supabase free-tier pause guard** — **built by spec 007 T007**: `/api/keepalive` +
+  a daily `vercel.json` cron reads one row from each project (daily, not weekly — a
+  weekly ping sits too close to the seven-day pause window). Live once T008 sets
+  `CRON_SECRET` / `KEEPALIVE_SUPABASE_TARGETS` on Vercel Production; T008a's GitHub
+  Actions ping covers the gap until then.
 
 ---
 
@@ -302,8 +304,10 @@ operational readiness, not implementation.
       fallback `onboarding@resend.dev` cannot deliver to real vendors — production email
       is silently broken until this is done. (Confirm current restrictions in the Resend
       dashboard.)
-- [ ] Decide the Supabase plan: free tier pauses after ~1 week idle (fatal for a
-      seasonal app) — paid tier or a weekly keep-alive ping.
+- [ ] Keep both projects awake: free tier pauses after ~1 week idle (fatal for a
+      seasonal app). **Decided (M3-PLAN): stay free; daily keep-alive cron instead of a
+      paid tier** — `/api/keepalive` built by spec 007 T007. Closes when T008's first
+      Production cron run is green and dev is still active a week later.
       **This has now happened: on 2026-08-22 both the dev and prod projects were found
       paused** — subdomains NXDOMAIN, empty API-key lists — blocking the spec 006
       dev rollout until Holigay-Dev was manually restored. Note the security angle:
