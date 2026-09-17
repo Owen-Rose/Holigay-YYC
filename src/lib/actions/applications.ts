@@ -7,6 +7,7 @@ import {
   type ApplicationSubmitInput,
 } from '@/lib/validations/application';
 import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
+import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
 import { sendEmail } from '@/lib/email/client';
 import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
 import { requireRole } from '@/lib/auth/roles';
@@ -197,8 +198,6 @@ export async function submitApplication(
   // The RPC returns the event name and date, so this no longer needs its own
   // events read — which anon can no longer perform for non-active events.
   // -------------------------------------------------------------------------
-  const EMAIL_FAILED_WARNING =
-    'Application submitted, but the confirmation email could not be sent.';
   let warning: string | undefined;
 
   try {
@@ -229,13 +228,13 @@ export async function submitApplication(
 
     if (!emailResult.success) {
       console.error('[Email] Failed to send confirmation email:', emailResult.error);
-      warning = EMAIL_FAILED_WARNING;
+      warning = EMAIL_SEND_FAILED_WARNING;
     } else {
       console.log('[Email] Confirmation email sent:', emailResult.messageId);
     }
   } catch (emailError) {
     console.error('[Email] Unexpected error sending confirmation email:', emailError);
-    warning = EMAIL_FAILED_WARNING;
+    warning = EMAIL_SEND_FAILED_WARNING;
   }
 
   // -------------------------------------------------------------------------

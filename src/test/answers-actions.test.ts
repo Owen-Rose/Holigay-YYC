@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { submitDynamicApplication } from '@/lib/actions/answers';
+import { sendEmail } from '@/lib/email/client';
+import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
 import type { Database } from '@/types/database';
+
+const sendEmailMock = vi.mocked(sendEmail);
 
 type EventQuestion = Database['public']['Tables']['event_questions']['Row'];
 type EventQuestionnaire = Database['public']['Tables']['event_questionnaires']['Row'];
@@ -190,8 +194,13 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
+// Full factory mock, deliberately not `importOriginal`: pulling in the real
+// client would drag @/lib/env and its server-only guard into this jsdom suite.
+// The resolved value is armed in beforeEach, not here — vi.clearAllMocks() wipes
+// a factory-inline mockResolvedValue, which would leave sendEmail resolving
+// undefined and send every test down the email-failed path.
 vi.mock('@/lib/email/client', () => ({
-  sendEmail: vi.fn().mockResolvedValue({ success: true }),
+  sendEmail: vi.fn(),
 }));
 
 vi.mock('@/lib/email/templates', () => ({
@@ -223,6 +232,8 @@ function lastRpcPayload() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Re-arm after clearAllMocks, which strips the resolved value.
+  sendEmailMock.mockResolvedValue({ success: true, messageId: 'msg-1', error: null });
   for (const key of Object.keys(selectQueues)) {
     delete selectQueues[key];
   }
@@ -478,5 +489,46 @@ describe('submitDynamicApplication', () => {
     expect(lastRpcPayload()['answers']).toEqual([
       { event_question_id: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } },
     ]);
+  });
+  // ---------------------------------------------------------------------------
+  // Confirmation-email failures are surfaced, not swallowed (spec 007 T005)
+  // ---------------------------------------------------------------------------
+
+  function submitOneTextAnswer() {
+    queueQuestionnaire([TEXT_QUESTION]);
+    queueRpc({ data: RPC_ROW, error: null });
+
+    return submitDynamicApplication({
+      eventId: EVENT_UUID,
+      vendor: VENDOR_INPUT,
+      answers: [{ questionId: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } }],
+    });
+  }
+
+  it('still succeeds but warns when the confirmation email reports failure', async () => {
+    sendEmailMock.mockResolvedValue({ success: false, messageId: null, error: 'boom' });
+
+    const result = await submitOneTextAnswer();
+
+    expect(result.success).toBe(true);
+    expect(result.data?.applicationId).toBe('app-new');
+    expect(result.warning).toBe(EMAIL_SEND_FAILED_WARNING);
+  });
+
+  it('still succeeds but warns when the confirmation email throws', async () => {
+    sendEmailMock.mockRejectedValue(new Error('network down'));
+
+    const result = await submitOneTextAnswer();
+
+    expect(result.success).toBe(true);
+    expect(result.data?.applicationId).toBe('app-new');
+    expect(result.warning).toBe(EMAIL_SEND_FAILED_WARNING);
+  });
+
+  it('carries no warning when the confirmation email is sent', async () => {
+    const result = await submitOneTextAnswer();
+
+    expect(result.success).toBe(true);
+    expect(result.warning).toBeUndefined();
   });
 });

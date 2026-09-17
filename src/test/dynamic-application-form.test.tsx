@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DynamicApplicationForm } from '@/app/(public)/apply/_components/dynamic-application-form';
+import { toast } from 'sonner';
+import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
 import type { Database } from '@/types/database';
 
 type EventQuestion = Database['public']['Tables']['event_questions']['Row'];
@@ -354,6 +356,34 @@ describe('DynamicApplicationForm file upload', () => {
 // ---------------------------------------------------------------------------
 
 describe('DynamicApplicationForm submission', () => {
+  it('warns but still confirms when the confirmation email could not be sent', async () => {
+    mockSubmitDynamic.mockResolvedValue({
+      success: true,
+      error: null,
+      warning: EMAIL_SEND_FAILED_WARNING,
+      data: { applicationId: 'app-1' },
+    });
+
+    const user = userEvent.setup();
+    render(
+      <DynamicApplicationForm
+        eventId="event-1"
+        eventName="Holiday Market"
+        questions={[ONE_TEXT_QUESTION]}
+      />
+    );
+
+    await fillVendorFields(user);
+    await user.type(screen.getByLabelText(/describe your products/i), 'Handmade pottery');
+    await user.click(screen.getByRole('button', { name: /submit application/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/application submitted/i)).toBeInTheDocument();
+    });
+    expect(vi.mocked(toast.warning)).toHaveBeenCalledWith(EMAIL_SEND_FAILED_WARNING);
+    expect(screen.getByText(/app-1/)).toBeInTheDocument();
+  });
+
   it('shows success confirmation after successful submit', async () => {
     const user = userEvent.setup();
     render(

@@ -164,6 +164,11 @@ export function DynamicApplicationForm({
       return;
     }
 
+    // DB write succeeded; email delivery may still have failed.
+    if (result.warning) {
+      toast.warning(result.warning);
+    }
+
     setState({ status: 'success', applicationId: result.data!.applicationId });
   };
 

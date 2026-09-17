@@ -14,6 +14,7 @@ import {
 import { evaluateShowIf, type ShowIfRule } from '@/lib/questionnaire/show-if';
 import { mapSubmissionError, INVALID_ANSWERS_MESSAGE } from '@/lib/submission/errors';
 import { sendEmail } from '@/lib/email/client';
+import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
 import { applicationReceivedEmail } from '@/lib/email/templates';
 import type { Json } from '@/types/database';
 
@@ -41,6 +42,12 @@ export type SubmitDynamicApplicationInput = z.infer<typeof submitDynamicApplicat
 export type SubmitDynamicApplicationResponse = {
   success: boolean;
   error: string | null;
+  /**
+   * User-facing warning message when a non-critical side effect failed
+   * (e.g., the DB write succeeded but the confirmation email could not
+   * be sent). Callers should surface this via a toast.
+   */
+  warning?: string;
   data: { applicationId: string } | null;
 };
 
@@ -217,7 +224,11 @@ export async function submitDynamicApplication(
 
   const applicationId = submission.application_id;
 
-  // Send confirmation email (best-effort) from the details the RPC returned
+  // Send confirmation email (best-effort, but surfaced via warning) from the
+  // details the RPC returned. Declared out here because the revalidatePath
+  // calls sit between this block and the return.
+  let warning: string | undefined;
+
   try {
     const eventDate = new Date(submission.event_date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -232,18 +243,24 @@ export async function submitDynamicApplication(
       eventDate,
       applicationId,
     });
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: email,
       subject: emailContent.subject,
       html: emailContent.html,
       text: emailContent.text,
     });
-  } catch {
-    console.error('[Email] Failed to send dynamic application confirmation');
+
+    if (!emailResult.success) {
+      console.error('[Email] Failed to send confirmation email:', emailResult.error);
+      warning = EMAIL_SEND_FAILED_WARNING;
+    }
+  } catch (emailError) {
+    console.error('[Email] Failed to send dynamic application confirmation', emailError);
+    warning = EMAIL_SEND_FAILED_WARNING;
   }
 
   revalidatePath('/dashboard/applications');
   revalidatePath('/vendor-dashboard/applications');
 
-  return { success: true, error: null, data: { applicationId } };
+  return { success: true, error: null, warning, data: { applicationId } };
 }
