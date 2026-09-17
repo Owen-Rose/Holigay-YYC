@@ -160,15 +160,26 @@ git checkout main
 | `RESEND_API_KEY` | Live key | **Production (required)** |
 | `EMAIL_FROM_ADDRESS` | `Name <noreply@verified-domain>` | Preview |
 | `EMAIL_FROM_ADDRESS` | `Name <noreply@verified-domain>` | **Production (required)** |
+| `CRON_SECRET` | `openssl rand -hex 32` (≥ 16 chars) | Production only |
+| `KEEPALIVE_SUPABASE_TARGETS` | `https://dev-ref.supabase.co\|<dev anon>,https://prod-ref.supabase.co\|<prod anon>` | Production only |
 
 3. Confirm **Production** variables still point at the production Supabase project
 
-> **The two Production rows are build-time requirements.** `VERCEL_ENV=production`
+> **The two email Production rows are build-time requirements.** `VERCEL_ENV=production`
 > makes `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS` mandatory, and refuses any sender on
 > the `resend.dev` domain — a Production deploy without them fails the build on
 > purpose, because that test sender delivers only to the Resend account owner. Preview
 > deploys are lenient. See
 > `specs/007-production-readiness/contracts/env-contract.md`.
+
+> **The two keep-alive rows are not.** Left unset the app still deploys and
+> `/api/keepalive` answers `401` (no secret) or `500` `misconfigured` (no targets).
+> They are Production-only because Vercel runs cron jobs on Production deployments
+> only, never previews. List **both** Supabase projects in
+> `KEEPALIVE_SUPABASE_TARGETS` — production's own project is not inferred from the
+> deployment, so a half-filled list would silently let the other one pause. Setting
+> them is task T008 of spec 007; the route and the `vercel.json` schedule are T007.
+> See `specs/007-production-readiness/contracts/keepalive-route.md`.
 
 Result:
 - Vercel production (`main`) → production Supabase

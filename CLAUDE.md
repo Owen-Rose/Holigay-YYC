@@ -53,7 +53,7 @@ src/
 │   ├── vendor-dashboard/      # Vendor routes - require vendor role
 │   │   ├── applications/      # Vendor's applications (list + [id] detail)
 │   │   └── profile/           # Vendor profile editing
-│   ├── api/                   # API routes (email preview/test)
+│   ├── api/                   # API routes (email preview/test, keep-alive cron)
 │   ├── unauthorized/          # Unauthorized access page
 │   ├── error.tsx              # Global error boundary
 │   ├── not-found.tsx          # 404 page
@@ -174,6 +174,20 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...   # Server-only, needed for organizer invites (
 EMAIL_FROM_ADDRESS=Holigay Vendor Market <noreply@yourdomain.com>  # Custom sender
 ```
 
+Vercel Production only, never in `.env.local` (set in the shell to try the route
+locally — see `specs/007-production-readiness/quickstart.md`):
+```
+CRON_SECRET=...                    # >= 16 chars; sent as the cron's Authorization: Bearer
+KEEPALIVE_SUPABASE_TARGETS=https://dev-ref.supabase.co|eyJ...,https://prod-ref.supabase.co|eyJ...
+```
+Both feed `/api/keepalive` (`src/app/api/keepalive/route.ts`), which a daily
+`vercel.json` cron calls to read one row from **every** listed project — the free
+tier pauses a project after about seven days of no API activity, and listing both
+explicitly stops a half-filled list from silently protecting only one. Neither is a
+build-time requirement: unset, the route answers `401` (no secret) or `500`
+`misconfigured` (no targets) and the app deploys fine. Contract:
+`specs/007-production-readiness/contracts/keepalive-route.md`.
+
 **Production strictness keys on `VERCEL_ENV === 'production'`, never `NODE_ENV`.**
 Vercel builds previews with `NODE_ENV=production`, so keying on it would break every
 preview. On a Production deploy of `main`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS`
@@ -245,6 +259,7 @@ Historical Epic task detail lives in `docs/archive/TASKS.md`. New work is tracke
 /unauthorized               # Shown when role doesn't match route
 /api/preview-email          # Dev: preview email templates
 /api/test-email             # Dev: send test emails
+/api/keepalive              # Daily Vercel cron; reads one row per Supabase project
 ```
 
 ### Database Migrations
