@@ -1,0 +1,49 @@
+# Interim Supabase keep-alive (spec 007, T008a).
+#
+# The Supabase free tier pauses a project after about seven days with no API
+# activity. The real keep-alive is the Vercel cron over /api/keepalive
+# (vercel.json + src/app/api/keepalive/route.ts, T007), but Vercel runs crons
+# only on Production deploys, and the dev -> main promotion (T020) is blocked
+# behind the Resend/DNS track. This workflow covers that gap.
+#
+# It lives on `main` rather than `dev` because GitHub fires `schedule` and
+# `workflow_dispatch` only for workflow files on the default branch. Landing it
+# on `dev` would leave a file that never runs.
+#
+# T008 DELETES THIS FILE (on `main`) and its four repo secrets once the first
+# Vercel cron run is green.
+#
+# Note: GitHub disables scheduled workflows in a repository with no activity for
+# 60 days. If that happens, re-enable it in the Actions tab.
+
+name: Keep-alive (interim)
+
+on:
+  schedule:
+    # Daily at 12:00 UTC, matching vercel.json's schedule for /api/keepalive.
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+# Only anon keys are used. They are public by design (shipped in the browser
+# bundle) and `events` is the one table anon may read (spec 006 kept the
+# active-events policy), so nothing private is touched.
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Separate steps per project so a failure names which one is unreachable.
+      # --fail-with-body makes a non-2xx exit non-zero and still print the body.
+      - name: Ping dev project
+        run: |
+          curl --fail-with-body -sS \
+            -H "apikey: ${{ secrets.KEEPALIVE_DEV_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.KEEPALIVE_DEV_ANON_KEY }}" \
+            "${{ secrets.KEEPALIVE_DEV_URL }}/rest/v1/events?select=id&limit=1"
+
+      - name: Ping prod project
+        run: |
+          curl --fail-with-body -sS \
+            -H "apikey: ${{ secrets.KEEPALIVE_PROD_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.KEEPALIVE_PROD_ANON_KEY }}" \
+            "${{ secrets.KEEPALIVE_PROD_URL }}/rest/v1/events?select=id&limit=1"
