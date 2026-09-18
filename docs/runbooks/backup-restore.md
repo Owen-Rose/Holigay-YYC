@@ -164,6 +164,40 @@ docker exec -i supabase_db_Holigay psql -U postgres -d postgres \
 completely instead of leaving the database half-populated. (Verified — a deliberately bad
 restore left the row counts untouched.)
 
+#### The hosted `auth` schema is ahead of the local stack
+
+A hosted project runs a newer GoTrue than CLI 2.65.6's local stack, so its `auth` schema has
+tables and columns the local one does not. Restoring a dev dump straight into local fails —
+first on a missing table, then on a missing column:
+
+```
+ERROR:  relation "auth.mfa_recovery_code_sets" does not exist
+ERROR:  column "expires_at" of relation "one_time_tokens" does not exist
+```
+
+Thanks to `--single-transaction` these abort cleanly, but the restore does not proceed. Filter
+the incompatible blocks out of the dump first, using `scripts/filter-dump-for-local.py`:
+
+```bash
+python3 scripts/filter-dump-for-local.py "$OUT/data.sql" > /tmp/data-filtered.sql
+
+docker exec -i supabase_db_Holigay psql -U postgres -d postgres \
+  --single-transaction -v ON_ERROR_STOP=1 < /tmp/data-filtered.sql
+```
+
+The script drops only COPY blocks whose table or columns are absent locally, and **refuses to
+run if any such block holds rows** — a skew that would cost data is an error, not something to
+paper over.
+
+On 2026-09-17 it skipped exactly five empty objects — `auth.mfa_recovery_code_sets`,
+`auth.mfa_recovery_codes`, `auth.scim_tokens`, `auth.scim_users` and `auth.one_time_tokens`
+(column skew). Nothing with rows was affected, so the restore stayed faithful.
+
+If the script ever refuses, the dump and the local stack have genuinely diverged: either
+upgrade the CLI so the local `auth` schema matches, or restore into a hosted project of the
+same generation. For real disaster recovery you would restore into a **hosted** project, where
+this skew does not arise — it is an artefact of drilling into an older local stack.
+
 ### 3.4 Restore the bucket
 
 ```bash
@@ -249,6 +283,7 @@ Re-check these if the CLI is upgraded; several contradict what `research.md` R7 
 | 9   | `storage rm -r` prompts unless given `--yes`                                                                                   | Matters in scripts                                                                                                                                                                     |
 | 10  | Restoring a `--schema '*'` data dump fails twice: `buckets_pkey` duplicate, then `permission denied for table buckets_vectors` | The reason 2.2 uses `-s auth,public`                                                                                                                                                   |
 | 11  | `supabase/seed.sql` is intentionally empty                                                                                     | Nothing seeded collides with a restore                                                                                                                                                 |
+| 12  | The hosted `auth` schema is **ahead** of CLI 2.65.6's local stack (extra tables; `one_time_tokens.expires_at`)                 | A hosted dump will not restore into local unmodified — filter it with `scripts/filter-dump-for-local.py` (3.3). Verified 2026-09-17: five empty objects skipped, no rows lost          |
 
 ### Drill rehearsal, 2026-09-16 (local stack, synthetic fixture)
 
