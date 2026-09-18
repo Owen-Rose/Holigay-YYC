@@ -250,8 +250,13 @@ ever becomes untenable, self-hosting Postgres + keeping the schema is the realis
 path; the auth layer is the part you'd rewrite regardless of destination.
 
 One operational caveat for this app specifically: Supabase **free-tier projects pause
-after ~1 week of inactivity**. A seasonal events app can easily go quiet for months —
-check project status before events go live, or set a keep-alive.
+after ~1 week of inactivity**. A seasonal events app can easily go quiet for months.
+The keep-alive for this is `/api/keepalive` (`src/app/api/keepalive/route.ts`, spec 007
+T007): a daily `vercel.json` cron reads one row from **every** project listed in
+`KEEPALIVE_SUPABASE_TARGETS`, guarded by `CRON_SECRET`, and answers `500` on any failure
+so the cron log turns red. It goes live once T008 sets those two variables on Vercel
+Production (crons never run on previews). Contract:
+`specs/007-production-readiness/contracts/keepalive-route.md`.
 
 ## 9. Testing
 
