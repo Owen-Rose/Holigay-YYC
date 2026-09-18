@@ -298,7 +298,7 @@ See `.specify/memory/constitution.md` for full governance rules.
 - Supabase PostgreSQL — migration `009_dynamic_questionnaires.sql` adds questionnaires, templates, and answers tables; `attachments` bucket reused for `file_upload` answers (005-dynamic-questionnaires)
 - TypeScript 5.x, `strict: true` (unchanged) + PL/pgSQL for the RPC + Next.js 16 (App Router), React 19, `@supabase/ssr`, `@supabase/supabase-js` ^2.86 (already a direct dependency — used by the new test harness), Supabase CLI ^2.65.6 (devDependency), Vitest ^4 (006-close-public-data-exposure)
 - Supabase PostgreSQL (hosted dev + prod; local stack via `supabase/config.toml`) + Supabase Storage bucket `attachments` (006-close-public-data-exposure)
-- TypeScript 5.x, `strict: true` (unchanged) + one plain-ESM Node script (`scripts/smoke-check.mjs`) + Markdown runbooks; Next.js 16 Route Handler for `/api/keepalive` + `vercel.json` cron; `zod` env modules (`src/lib/env-public.ts`, `src/lib/env.ts`); Supabase CLI 2.65.6 `db dump` / `storage cp` in the backup runbook — no new packages (007-production-readiness)
+- TypeScript 5.x, `strict: true` (unchanged) + two plain-ESM Node scripts (`scripts/smoke-check.mjs`, `scripts/filter-dump-for-local.mjs`) + Markdown runbooks; Next.js 16 Route Handler for `/api/keepalive` + `vercel.json` cron; `zod` env modules (`src/lib/env-public.ts`, `src/lib/env.ts`); Supabase CLI 2.65.6 `db dump` / `storage cp` in the backup runbook — no new packages (007-production-readiness)
 - Supabase PostgreSQL unchanged — no migration; backups are local files under `backup/` (git-ignored) plus a copy of the `attachments` bucket (007-production-readiness)
 
 ## Recent Changes
