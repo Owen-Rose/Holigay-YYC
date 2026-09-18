@@ -7,9 +7,10 @@ objects. A usable backup is therefore three parts — **schema**, **data**, **bu
 backup nobody has restored is not a backup, so the drill at the end is part of the routine,
 not an optional extra.
 
-Every command below was executed against Supabase CLI **2.65.6** on 2026-09-16. Where the
-CLI's behaviour is surprising, the "Verified behaviour" section at the end records what was
-observed and how to re-check it on a newer CLI.
+Every command below was executed against Supabase CLI **2.65.6** on 2026-09-16/17, first
+against a synthetic fixture and then against the real dev project. Where the CLI's behaviour
+is surprising, the "Verified behaviour" table at the end records what was observed and what
+to re-check on a newer CLI.
 
 > **Production dumps are never restored into dev.** Dev previews are public-by-link and hold
 > test data only; restoring prod there would put real vendor PII on a public preview. The
@@ -25,9 +26,9 @@ observed and how to re-check it on a newer CLI.
 
 Project refs:
 
-| Project                   | Ref                    |
-| ------------------------- | ---------------------- |
-| Holigay-Dev               | `kcokcufmzyckbodelqpb` |
+| Project | Ref |
+|---|---|
+| Holigay-Dev | `kcokcufmzyckbodelqpb` |
 | Holigay Events YYC (prod) | `hgmfjvjlxrhdojwlkgap` |
 
 ---
@@ -41,9 +42,9 @@ npx supabase link --project-ref <ref>
 read -s SUPABASE_DB_PASSWORD && export SUPABASE_DB_PASSWORD
 ```
 
-`supabase storage` needs `SUPABASE_DB_PASSWORD` too — it initialises a `cli_login_postgres`
-role through the database before it will talk to the Storage API. Export it before step 2.3,
-not just before the dumps.
+`supabase storage --linked` needs `SUPABASE_DB_PASSWORD` too — it initialises a
+`cli_login_postgres` role through the database before it will talk to the Storage API. Export
+it before step 2.3, not just before the dumps.
 
 ---
 
@@ -56,7 +57,9 @@ OUT="backup/$PROJECT/$DATE"
 mkdir -p "$OUT"
 ```
 
-`backup/` is git-ignored.
+`backup/` is git-ignored. **Treat it like a credentials file**: `data.sql` carries
+`auth.users.encrypted_password` hashes and `auth.identities`, and the bucket copy is whatever
+vendors uploaded. Keep it on an encrypted disk, do not sync it anywhere, delete old ones.
 
 ### 2.1 Schema
 
@@ -72,7 +75,9 @@ recreates them from `supabase/migrations/`. The output is rewritten to
 ### 2.2 Data
 
 ```bash
-npx supabase db dump --linked --data-only --use-copy -s auth,public -f "$OUT/data.sql"
+npx supabase db dump --linked --data-only --use-copy -s auth,public \
+  -x auth.refresh_tokens -x auth.sessions -x auth.flow_state -x auth.mfa_amr_claims \
+  -f "$OUT/data.sql"
 ```
 
 **`-s auth,public` is required, not optional.** Without it the CLI dumps `--schema '*'`, which
@@ -85,11 +90,16 @@ also pulls in `storage` and `supabase_functions`:
   `postgres` dies with `permission denied for table buckets_vectors`.
 
 `auth` **is** included and must be: `public.user_profiles.id` references `auth.users`, so a
-`public`-only data dump cannot be restored. The dump file opens with
-`SET session_replication_role = replica;` and closes with `RESET ALL;`, which keeps triggers
-(including `handle_new_user`) off during the restore. Migration-history tables
-(`auth.schema_migrations`, `storage.migrations`, the `supabase_migrations` schema) are excluded
-by the CLI — they belong to whichever stack you restore into.
+`public`-only data dump cannot be restored. The four `-x` exclusions are live session state —
+refresh tokens, sessions, in-flight auth flows, MFA claims — which is bound to the project's
+JWT secret, useless anywhere else, and not something to copy around. `auth.users` and
+`auth.identities` stay.
+
+The dump file opens with `SET session_replication_role = replica;` and closes with
+`RESET ALL;`, which keeps triggers (including `handle_new_user`) off during the restore.
+Migration-history tables (`auth.schema_migrations`, `storage.migrations`, the
+`supabase_migrations` schema) are excluded by the CLI — they belong to whichever stack you
+restore into.
 
 ### 2.3 Attachments bucket
 
@@ -114,35 +124,7 @@ grep -oE 'COPY "[a-z_]+"\."[a-z_]+"' "$OUT/data.sql" | sort -u   # tables captur
 
 ## 3. Restore drill (dev dump → local stack)
 
-### 3.1 Row counts from the source, for comparison
-
-Run this against the **source** project before resetting anything, and keep the output.
-
-```bash
-cat > /tmp/rowcounts.sql <<'SQL'
-SELECT table_schema || '.' || table_name AS tbl,
-       (xpath('/row/cnt/text()', query_to_xml(
-          format('SELECT count(*) AS cnt FROM %I.%I', table_schema, table_name),
-          false, true, '')))[1]::text::bigint AS rows
-FROM information_schema.tables
-WHERE table_schema IN ('public', 'auth', 'storage')
-  AND table_type = 'BASE TABLE'
-ORDER BY 1;
-SQL
-```
-
-Against the local stack that is:
-
-```bash
-docker exec -i supabase_db_Holigay psql -U postgres -d postgres -At -F'|' -f - \
-  < /tmp/rowcounts.sql > /tmp/counts-source.txt
-```
-
-`psql` is **not installed on the host** — every SQL step goes through
-`docker exec … supabase_db_Holigay`. (Against a hosted project, run the same query from the
-Supabase SQL Editor.)
-
-### 3.2 Reset the local stack
+### 3.1 Reset the local stack
 
 ```bash
 npx supabase db reset
@@ -153,21 +135,10 @@ docker restart supabase_kong_Holigay
 This applies every migration through `012`. `supabase/seed.sql` is intentionally empty, so
 nothing is seeded that could collide with the restore.
 
-### 3.3 Restore the data
-
-```bash
-docker exec -i supabase_db_Holigay psql -U postgres -d postgres \
-  --single-transaction -v ON_ERROR_STOP=1 < "$OUT/data.sql"
-```
-
-`--single-transaction -v ON_ERROR_STOP=1` matters: a restore that hits an error rolls back
-completely instead of leaving the database half-populated. (Verified — a deliberately bad
-restore left the row counts untouched.)
-
-#### The hosted `auth` schema is ahead of the local stack
+### 3.2 Filter the dump, and take the source row counts from it
 
 A hosted project runs a newer GoTrue than CLI 2.65.6's local stack, so its `auth` schema has
-tables and columns the local one does not. Restoring a dev dump straight into local fails —
+tables and columns the local one does not. Restoring a hosted dump straight into local fails —
 first on a missing table, then on a missing column:
 
 ```
@@ -175,28 +146,35 @@ ERROR:  relation "auth.mfa_recovery_code_sets" does not exist
 ERROR:  column "expires_at" of relation "one_time_tokens" does not exist
 ```
 
-Thanks to `--single-transaction` these abort cleanly, but the restore does not proceed. Filter
-the incompatible blocks out of the dump first, using `scripts/filter-dump-for-local.py`:
+`scripts/filter-dump-for-local.mjs` strips exactly the COPY blocks whose table or columns are
+absent locally, and **refuses to run if any such block holds rows** — a skew that would cost
+data is an error, not something to paper over. It also prints every table's row count to
+stderr; the dump is the only source the restore ever sees, so counting it is exact and needs
+no access to the hosted project.
 
 ```bash
-python3 scripts/filter-dump-for-local.py "$OUT/data.sql" > /tmp/data-filtered.sql
+node scripts/filter-dump-for-local.mjs "$OUT/data.sql" \
+  > /tmp/data-filtered.sql 2> /tmp/counts-source.txt
+cat /tmp/counts-source.txt          # read the skipped list; it must say "all empty"
+```
 
+If the script refuses, the dump and the local stack have genuinely diverged: upgrade the CLI so
+the local `auth` schema matches, or restore into a hosted project of the same generation. For
+real disaster recovery the target is a **hosted** project, where this skew does not arise — it
+is an artefact of drilling into an older local stack.
+
+### 3.3 Restore the data
+
+```bash
 docker exec -i supabase_db_Holigay psql -U postgres -d postgres \
   --single-transaction -v ON_ERROR_STOP=1 < /tmp/data-filtered.sql
 ```
 
-The script drops only COPY blocks whose table or columns are absent locally, and **refuses to
-run if any such block holds rows** — a skew that would cost data is an error, not something to
-paper over.
-
-On 2026-09-17 it skipped exactly five empty objects — `auth.mfa_recovery_code_sets`,
-`auth.mfa_recovery_codes`, `auth.scim_tokens`, `auth.scim_users` and `auth.one_time_tokens`
-(column skew). Nothing with rows was affected, so the restore stayed faithful.
-
-If the script ever refuses, the dump and the local stack have genuinely diverged: either
-upgrade the CLI so the local `auth` schema matches, or restore into a hosted project of the
-same generation. For real disaster recovery you would restore into a **hosted** project, where
-this skew does not arise — it is an artefact of drilling into an older local stack.
+`psql` is **not installed on the host** — every SQL step goes through
+`docker exec … supabase_db_Holigay`. `--single-transaction -v ON_ERROR_STOP=1` matters: a
+restore that hits an error rolls back completely instead of leaving the database
+half-populated. (Verified twice — a deliberately bad restore and the unfiltered hosted dump
+both left the row counts untouched.)
 
 ### 3.4 Restore the bucket
 
@@ -216,16 +194,25 @@ the `storage` schema. Object ids differ from the source, and that is fine:
 
 ### 3.5 Verify
 
-**Row counts** — identical for every table except the platform-managed ones:
+**Row counts** — the restored side, in the same `table|rows` shape the script printed:
 
 ```bash
-docker exec -i supabase_db_Holigay psql -U postgres -d postgres -At -F'|' -f - \
-  < /tmp/rowcounts.sql > /tmp/counts-restored.txt
-diff /tmp/counts-source.txt /tmp/counts-restored.txt
+docker exec -i supabase_db_Holigay psql -U postgres -d postgres -At -F'|' <<'SQL' > /tmp/counts-restored.txt
+SELECT table_schema || '.' || table_name,
+       (xpath('/row/cnt/text()', query_to_xml(
+          format('SELECT count(*) AS cnt FROM %I.%I', table_schema, table_name),
+          false, true, '')))[1]::text::bigint
+FROM information_schema.tables
+WHERE table_schema IN ('public', 'auth') AND table_type = 'BASE TABLE'
+ORDER BY 1;
+SQL
+diff <(grep -v '^#' /tmp/counts-source.txt | sort) <(sort /tmp/counts-restored.txt)
 ```
 
-Expected differences, all benign: `auth.schema_migrations` and `storage.migrations` belong to
-the local stack (`storage.migrations` also advances across a reset — 65 → 68 was observed).
+The only lines that may differ are the tables the script skipped (present in the dump, absent
+locally), `auth.schema_migrations` (excluded from the dump; belongs to the local stack) and
+`auth.audit_log_entries` (GoTrue appends to it on every sign-in, so any use of the restored
+stack grows it). Everything else must match exactly.
 
 **Object paths** — compare the paths, not just the count. A misplaced upload (3.4) keeps the
 count right while breaking every link:
@@ -241,63 +228,63 @@ Each one must match a `file_path` in `public.attachments`.
 (`npm run dev`), sign in as an organizer, open an application on
 `/dashboard/applications/[id]` and download its attachment.
 
-To check the same mechanism without the UI:
+To check the same mechanism without the UI (`supabase status -o env` emits the local keys as
+shell assignments):
 
 ```bash
-SRK=$(npx supabase status -o json | python3 -c "import json,sys; print(json.load(sys.stdin)['SERVICE_ROLE_KEY'])")
+eval "$(npx supabase status -o env | grep -E '^(API_URL|SERVICE_ROLE_KEY)=')"
 P=<a file_path from public.attachments>
-URL=$(curl -s -X POST "http://127.0.0.1:54321/storage/v1/object/sign/attachments/$P" \
-  -H "apikey: $SRK" -H "Authorization: Bearer $SRK" -H "Content-Type: application/json" \
-  -d '{"expiresIn":60}' | python3 -c "import json,sys; print(json.load(sys.stdin)['signedURL'])")
+SIGNED=$(curl -s -X POST "$API_URL/storage/v1/object/sign/attachments/$P" \
+  -H "apikey: $SERVICE_ROLE_KEY" -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+  -H "Content-Type: application/json" -d '{"expiresIn":60}' \
+  | sed -E 's/.*"signedURL":"([^"]+)".*/\1/')
 curl -s -o /tmp/restored-file -w 'HTTP %{http_code}, %{size_download} bytes\n' \
-  "http://127.0.0.1:54321/storage/v1$URL"
+  "$API_URL/storage/v1$SIGNED"
 ```
 
 A `200` with a non-zero size means the row, the path and the object all line up.
 
-### 3.6 Relink to dev
+### 3.6 Relink to dev and clean up
 
-The drill may have left the CLI pointed elsewhere. Always finish here:
+Always finish here. The drill may have left the CLI pointed elsewhere, and the local stack is
+now holding a hosted project's `auth.users` rows, which it has no reason to keep:
 
 ```bash
 npx supabase link --project-ref kcokcufmzyckbodelqpb
 npx supabase projects list      # confirm Holigay-Dev shows as LINKED
+npx supabase db reset
 ```
 
 ---
 
-## Verified behaviour (CLI 2.65.6, 2026-09-16)
+## Verified behaviour (CLI 2.65.6, 2026-09-16/17)
 
 Re-check these if the CLI is upgraded; several contradict what `research.md` R7 assumed.
 
-| #   | Observed                                                                                                                       | Why it matters                                                                                                                                                                         |
-| --- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `--data-only` defaults to `--schema '*'` minus internal schemas; `auth`, `storage` and `supabase_functions` are **included**   | R7 expected `auth` might be excluded and the `user_profiles → auth.users` FK to break. The opposite is true — `auth` comes for free, and `storage` has to be excluded on purpose (2.2) |
-| 2   | Data dumps open with `SET session_replication_role = replica;` and close with `RESET ALL;`                                     | Triggers stay off during restore, so `handle_new_user` does not fire on restored `auth.users` rows                                                                                     |
-| 3   | Migration-history tables are excluded by the CLI                                                                               | The target stack keeps its own history                                                                                                                                                 |
-| 4   | The schema dump excludes `auth`/`storage`/etc. and rewrites to `IF NOT EXISTS` / `OR REPLACE`                                  | It is `public`-only and re-runnable                                                                                                                                                    |
-| 5   | `supabase storage` **requires** `--experimental`                                                                               | R7 read the help text as meaning it did not. It does                                                                                                                                   |
-| 6   | `supabase storage --linked` also needs `SUPABASE_DB_PASSWORD` (it initialises a `cli_login_postgres` role). `--local` does not | Export the password before the bucket copy, not only before the dumps                                                                                                                  |
-| 7   | `psql` is not installed on the host                                                                                            | Use `docker exec -i supabase_db_Holigay psql …`. R7's `psql postgresql://…` line does not run                                                                                          |
-| 8   | `storage cp -r` nests `basename(src)` under the destination, in both directions                                                | Upload to `ss:///` with a source dir named `attachments` (3.4)                                                                                                                         |
-| 9   | `storage rm -r` prompts unless given `--yes`                                                                                   | Matters in scripts                                                                                                                                                                     |
-| 10  | Restoring a `--schema '*'` data dump fails twice: `buckets_pkey` duplicate, then `permission denied for table buckets_vectors` | The reason 2.2 uses `-s auth,public`                                                                                                                                                   |
-| 11  | `supabase/seed.sql` is intentionally empty                                                                                     | Nothing seeded collides with a restore                                                                                                                                                 |
-| 12  | The hosted `auth` schema is **ahead** of CLI 2.65.6's local stack (extra tables; `one_time_tokens.expires_at`)                 | A hosted dump will not restore into local unmodified — filter it with `scripts/filter-dump-for-local.py` (3.3). Verified 2026-09-17: five empty objects skipped, no rows lost          |
+| # | Observed | Why it matters |
+|---|---|---|
+| 1 | `--data-only` defaults to `--schema '*'` minus internal schemas; `auth`, `storage` and `supabase_functions` are **included** | R7 expected `auth` might be excluded and the `user_profiles → auth.users` FK to break. The opposite is true — `auth` comes for free, and `storage` has to be excluded on purpose (2.2) |
+| 2 | Data dumps open with `SET session_replication_role = replica;` and close with `RESET ALL;` | Triggers stay off during restore, so `handle_new_user` does not fire on restored `auth.users` rows |
+| 3 | Migration-history tables are excluded by the CLI | The target stack keeps its own history |
+| 4 | The schema dump excludes `auth`/`storage`/etc. and rewrites to `IF NOT EXISTS` / `OR REPLACE` | It is `public`-only and re-runnable |
+| 5 | `supabase storage` **requires** `--experimental` | R7 read the help text as meaning it did not. It does |
+| 6 | `supabase storage --linked` also needs `SUPABASE_DB_PASSWORD` (it initialises a `cli_login_postgres` role); `--local` does not | Export the password before the bucket copy. With it exported the copy works — if a future CLI breaks it, a throwaway `@supabase/supabase-js` script with the service-role key (`storage.from('attachments').list()` + `.download()`) is the fallback |
+| 7 | `psql` is not installed on the host | Use `docker exec -i supabase_db_Holigay psql …`. R7's `psql postgresql://…` line does not run |
+| 8 | `storage cp -r` nests `basename(src)` under the destination, in both directions | Upload to `ss:///` with a source dir named `attachments` (3.4) |
+| 9 | `storage rm -r` prompts unless given `--yes` | Matters in scripts |
+| 10 | Restoring a `--schema '*'` data dump fails twice: `buckets_pkey` duplicate, then `permission denied for table buckets_vectors` | The reason 2.2 uses `-s auth,public` |
+| 11 | `supabase/seed.sql` is intentionally empty | Nothing seeded collides with a restore |
+| 12 | The hosted `auth` schema is **ahead** of CLI 2.65.6's local stack (extra tables; `one_time_tokens.expires_at`) | A hosted dump will not restore into local unmodified — filter it (3.2). On 2026-09-17 five empty objects were skipped and no rows lost |
 
-### Drill rehearsal, 2026-09-16 (local stack, synthetic fixture)
+## Rehearsals
 
-Every command above was executed before the runbook was written: a fixture (1 `auth.users`,
-1 event, 1 vendor, 1 application, 1 attachment, 1 storage object) was dumped, the stack reset,
-the data restored and the bucket re-uploaded. Result: **row counts identical across all 43
-tables** in `public`, `auth` and `storage`; the restored object path matched the source
-exactly; and the signed-URL download returned the **byte-identical** file. T010 repeats this
-against real dev data.
-
-### Fallback if `storage cp` fails
-
-If the bucket copy cannot be made to work on a future CLI, download the objects with a
-throwaway script using `@supabase/supabase-js` (already a dependency) and the service-role
-key: `storage.from('attachments').list()` then `.download(path)` per object. Keep the same
-directory layout so step 3.4 still applies. This is a maintainer-shell script, never part of
-the request path — spec 006's anon-only posture is about the running app.
+- **2026-09-16, synthetic fixture, local → local.** One `auth.users` row, one event, vendor,
+  application, attachment and storage object were dumped, the stack reset, the data restored
+  and the bucket re-uploaded. Row counts identical across all 43 tables in `public`, `auth` and
+  `storage`; object path matched; signed-URL download byte-identical. The unfiltered
+  `--schema '*'` dump was also restored on purpose to confirm it fails *and* rolls back.
+- **2026-09-17, real dev project → local (T010).** 25 rows across 12 non-empty tables; the
+  dump matched live dev on all 10 `public` tables (service-role REST cross-check). The raw
+  restore aborted on the `auth` skew (row 12); after filtering, 31/31 tables matched, the
+  signed-URL download of the bucket's one object was byte-identical, and anon was still blocked
+  on all four private tables. Evidence rows: `specs/007-production-readiness/quickstart.md`.

@@ -33,7 +33,7 @@ or auth change, no new dependency. Reasoning record: `docs/M3-PLAN.md`.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x, `strict: true` (unchanged) + one plain-ESM Node script (`scripts/smoke-check.mjs`) + Markdown runbooks
+**Language/Version**: TypeScript 5.x, `strict: true` (unchanged) + two plain-ESM Node scripts (`scripts/smoke-check.mjs`, `scripts/filter-dump-for-local.mjs`) + Markdown runbooks
 **Primary Dependencies**: Next.js 16 (App Router; one new Route Handler), React 19, `zod` ^4 (env schemas), `@supabase/supabase-js` ^2.86 (smoke script), `resend` ^6 (unchanged), Supabase CLI 2.65.6 (`db dump`, `storage cp` in the backup runbook), Vitest ^4 (unit project) — **no new packages**
 **Storage**: Unchanged. Backups are files on the maintainer's machine under `backup/` (git-ignored by T009); the `attachments` bucket is copied alongside the SQL dumps
 **Testing**: Vitest unit project — env schema tests, keep-alive route tests (mocked `fetch`), one email-failed test for the dynamic action; the `security` project is untouched. The smoke script is verified by running it against local, dev and prod
@@ -41,7 +41,7 @@ or auth change, no new dependency. Reasoning record: `docs/M3-PLAN.md`.
 **Project Type**: Single Next.js web application + scripts + docs
 **Performance Goals**: smoke script < 60 s; whole event-day check ≤ 10 min (SC-004); keep-alive route < 10 s for two targets (8 s per-target timeout, concurrent)
 **Constraints**: Production-only strictness via `VERCEL_ENV`, not `NODE_ENV` (previews build with `NODE_ENV=production`); anon key only in the smoke script and the keep-alive; database password entered interactively, never in a file; prod data never restored into dev; no schema/RLS/auth change — a rehearsal finding that needs one opens a new spec
-**Scale/Scope**: 2 new source modules, 1 new route + `vercel.json`, 5 files edited for env reads, 1 action + 1 form edited, 1 script added / 1 deleted / 1 generalized, 2 runbooks, 4 docs touched, ~4 test files; 22 tasks, about half `[manual]`
+**Scale/Scope**: 2 new source modules, 1 new route + `vercel.json`, 5 files edited for env reads, 1 action + 1 form edited, 2 scripts added / 1 deleted / 1 generalized, 2 runbooks, 4 docs touched, ~4 test files; 22 tasks, about half `[manual]`
 
 ## Constitution Check
 

@@ -177,7 +177,6 @@ drill harmless and repeatable. The dev-only rule keeps prod PII off the test pro
 
 **Empirical checks for T009/T010** (run `--dry-run` first; it prints the `pg_dump`
 command without connecting for data):
-
 - Whether `--data-only` includes the `auth` and `storage` schemas by default on CLI
   2.65.6. `user_profiles.id` references `auth.users`, so a data restore without `auth`
   rows fails on the FK; if excluded, add `--schema auth,storage,public` (or restore
@@ -187,35 +186,22 @@ command without connecting for data):
 - Known gotcha after `db reset`: if auth health returns 502,
   `docker restart supabase_kong_Holigay`.
 
-**Empirical results (2026-09-16, CLI 2.65.6)** — run under T009 before the runbook was
-written. Three of these contradict the assumptions above; the runbook
-(`docs/runbooks/backup-restore.md`) is written from what was observed, and carries the full
-table plus the re-check instructions for a newer CLI.
+**Empirical results (T009/T010, 2026-09-16/17, CLI 2.65.6)** — the full table and re-check
+instructions live in `docs/runbooks/backup-restore.md`; the assumptions above that turned out
+wrong:
 
-- **`--data-only` includes `auth` by default.** It dumps `--schema '*'` minus internal
-  schemas, and `auth`, `storage` and `supabase_functions` are not on the exclude list. The
-  `user_profiles.id → auth.users` FK concern is therefore unfounded — but the opposite problem
-  is real: `storage` must be excluded **on purpose**, because `storage.buckets` collides with
-  migration `011`'s `attachments` row (`duplicate key value violates unique constraint
-"buckets_pkey"`) and `storage.buckets_vectors` is not writable by `postgres`
-  (`permission denied`). The runbook uses `-s auth,public` and restores the bucket with
-  `storage cp`.
-- **`supabase storage` does require `--experimental`** on 2.65.6 (`must set the --experimental
-flag to run this command`), contrary to the reading of the help text above. It also needs
-  `SUPABASE_DB_PASSWORD` when `--linked`, because it initialises a `cli_login_postgres` role
-  through the database.
-- **`psql` is not installed on the host**, so the drill's restore step is
-  `docker exec -i supabase_db_Holigay psql -U postgres -d postgres --single-transaction -v
-ON_ERROR_STOP=1 < data.sql`, not the `psql postgresql://…` line above. The transaction flags
-  are what make a failed restore roll back instead of half-populating the database.
-- **`storage cp -r` nests `basename(src)`** under the destination, so the bucket is restored
-  with `cp -r <backup>/attachments ss:///` — copying to `ss:///attachments` would produce
-  `attachments/attachments/…` and break every signed URL while leaving the object _count_
-  correct. Verify paths, not just counts.
-
-The whole cycle was rehearsed on the local stack with a synthetic fixture before T010: row
-counts came back identical across all 43 tables in `public`, `auth` and `storage`, object
-paths matched, and a signed-URL download returned the byte-identical file.
+- `--data-only` **includes** `auth` by default, so the FK concern is moot; `storage` must be
+  excluded on purpose (`-s auth,public`) or the restore dies on `buckets_pkey` (migration `011`
+  already inserts the bucket) and then `permission denied for table buckets_vectors`.
+- `supabase storage` **does** require `--experimental`, and `--linked` also needs
+  `SUPABASE_DB_PASSWORD`.
+- `psql` is not on the host — restores run through `docker exec … --single-transaction
+  -v ON_ERROR_STOP=1`, which is also what makes a failed restore roll back cleanly.
+- `storage cp -r` nests `basename(src)`, so the bucket restores with `cp -r <dir>/attachments
+  ss:///`; verify object *paths*, not just counts.
+- The hosted `auth` schema is **ahead** of the local stack (extra tables,
+  `one_time_tokens.expires_at`); `scripts/filter-dump-for-local.mjs` strips the empty
+  incompatible blocks and refuses if any would lose rows.
 
 **Alternatives considered**: `pg_dump` directly against the pooler (rejected: the CLI
 wraps the right flags and excludes Supabase-managed schemas); Supabase's paid PITR
@@ -263,7 +249,7 @@ decision · fix PR`, pre-seeded with the three expected findings (CSV export lac
 questionnaire answers; unsaved organizer notes are not in the status email; closed
 events cannot be reopened). T017 fills it in and commits it. T018 holds the fixes.
 
-**Rationale**: The spec's US4 acceptance scenarios _are_ the eleven steps; keeping the
+**Rationale**: The spec's US4 acceptance scenarios *are* the eleven steps; keeping the
 expected column written before the run is what makes the rehearsal a test rather than a
 demo. Committing the file is the M3 exit evidence.
 
@@ -285,12 +271,12 @@ introduces them, so these edits ride T004 (`EMAIL_FROM_ADDRESS`) and T007 (`CRON
 
 ## R12. What stays out, and why
 
-| Rejected for M3                                 | Reason                                                                                      |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Sending email via `after()` / a queue           | Adds a runtime pattern; the warning-parity fix makes failures visible, which is the M3 need |
-| A service-role client in the request path       | Spec 006 deliberately kept anon-only; nothing in M3 needs it                                |
+| Rejected for M3 | Reason |
+|---|---|
+| Sending email via `after()` / a queue | Adds a runtime pattern; the warning-parity fix makes failures visible, which is the M3 need |
+| A service-role client in the request path | Spec 006 deliberately kept anon-only; nothing in M3 needs it |
 | Error monitoring (Sentry) or structured logging | Out by decision; the cron log and the smoke script are the monitoring for a barely-used app |
-| Paid Supabase or Vercel tiers                   | Out by decision; keep-alive and dump/restore replace what they would buy                    |
-| Browser-automation tests of the lifecycle       | The solo rehearsal is the end-to-end proof; automation is a later investment                |
-| Retiring the legacy form                        | Tier 4                                                                                      |
-| Any builder extension the rehearsal suggests    | Goes through the roadmap scope-line table                                                   |
+| Paid Supabase or Vercel tiers | Out by decision; keep-alive and dump/restore replace what they would buy |
+| Browser-automation tests of the lifecycle | The solo rehearsal is the end-to-end proof; automation is a later investment |
+| Retiring the legacy form | Tier 4 |
+| Any builder extension the rehearsal suggests | Goes through the roadmap scope-line table |
