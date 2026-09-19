@@ -42,7 +42,7 @@ US6. Reasoning record: `research.md`.
 **Project Type**: Single Next.js web application + `deploy/` infrastructure directory + runbooks
 **Performance Goals**: deploy or rollback < 5 min (SC-001); smoke < 60 s unchanged; restore to green smoke < 1 h (SC-004); staging picks up a `dev` push < 5 min; backup RPO ≤ 6 h (SC-005)
 **Constraints**: no application rewrite; every image pinned; local == staging == prod Supabase component versions; single origin per environment; Cloudflare optional (proxy off must pass); SSH never internet-exposed; only Caddy publishes on `0.0.0.0`; secrets only in `/srv/holigay/.env` (mode 600) and the password manager; `<domain>` stays a placeholder in committed files; no Claude co-authoring trailers
-**Scale/Scope**: ~8 source/test files edited, 1 Dockerfile, ~20 files under `deploy/`, 1 CI job, 6 runbooks (5 new, 1 rewritten) + 1 updated, ~9 docs touched; 27 tasks, 11 of them `[manual]`
+**Scale/Scope**: ~8 source/test files edited, 1 Dockerfile, ~20 files under `deploy/`, 1 CI job, 6 runbooks (5 new, 1 rewritten) + 1 updated, ~9 docs touched; 27 tasks, 13 of them `[manual]`
 
 ## Constitution Check
 
@@ -100,6 +100,7 @@ deploy/
 ├── .env.example                          # T013 — every key, documented
 ├── db/init/roles.sql                     # T013 — from the reference stack
 ├── db/init/jwt.sql                       # T013 — app.settings.jwt_secret / jwt_exp
+├── db/pg_hba.conf                        # T022 — the image's file + one loopback replication line for pg_basebackup
 ├── bin/mint-keys.sh                      # T013 — JWT_SECRET + anon/service_role JWTs + passwords
 ├── bin/deploy.sh                         # T014 — pull tag from .env, refuse mismatched prefix, up -d app
 ├── bin/backup.sh                         # T022 — pg_basebackup + pg_dump + dirs → restic ×2 → push monitor

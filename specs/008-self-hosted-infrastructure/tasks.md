@@ -2688,22 +2688,1380 @@ git commit -m "docs(runbooks): manual host setup and migration procedures [008-T
 
 ---
 
-## ⏸ CHECKPOINT — tasks.md stops here (2026-09-19)
 
-Phases 1–4 (T001–T019) above are complete and executable. Phases 5–8 are **not yet written
-out**; their scope is fixed by `plan.md` and `spec.md` and is expanded into full tasks
-(files, complete contents, steps, verification) on resume — with the writing-plans skill,
-continuing this file at this marker. Do not execute beyond T019 until they exist.
+## Phase 5: User Story 3 — Staging on the desktop, provisioned by code, deployed automatically (Priority: P3)
 
-| Phase | Story | Task | Scope (from plan.md) |
+**Goal**: The Ansible playbook that reproduces `host-setup.md`, the staging overrides, the auto-deploy timer, and the desktop running staging behind the Pi with organizer-only access — replacing Vercel previews for acceptance testing.
+
+**Independent Test**: A fresh Debian 13 desktop provisioned by `ansible-playbook site.yml --limit desktop` alone serves `https://staging.<domain>` behind basic auth; a second run reports `changed=0`; a push to `dev` is live on staging within five minutes; an organizer completes the M3 acceptance script.
+
+### T020 [US3] Ansible playbook, staging overrides, deploy timer
+
+**Files:**
+- Create: `deploy/compose.staging.yml`, `deploy/caddy/Caddyfile.staging`, `deploy/systemd/holigay-deploy.service`, `deploy/systemd/holigay-deploy.timer`, `deploy/ansible/README.md`, `deploy/ansible/ansible.cfg`, `deploy/ansible/requirements.yml`, `deploy/ansible/inventory.example.ini`, `deploy/ansible/vault.example.yml`, `deploy/ansible/site.yml`, `deploy/ansible/group_vars/all.yml`, `deploy/ansible/host_vars/pi.yml`, `deploy/ansible/host_vars/desktop.yml`, `deploy/ansible/roles/{base,docker,wireguard,ddclient,restic,holigay}/tasks/main.yml`, `deploy/ansible/roles/{base,docker,wireguard,ddclient}/handlers/main.yml`, `deploy/ansible/roles/wireguard/templates/wg0.conf.j2`, `deploy/ansible/roles/ddclient/templates/ddclient.conf.j2`, `deploy/ansible/roles/holigay/handlers/main.yml`
+- Modify: `deploy/.env.example` (add `COMPOSE_FILE`), `deploy/README.md` (Ansible row already present; add the ProxyJump note), `.gitignore` (Ansible secrets), `scripts/smoke-check.mjs` (`SMOKE_BASIC_AUTH` for the two page fetches — staging sits behind basic auth)
+
+**Interfaces:**
+- Consumes: `deploy/compose.yml`, `deploy/caddy/supabase-api.caddy`, `deploy/.env` keys (T013); `deploy/bin/deploy.sh` (T014); the procedure in `docs/runbooks/host-setup.md` §2–§7, §9 (T015).
+- Produces: `docker compose` on the desktop reads `COMPOSE_FILE=compose.yml:compose.staging.yml` from `.env`; systemd units `holigay-deploy.{service,timer}`; playbook `site.yml` with per-host `holigay_env` ∈ `production|staging`, `ufw_rules`, `holigay_units`, `holigay_timers`; the Pi's backup SSH key at `/home/holigay/.ssh/id_ed25519_backup` and an ssh alias `desktop` on the Pi (consumed by `backup.sh`, T022); env `SMOKE_BASIC_AUTH=user:password` in the smoke script.
+
+- [ ] **Step 1: `deploy/compose.staging.yml`**
+
+```yaml
+# Staging overrides for the desktop. Selected by COMPOSE_FILE=compose.yml:compose.staging.yml
+# in deploy/.env, so a plain `docker compose …` (and deploy.sh, and the timer) picks both up.
+# TLS is terminated on the Pi, which proxies https://staging.<domain> here over the LAN;
+# Caddy on this host listens on plain :80 only.
+services:
+  caddy:
+    ports: !override
+      - "80:80"
+    volumes: !override
+      - ./caddy/Caddyfile.staging:/etc/caddy/Caddyfile:ro
+      - ./caddy/supabase-api.caddy:/etc/caddy/supabase-api.caddy:ro
+      - ${HOLIGAY_DATA}/caddy/data:/data
+      - ${HOLIGAY_DATA}/caddy/config:/config
+    environment:
+      # The Pi is the only proxy in front of this host; trust its forwarded headers.
+      PI_LAN_IP: ${APP_HOST_RESOLVES_TO}
+```
+
+- [ ] **Step 2: `deploy/caddy/Caddyfile.staging`**
+
+```
+# Caddyfile — staging (the desktop). The Pi terminates TLS and proxies
+# https://{$STAGING_HOST} → this host's :80 over the LAN (deploy/caddy/Caddyfile). The
+# routing is the same as production; only TLS is absent.
+
+{
+	auto_https off
+	servers {
+		trusted_proxies static {$PI_LAN_IP}
+	}
+}
+
+http://{$APP_HOST} {
+	import /etc/caddy/supabase-api.caddy
+	handle {
+		reverse_proxy app:3000
+	}
+}
+
+# Internal only: Studio (admin profile).
+:8000 {
+	import /etc/caddy/supabase-api.caddy
+	respond 404
+}
+```
+
+- [ ] **Step 3: systemd units** — `deploy/systemd/holigay-deploy.service`:
+
+```ini
+[Unit]
+Description=Holigay staging auto-deploy (pull the staging tag if it moved)
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=holigay
+WorkingDirectory=/srv/holigay/app/deploy
+ExecStart=/srv/holigay/app/deploy/bin/deploy.sh
+```
+
+`deploy/systemd/holigay-deploy.timer`:
+
+```ini
+[Unit]
+Description=Run holigay-deploy every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30
+
+[Install]
+WantedBy=timers.target
+```
+
+- [ ] **Step 4: `deploy/.env.example`** — add under the `# ---- identity` block, after `HOLIGAY_DATA`:
+
+```
+# staging only: layer the staging overrides so plain `docker compose` uses them.
+# Leave this line commented on production.
+# COMPOSE_FILE=compose.yml:compose.staging.yml
+```
+
+And `.gitignore` gains:
+
+```
+# Ansible inventory and vault hold LAN addresses, keys and tokens (specs/008)
+/deploy/ansible/inventory.ini
+/deploy/ansible/vault.yml
+```
+
+- [ ] **Step 5: Smoke behind basic auth** — in `scripts/smoke-check.mjs`, `readEnv()` returns one more field, `basicAuth: process.env.SMOKE_BASIC_AUTH?.trim() || null`, and `checkAppPages(appUrl, basicAuth)` sends it on the two page fetches only (the API prefixes are excluded from basic auth in the Caddyfile, and supabase-js sets its own `Authorization`):
+
+```js
+      const response = await fetch(`${appUrl}${path}`, {
+        headers: {
+          'cache-control': 'no-cache',
+          ...(basicAuth ? { authorization: `Basic ${Buffer.from(basicAuth).toString('base64')}` } : {}),
+        },
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+```
+
+`main()` passes it: `await runCheck('app-pages', () => checkAppPages(appUrl, basicAuth));`. Document in the header usage block and in `.env.example`'s smoke section: `SMOKE_BASIC_AUTH=user:password (optional): staging sits behind basic auth; sent on the page checks only.` Verify: `npm run smoke` against local still passes unchanged; `SMOKE_BASIC_AUTH=x:y` against local also passes (the header is ignored by a site without basic auth).
+
+- [ ] **Step 6: Ansible — `deploy/ansible/README.md`**
+
+```markdown
+# deploy/ansible — provisioning
+
+Reproduces `docs/runbooks/host-setup.md` §2–§7 and §9 for any Debian-family host. The Pi was
+set up by hand from that runbook first; this playbook was written from it and is proven by
+provisioning the desktop from it alone (spec 008 T021). A second run must report
+`changed=0`.
+
+## Install (workstation)
+
+```bash
+pipx install --include-deps ansible && pipx inject ansible ansible-lint   # or: pip install --user ansible ansible-lint
+cd deploy/ansible
+ansible-galaxy collection install -r requirements.yml
+cp inventory.example.ini inventory.ini      # fill in the LAN addresses (git-ignored)
+cp vault.example.yml vault.yml && ansible-vault encrypt vault.yml   # the Cloudflare token (git-ignored)
+```
+
+## Run
+
+```bash
+ansible-playbook site.yml --ask-vault-pass --limit desktop            # first time: stops at the .env check
+ansible-playbook site.yml --ask-vault-pass --limit desktop            # after placing deploy/.env: converges
+ansible-playbook site.yml --ask-vault-pass --limit desktop --check    # preview; must be all ok
+ansible-playbook site.yml --ask-vault-pass                            # both hosts
+```
+
+The playbook never creates `deploy/.env`: secrets come from the password manager, by hand,
+mode 600 (`host-setup.md` §7). It also never writes the WireGuard *client* configs or the
+peers' keys — put the peers' public keys in `host_vars/pi.yml`.
+
+## Reaching the desktop from away
+
+WireGuard terminates on the Pi only. In `~/.ssh/config`:
+
+```
+Host desktop
+    HostName <desktop-lan-ip>
+    User holigay
+    ProxyJump pi-wg
+```
+
+## Layout
+
+`site.yml` → roles `base` (timezone, packages, sshd, ufw, unattended-upgrades, chrony),
+`docker` (Docker's apt repo, daemon.json, group), `wireguard` (Pi only), `ddclient` (Pi only),
+`restic` (Pi: backup SSH key + alias; desktop: the SFTP target and the key authorization),
+`holigay` (directories, checkout, `.env` check, systemd units, weekly prune, `docker compose
+up -d`, timers, and on staging the monitoring stack). Host differences live in `host_vars/`.
+```
+
+- [ ] **Step 7: Ansible — config, requirements, inventory, vault example, `site.yml`, vars**
+
+`deploy/ansible/ansible.cfg`:
+
+```ini
+[defaults]
+inventory = inventory.ini
+roles_path = roles
+host_key_checking = True
+interpreter_python = auto_silent
+retry_files_enabled = False
+```
+
+`deploy/ansible/requirements.yml`:
+
+```yaml
+---
+collections:
+  - name: community.general
+  - name: community.docker
+  - name: community.crypto
+  - name: ansible.posix
+```
+
+`deploy/ansible/inventory.example.ini`:
+
+```ini
+[pi]
+pi ansible_host=192.168.1.10 ansible_user=holigay
+
+[desktop]
+desktop ansible_host=192.168.1.20 ansible_user=holigay
+
+[holigay:children]
+pi
+desktop
+```
+
+`deploy/ansible/vault.example.yml`:
+
+```yaml
+---
+# Copy to vault.yml and `ansible-vault encrypt vault.yml`. Only the Pi's ddclient needs it.
+cloudflare_token: replace-with-the-cloudflare-ddns-token
+```
+
+`deploy/ansible/site.yml`:
+
+```yaml
+---
+- name: Holigay hosts
+  hosts: holigay
+  become: true
+  vars_files:
+    - vault.yml
+  roles:
+    - base
+    - docker
+    - { role: wireguard, when: holigay_env == 'production' }
+    - { role: ddclient, when: holigay_env == 'production' }
+    - restic
+    - holigay
+```
+
+`deploy/ansible/group_vars/all.yml`:
+
+```yaml
+---
+timezone: America/Edmonton
+lan_subnet: 192.168.1.0/24
+wireguard_subnet: 10.8.0.0/24
+holigay_user: holigay
+holigay_root: /srv/holigay
+holigay_repo: https://github.com/Owen-Rose/Holigay-YYC
+holigay_branch: main
+```
+
+`deploy/ansible/host_vars/pi.yml`:
+
+```yaml
+---
+holigay_env: production
+ufw_rules:
+  - { from: "{{ lan_subnet }}", port: "22", proto: tcp, comment: ssh from LAN }
+  - { from: "{{ wireguard_subnet }}", port: "22", proto: tcp, comment: ssh over WireGuard }
+  - { port: "80", proto: tcp, comment: caddy http }
+  - { port: "443", proto: tcp, comment: caddy https }
+  - { port: "443", proto: udp, comment: caddy http3 }
+  - { port: "51820", proto: udp, comment: wireguard }
+wireguard_address: 10.8.0.1/24
+wireguard_peers:
+  - { name: workstation, public_key: replace-with-the-workstation-public-key, allowed_ips: 10.8.0.2/32 }
+  - { name: phone, public_key: replace-with-the-phone-public-key, allowed_ips: 10.8.0.3/32 }
+cloudflare_zone: example.com
+ddclient_hosts:
+  - app.example.com
+  - staging.example.com
+holigay_units: [holigay-backup.service, holigay-backup.timer]
+holigay_timers: [holigay-backup.timer]
+```
+
+`deploy/ansible/host_vars/desktop.yml`:
+
+```yaml
+---
+holigay_env: staging
+ufw_rules:
+  - { from: "{{ lan_subnet }}", port: "22", proto: tcp, comment: ssh from LAN }
+  - { from: "{{ lan_subnet }}", port: "80", proto: tcp, comment: staging caddy, proxied by the Pi }
+  - { from: "{{ lan_subnet }}", port: "3001", proto: tcp, comment: uptime kuma UI }
+holigay_units: [holigay-deploy.service, holigay-deploy.timer]
+holigay_timers: [holigay-deploy.timer]
+```
+
+(`host_vars/pi.yml` and `host_vars/desktop.yml` are committed with placeholder values; the WireGuard public keys and the zone are the only edits a real run needs, and they are public values.)
+
+- [ ] **Step 8: Roles** — `roles/base/tasks/main.yml`:
+
+```yaml
+---
+- name: Timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Base packages
+  ansible.builtin.apt:
+    name: [chrony, unattended-upgrades, ufw, git, curl, restic]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Chrony enabled
+  ansible.builtin.systemd:
+    name: chrony
+    enabled: true
+    state: started
+
+- name: Unattended security upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+- name: Sshd hardening
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/10-hardening.conf
+    mode: "0644"
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+  notify: Restart ssh
+
+- name: Firewall policy
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: incoming, policy: deny }
+    - { direction: outgoing, policy: allow }
+
+- name: Firewall rules
+  community.general.ufw:
+    rule: allow
+    from_ip: "{{ item.from | default('any') }}"
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  loop: "{{ ufw_rules }}"
+
+- name: Firewall enabled
+  community.general.ufw:
+    state: enabled
+```
+
+`roles/base/handlers/main.yml`:
+
+```yaml
+---
+- name: Restart ssh
+  ansible.builtin.systemd:
+    name: ssh
+    state: restarted
+```
+
+`roles/docker/tasks/main.yml`:
+
+```yaml
+---
+- name: Keyrings directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Docker apt key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+
+- name: Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64') }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    filename: docker
+    state: present
+
+- name: Docker packages
+  ansible.builtin.apt:
+    name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+    state: present
+    update_cache: true
+
+- name: Container log rotation
+  ansible.builtin.copy:
+    dest: /etc/docker/daemon.json
+    mode: "0644"
+    content: '{ "log-driver": "json-file", "log-opts": { "max-size": "10m", "max-file": "3" } }'
+  notify: Restart docker
+
+- name: Operator in the docker group
+  ansible.builtin.user:
+    name: "{{ holigay_user }}"
+    groups: docker
+    append: true
+
+- name: Docker enabled
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+```
+
+`roles/docker/handlers/main.yml`:
+
+```yaml
+---
+- name: Restart docker
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+```
+
+`roles/wireguard/tasks/main.yml`:
+
+```yaml
+---
+- name: WireGuard tools
+  ansible.builtin.apt:
+    name: wireguard-tools
+    state: present
+
+- name: Server private key (generated once, never read back into git)
+  ansible.builtin.shell: umask 077 && wg genkey > /etc/wireguard/server.key
+  args:
+    creates: /etc/wireguard/server.key
+
+- name: Server public key (for the client configs)
+  ansible.builtin.shell: wg pubkey < /etc/wireguard/server.key > /etc/wireguard/server.pub
+  args:
+    creates: /etc/wireguard/server.pub
+
+- name: Read the private key for the template
+  ansible.builtin.slurp:
+    src: /etc/wireguard/server.key
+  register: wg_server_key
+  no_log: true
+
+- name: wg0.conf
+  ansible.builtin.template:
+    src: wg0.conf.j2
+    dest: /etc/wireguard/wg0.conf
+    mode: "0600"
+  no_log: true
+  notify: Restart wg0
+
+- name: wg0 enabled
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    enabled: true
+    state: started
+```
+
+`roles/wireguard/templates/wg0.conf.j2`:
+
+```
+[Interface]
+Address = {{ wireguard_address }}
+ListenPort = 51820
+PrivateKey = {{ wg_server_key.content | b64decode | trim }}
+{% for peer in wireguard_peers %}
+
+[Peer]
+# {{ peer.name }}
+PublicKey = {{ peer.public_key }}
+AllowedIPs = {{ peer.allowed_ips }}
+{% endfor %}
+```
+
+`roles/wireguard/handlers/main.yml`:
+
+```yaml
+---
+- name: Restart wg0
+  ansible.builtin.systemd:
+    name: wg-quick@wg0
+    state: restarted
+```
+
+`roles/ddclient/tasks/main.yml`:
+
+```yaml
+---
+- name: ddclient
+  ansible.builtin.apt:
+    name: ddclient
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: ddclient.conf
+  ansible.builtin.template:
+    src: ddclient.conf.j2
+    dest: /etc/ddclient.conf
+    mode: "0600"
+  no_log: true
+  notify: Restart ddclient
+
+- name: ddclient enabled
+  ansible.builtin.systemd:
+    name: ddclient
+    enabled: true
+    state: started
+```
+
+`roles/ddclient/templates/ddclient.conf.j2`:
+
+```
+daemon=300
+syslog=yes
+use=web, web=https://api.ipify.org/
+protocol=cloudflare
+zone={{ cloudflare_zone }}
+ttl=1
+login=token
+password={{ cloudflare_token }}
+{{ ddclient_hosts | join(',') }}
+```
+
+`roles/ddclient/handlers/main.yml`:
+
+```yaml
+---
+- name: Restart ddclient
+  ansible.builtin.systemd:
+    name: ddclient
+    state: restarted
+```
+
+`roles/restic/tasks/main.yml` — the Pi gets a dedicated key and an ssh alias for the desktop; the desktop gets the SFTP target and authorizes that key, restricted to the sftp server:
+
+```yaml
+---
+- name: Backup SSH key on the production host
+  become_user: "{{ holigay_user }}"
+  community.crypto.openssh_keypair:
+    path: "/home/{{ holigay_user }}/.ssh/id_ed25519_backup"
+    type: ed25519
+    comment: holigay-backup
+  register: backup_key
+  when: holigay_env == 'production'
+
+- name: Ssh alias for the on-site repository (production host)
+  become_user: "{{ holigay_user }}"
+  ansible.builtin.blockinfile:
+    path: "/home/{{ holigay_user }}/.ssh/config"
+    create: true
+    mode: "0600"
+    marker: "# {mark} holigay restic target"
+    block: |
+      Host desktop
+          HostName {{ hostvars['desktop']['ansible_host'] }}
+          User {{ holigay_user }}
+          IdentityFile ~/.ssh/id_ed25519_backup
+          IdentitiesOnly yes
+  when: holigay_env == 'production'
+
+- name: Desktop host key known to the production host
+  become_user: "{{ holigay_user }}"
+  ansible.builtin.known_hosts:
+    name: "{{ hostvars['desktop']['ansible_host'] }}"
+    key: "{{ lookup('pipe', 'ssh-keyscan -t ed25519 ' ~ hostvars['desktop']['ansible_host'] ~ ' 2>/dev/null') }}"
+  when: holigay_env == 'production'
+
+- name: SFTP target directory (staging host)
+  ansible.builtin.file:
+    path: /srv/restic/holigay
+    state: directory
+    owner: "{{ holigay_user }}"
+    group: "{{ holigay_user }}"
+    mode: "0750"
+  when: holigay_env == 'staging'
+
+- name: Authorize the production host's backup key, sftp only
+  ansible.posix.authorized_key:
+    user: "{{ holigay_user }}"
+    key: "{{ hostvars['pi']['backup_key']['public_key'] }}"
+    key_options: 'restrict,command="/usr/lib/openssh/sftp-server"'
+  when: holigay_env == 'staging' and hostvars['pi']['backup_key'] is defined
+```
+
+`roles/holigay/tasks/main.yml`:
+
+```yaml
+---
+- name: Data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ holigay_user }}"
+    group: "{{ holigay_user }}"
+    mode: "0750"
+  loop:
+    - "{{ holigay_root }}"
+    - "{{ holigay_root }}/db/data"
+    - "{{ holigay_root }}/db/config"
+    - "{{ holigay_root }}/storage"
+    - "{{ holigay_root }}/caddy/data"
+    - "{{ holigay_root }}/caddy/config"
+    - "{{ holigay_root }}/monitoring"
+    - /srv/backup
+
+- name: Repository checkout
+  become_user: "{{ holigay_user }}"
+  ansible.builtin.git:
+    repo: "{{ holigay_repo }}"
+    dest: "{{ holigay_root }}/app"
+    version: "{{ holigay_branch }}"
+    update: true
+
+- name: deploy/.env present?
+  ansible.builtin.stat:
+    path: "{{ holigay_root }}/app/deploy/.env"
+  register: env_file
+
+- name: Stop until deploy/.env exists
+  ansible.builtin.fail:
+    msg: >-
+      Copy deploy/.env.example to {{ holigay_root }}/app/deploy/.env on this host, fill it
+      in (bin/mint-keys.sh for the secrets; docs/runbooks/host-setup.md §7), chmod 600,
+      then re-run. The playbook never writes secrets.
+  when: not env_file.stat.exists
+
+- name: deploy/.env permissions
+  ansible.builtin.file:
+    path: "{{ holigay_root }}/app/deploy/.env"
+    owner: "{{ holigay_user }}"
+    group: "{{ holigay_user }}"
+    mode: "0600"
+
+- name: Systemd units
+  ansible.builtin.copy:
+    src: "{{ holigay_root }}/app/deploy/systemd/{{ item }}"
+    remote_src: true
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop: "{{ holigay_units }}"
+  notify: Reload systemd
+
+- name: Weekly image prune
+  ansible.builtin.copy:
+    dest: /etc/cron.weekly/holigay-prune
+    mode: "0755"
+    content: |
+      #!/bin/sh
+      # keep the last three app images for rollback (docs/runbooks/deploy.md §2)
+      docker image ls --format '{{ '{{' }}.Repository{{ '}}' }}:{{ '{{' }}.Tag{{ '}}' }}' ghcr.io/owen-rose/holigay-app | tail -n +4 | xargs -r docker image rm
+      docker image prune -f >/dev/null
+
+- name: Stack up
+  become_user: "{{ holigay_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ holigay_root }}/app/deploy"
+    state: present
+
+- name: Monitoring up (staging host)
+  become_user: "{{ holigay_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ holigay_root }}/app/deploy/monitoring"
+    state: present
+  when: holigay_env == 'staging'
+
+- name: Apply pending handlers before enabling timers
+  ansible.builtin.meta: flush_handlers
+
+- name: Timers enabled
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop: "{{ holigay_timers }}"
+```
+
+`roles/holigay/handlers/main.yml`:
+
+```yaml
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+```
+
+(`deploy/monitoring/compose.yml` and the backup units the Pi's `holigay_units` name are created by T022; until then run the desktop with `--limit desktop` only, which needs neither.)
+
+- [ ] **Step 9: Validate on the workstation**
+
+```bash
+cd deploy/ansible
+ansible-galaxy collection install -r requirements.yml
+cp inventory.example.ini inventory.ini && cp vault.example.yml vault.yml
+ansible-playbook site.yml --syntax-check && ansible-lint site.yml roles/
+rm inventory.ini vault.yml
+cd ../..
+docker compose -f deploy/compose.yml -f deploy/compose.staging.yml --env-file deploy/.env.example config --quiet && echo staging-compose-ok
+docker run --rm -v "$PWD/deploy/caddy:/etc/caddy:ro" -e APP_HOST=staging.example.com -e PI_LAN_IP=192.168.1.10 \
+  caddy:2.11.4-alpine caddy validate --config /etc/caddy/Caddyfile.staging
+systemd-analyze verify deploy/systemd/holigay-deploy.service deploy/systemd/holigay-deploy.timer
+```
+
+Expected: syntax check `playbook: site.yml`; `ansible-lint` reports 0 failures (warnings about `command`/`shell` idempotence are addressed by the `creates:` guards and may be ignored with a `# noqa` comment if they still fire); `staging-compose-ok`; `Valid configuration`; `systemd-analyze` prints nothing (it warns only about the absolute `ExecStart` path not existing on the workstation, which is expected).
+
+- [ ] **Step 10: Commit**
+
+```bash
+git add deploy/compose.staging.yml deploy/caddy/Caddyfile.staging deploy/systemd deploy/ansible deploy/.env.example deploy/README.md .gitignore scripts/smoke-check.mjs .env.example
+git commit -m "infra(ansible): playbook for both hosts; staging overrides and auto-deploy timer [008-T020]"
+```
+
+- [ ] T021 [manual] [US3] Provision the desktop and bring staging up. (1) Install Debian 13 (netinst, "SSH server" and "standard system utilities" only, no desktop environment), user `holigay` with your public key and sudo (`apt install sudo && usermod -aG sudo holigay`), a DHCP reservation for it on the router. (2) From the workstation: `ansible-playbook site.yml --ask-vault-pass --limit desktop` — it converges through the `restic` role and **stops at the `.env` check** (expected); place `deploy/.env` on the desktop: `mint-keys.sh` output, `APP_ENV=staging`, `APP_HOST=staging.<domain>`, `APP_HOST_RESOLVES_TO=<pi-lan-ip>`, `APP_IMAGE_TAG=staging`, `COMPOSE_FILE=compose.yml:compose.staging.yml`, the SMTP block, `EMAIL_FROM_ADDRESS`. (3) The image must exist before the stack can come up: GitHub → `staging` environment → `NEXT_PUBLIC_SUPABASE_URL=https://staging.<domain>`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=<the desktop's ANON_KEY>`; push any commit to `dev`; wait for `staging-<sha>` and the floating `staging` tag in GHCR. Then re-run the playbook — it converges, pulls the image and brings the whole stack up; from now on the timer picks up every `dev` push within five minutes (`journalctl -u holigay-deploy.service` on the desktop). (4) `docs/runbooks/migrate.md` against the desktop (`make tunnel-db HOST=desktop`), then `./bin/deploy.sh` once by hand so the app restarts against the migrated schema. (5) On the Pi, in `deploy/.env`: `STAGING_UPSTREAM=<desktop-lan-ip>:80` and a real `STAGING_BASIC_AUTH_HASH` (generate with the `caddy hash-password` command from `.env.example`, paste with `$$`); `docker compose up -d caddy` (recreates Caddy with the new env). Cloudflare → DNS → `A staging <home public IP>` proxied. (6) `curl -sI https://staging.<domain>/` → `401` with `www-authenticate: Basic`; `curl -sI -u organizer:<pw> https://staging.<domain>/` → `200`; `curl -sI https://staging.<domain>/auth/v1/health` → `200` **without** credentials (V9); `SMOKE_APP_URL=https://staging.<domain> SMOKE_SUPABASE_URL=https://staging.<domain> SMOKE_SUPABASE_ANON_KEY=<staging anon> SMOKE_BASIC_AUTH=organizer:<pw> SMOKE_ORGANIZER_EMAIL=… SMOKE_ORGANIZER_PASSWORD=… SMOKE_STORAGE_EXPECT_PRIVATE=1 npm run smoke` → `all 6 checks passed`. (7) Idempotence: `ansible-playbook site.yml --ask-vault-pass --limit desktop` again → recap shows `changed=0`; then run it against the Pi too (`--limit pi`) and confirm it changes nothing the hand setup did not already do (a non-zero `changed` here is a runbook/playbook mismatch to fix in T020, not on the host). (8) Push a visible change to `dev`, time it to staging. (9) An organizer runs the M3 acceptance script (`docs/M3-PLAN.md`, "UAT dry-run shape") on staging; findings go to Tier 3 PRs, not this spec. Needs T004, T018, T020. evidence: the six T021 rows in quickstart.md — FR-021, FR-022, FR-029, SC-008
+
+**Checkpoint**: two hosts, one playbook, `changed=0` on re-run; staging behind organizer-only basic auth follows `dev` within five minutes; the organizers have a place to test.
+
+---
+
+## Phase 6: User Story 4 — Backups exist, alert when they fail, and have been restored (Priority: P4)
+
+**Goal**: A six-hourly physical backup to two encrypted repositories, a dead-man switch that emails when it misses, a scripted restore proven by a drill on the desktop, and a power-cycle rehearsal.
+
+**Independent Test**: `holigay-backup.timer` fires and both `restic snapshots` lists grow; a deliberately broken repository password produces an alert email within one cycle; `restore.sh` on the desktop yields a stack that passes `npm run smoke`; the Pi survives a power pull with alerts sent and data intact.
+
+### T022 [US4] `backup.sh`, `restore.sh`, the backup timer, monitoring, and the runbooks
+
+**Files:**
+- Create: `deploy/db/pg_hba.conf`, `deploy/bin/backup.sh`, `deploy/bin/restore.sh`, `deploy/systemd/holigay-backup.service`, `deploy/systemd/holigay-backup.timer`, `deploy/monitoring/compose.yml`, `docs/runbooks/disaster-recovery.md`
+- Modify: `deploy/compose.yml` (mount `pg_hba.conf`), `deploy/.env.example` (`RESTIC_REPO_ONSITE` uses the ssh alias), `docs/runbooks/backup-restore.md` (rewritten), `docs/runbooks/upgrade-stack.md` (the `pg_hba.conf` diff step), `/etc/cron.weekly` prune script content in `docs/runbooks/host-setup.md` §9 and `roles/holigay` (add the restic prune)
+
+**Interfaces:**
+- Consumes: `.env` keys `HOLIGAY_DATA`, `RESTIC_PASSWORD`, `RESTIC_REPO_ONSITE`, `RESTIC_REPO_OFFSITE`, `B2_ACCOUNT_ID`, `B2_ACCOUNT_KEY`, `UPTIME_KUMA_PUSH_URL` (T013); the ssh alias `desktop` + backup key on the Pi (T020); the `db` container as `supabase_admin` over loopback.
+- Produces: `/srv/backup/latest/{db/base/base.tar.gz,db/base/pg_wal.tar.gz,db/postgres.dump,db/config/,storage/,env,TAKEN_AT}`; restic snapshots tagged `holigay` in both repositories; `restore.sh [snapshot-id]` (env `RESTIC_REPO` overrides the source; exit 3 if the data directory is not empty); units `holigay-backup.{service,timer}`; Uptime Kuma at `http://<desktop-lan-ip>:3001`.
+
+- [ ] **Step 1: Allow `pg_basebackup` over loopback** — the pinned image's `/etc/postgresql/pg_hba.conf` (verified 2026-09-19) has `host all all 127.0.0.1/32 trust` but **no `replication` entry**, and a physical base backup needs one. `deploy/db/pg_hba.conf` is the image's file plus one loopback-only line, mounted read-only over the original:
+
+```
+# deploy/db/pg_hba.conf — the pinned supabase/postgres image's pg_hba.conf plus ONE line:
+# a replication connection over the container's loopback, which pg_basebackup (bin/backup.sh)
+# needs and the image does not grant. Loopback inside the container is unreachable from
+# anywhere else. On every image bump, diff this against the new image's
+# /etc/postgresql/pg_hba.conf (docs/runbooks/upgrade-stack.md step 1b).
+local all  supabase_admin     scram-sha-256
+local all  all                peer map=supabase_map
+host  all  all  127.0.0.1/32  trust
+host  all  all  ::1/128       trust
+host  replication  all  127.0.0.1/32  trust
+host  all  all  10.0.0.0/8  scram-sha-256
+host  all  all  172.16.0.0/12  scram-sha-256
+host  all  all  192.168.0.0/16  scram-sha-256
+host  all  all  0.0.0.0/0     scram-sha-256
+host  all  all  ::0/0     scram-sha-256
+```
+
+In `deploy/compose.yml`, `db.volumes` gains `- ./db/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro` (after the two init scripts). In `docs/runbooks/upgrade-stack.md`, after step 1 add **1b**: "`docker run --rm --entrypoint cat public.ecr.aws/supabase/postgres:<new tag> /etc/postgresql/pg_hba.conf | diff - deploy/db/pg_hba.conf` — the only difference must be the `replication` line; carry any upstream change into our file."
+
+- [ ] **Step 2: `deploy/bin/backup.sh`** (`chmod +x`)
+
+```bash
+#!/usr/bin/env bash
+# Six-hourly backup (research R12). A physical base backup of Postgres taken while it runs,
+# a logical dump for inspection, the uploaded files, the db config (pgsodium key) and .env
+# are staged under /srv/backup/latest and pushed by restic to the on-site (desktop, SFTP)
+# and off-site (Backblaze B2) repositories, encrypted client-side. The last step pings the
+# Uptime Kuma push monitor; a missed ping IS the alert, so on any failure the ping is
+# skipped and the exit code is non-zero (journalctl -u holigay-backup shows why).
+#
+# Runs as the holigay user from deploy/ (systemd/holigay-backup.timer). Never sources .env
+# (values may hold `$$`); reads the keys it needs with sed. Data copies go through
+# `docker compose cp`, which reads as root inside the containers regardless of file owners.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+env_get() { sed -n "s/^$1=//p" .env; }
+
+HOLIGAY_DATA=$(env_get HOLIGAY_DATA)
+STAGE=/srv/backup/latest
+ONSITE=$(env_get RESTIC_REPO_ONSITE)
+OFFSITE=$(env_get RESTIC_REPO_OFFSITE)
+PUSH=$(env_get UPTIME_KUMA_PUSH_URL)
+RESTIC_PASSWORD=$(env_get RESTIC_PASSWORD)
+B2_ACCOUNT_ID=$(env_get B2_ACCOUNT_ID)
+B2_ACCOUNT_KEY=$(env_get B2_ACCOUNT_KEY)
+export RESTIC_PASSWORD B2_ACCOUNT_ID B2_ACCOUNT_KEY
+
+[ -n "$RESTIC_PASSWORD" ] || { echo "backup.sh: RESTIC_PASSWORD is empty in .env" >&2; exit 2; }
+
+rm -rf "$STAGE"
+mkdir -p "$STAGE/db"
+
+# 1. Physical: a consistent copy of the running cluster, WAL streamed into the archive so
+#    it is self-contained. Over loopback as the image's superuser (deploy/db/pg_hba.conf).
+docker compose exec -T db sh -c 'rm -rf /tmp/basebackup && pg_basebackup -h 127.0.0.1 -U supabase_admin -D /tmp/basebackup -Ft -z -X stream -c fast'
+docker compose cp db:/tmp/basebackup "$STAGE/db/base"
+docker compose exec -T db rm -rf /tmp/basebackup
+
+# 2. Logical: readable with pg_restore/psql, and the path for a future Postgres major.
+docker compose exec -T db pg_dump -h 127.0.0.1 -U supabase_admin -Fc postgres > "$STAGE/db/postgres.dump"
+
+# 3. Files and configuration.
+docker compose cp storage:/var/lib/storage "$STAGE/storage"
+docker compose cp db:/etc/postgresql-custom "$STAGE/db/config"
+cp -p .env "$STAGE/env"
+date -u +%FT%TZ > "$STAGE/TAKEN_AT"
+
+# 4. Two repositories. One failing does not stop the other; either failing fails the run.
+status=0
+for repo in "$ONSITE" "$OFFSITE"; do
+  if restic -r "$repo" backup --quiet --tag holigay "$STAGE"; then
+    restic -r "$repo" forget --quiet --tag holigay --keep-daily 14 --keep-weekly 8 --keep-monthly 12
+  else
+    echo "backup.sh: FAILED $repo" >&2
+    status=1
+  fi
+done
+[ "$status" -eq 0 ] || exit 1
+
+# 5. Prove it ran. (Pruning is weekly, in /etc/cron.weekly/holigay-prune — not here.)
+if [ -n "$PUSH" ]; then
+  curl -fsS -m 10 "${PUSH}?status=up&msg=ok" >/dev/null || echo "backup.sh: push monitor unreachable" >&2
+fi
+echo "backup.sh: ok $(cat "$STAGE/TAKEN_AT")"
+```
+
+- [ ] **Step 3: `deploy/bin/restore.sh`** (`chmod +x`)
+
+```bash
+#!/usr/bin/env bash
+# Restore a snapshot into THIS compose project (research R12). Run from deploy/ on the host
+# you are restoring onto, with the data directories EMPTY (a fresh host, or after
+# `docker compose down` and clearing HOLIGAY_DATA — docs/runbooks/backup-restore.md §3).
+#
+# Usage: restore.sh [snapshot-id]        default: latest
+#        RESTIC_REPO=<repo> restore.sh   default: RESTIC_REPO_ONSITE from .env
+#
+# Restores the base backup into the data directory, the db config (pgsodium key), the
+# storage files; prints where the backed-up .env is so it can be diffed against the current
+# one; starts db, then everything. The image's entrypoint re-owns the data directory on
+# start, so files extracted as the holigay user are fine. Exit 3 if the data dir is not empty.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+env_get() { sed -n "s/^$1=//p" .env; }
+
+HOLIGAY_DATA=$(env_get HOLIGAY_DATA)
+REPO=${RESTIC_REPO:-$(env_get RESTIC_REPO_ONSITE)}
+SNAP=${1:-latest}
+WORK=/srv/backup/restore
+RESTIC_PASSWORD=$(env_get RESTIC_PASSWORD)
+B2_ACCOUNT_ID=$(env_get B2_ACCOUNT_ID)
+B2_ACCOUNT_KEY=$(env_get B2_ACCOUNT_KEY)
+export RESTIC_PASSWORD B2_ACCOUNT_ID B2_ACCOUNT_KEY
+
+if [ -n "$(ls -A "$HOLIGAY_DATA/db/data" 2>/dev/null)" ]; then
+  echo "restore.sh: $HOLIGAY_DATA/db/data is not empty — refusing. See docs/runbooks/backup-restore.md §3." >&2
+  exit 3
+fi
+
+docker compose down
+rm -rf "$WORK" && mkdir -p "$WORK"
+restic -r "$REPO" restore "$SNAP" --target "$WORK"
+S="$WORK/srv/backup/latest"
+echo "restore.sh: snapshot taken at $(cat "$S/TAKEN_AT")"
+
+tar -xzf "$S/db/base/base.tar.gz" -C "$HOLIGAY_DATA/db/data"
+mkdir -p "$HOLIGAY_DATA/db/data/pg_wal"
+tar -xzf "$S/db/base/pg_wal.tar.gz" -C "$HOLIGAY_DATA/db/data/pg_wal"
+cp -a "$S/db/config/." "$HOLIGAY_DATA/db/config/"
+cp -a "$S/storage/." "$HOLIGAY_DATA/storage/"
+
+echo "restore.sh: the backed-up .env is $S/env — diff it against ./.env (keys, hosts) before relying on this stack"
+docker compose up -d db
+sleep 15
+docker compose ps db
+docker compose up -d
+docker compose ps
+rm -rf "$WORK"
+```
+
+- [ ] **Step 4: Units and monitoring** — `deploy/systemd/holigay-backup.service`:
+
+```ini
+[Unit]
+Description=Holigay backup (pg_basebackup + files → restic, two repositories)
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=holigay
+WorkingDirectory=/srv/holigay/app/deploy
+ExecStart=/srv/holigay/app/deploy/bin/backup.sh
+```
+
+`deploy/systemd/holigay-backup.timer`:
+
+```ini
+[Unit]
+Description=Run holigay-backup every 6 hours
+
+[Timer]
+OnCalendar=00/6:15
+RandomizedDelaySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+`deploy/monitoring/compose.yml` (the desktop; published on the LAN on purpose — this host is not internet-exposed and the UI has its own login):
+
+```yaml
+# Uptime Kuma — the whole monitoring stack (research R13). Runs on the desktop, watches
+# production from the outside, hosts the backup push monitor, alerts by email through the
+# same SMTP relay (configured in its UI). Reachable on the LAN at http://<desktop>:3001.
+name: holigay-monitoring
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.5
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - /srv/holigay/monitoring:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+Weekly pruning: the `/etc/cron.weekly/holigay-prune` script (in `host-setup.md` §9 and `roles/holigay`) gains, after the image lines:
+
+```sh
+# restic: drop data no snapshot references any more (backup.sh runs `forget` six-hourly, never prune)
+cd /srv/holigay/app/deploy && for repo in "$(sed -n 's/^RESTIC_REPO_ONSITE=//p' .env)" "$(sed -n 's/^RESTIC_REPO_OFFSITE=//p' .env)"; do
+  RESTIC_PASSWORD="$(sed -n 's/^RESTIC_PASSWORD=//p' .env)" B2_ACCOUNT_ID="$(sed -n 's/^B2_ACCOUNT_ID=//p' .env)" B2_ACCOUNT_KEY="$(sed -n 's/^B2_ACCOUNT_KEY=//p' .env)" \
+    su -s /bin/sh holigay -c "restic -r '$repo' prune --quiet" || true
+done
+```
+
+In `deploy/.env.example`, change `RESTIC_REPO_ONSITE=sftp:holigay@192.168.1.20:/srv/restic/holigay` to `RESTIC_REPO_ONSITE=sftp:desktop:/srv/restic/holigay` with the comment `# sftp:<ssh alias on this host>:<absolute path on the target>  (the alias comes from the ansible restic role)`.
+
+- [ ] **Step 5: Rewrite `docs/runbooks/backup-restore.md`** — replace the whole file:
+
+```markdown
+# Runbook: Backup and restore
+
+**Spec**: `specs/008-self-hosted-infrastructure/` (T022) · **Design**: `research.md` R12
+
+A backup nobody has restored is not a backup, so §3 (the drill) is part of the routine —
+quarterly, on the desktop, in isolation — not an optional extra. The previous version of this
+runbook (hosted projects, Supabase CLI dumps, the local-stack skew filter) is in git history
+under spec 007; none of it applies to the self-hosted stack.
+
+## 0. What a backup contains, and where it goes
+
+`deploy/bin/backup.sh` runs on the production host every six hours
+(`holigay-backup.timer`) and stages under `/srv/backup/latest/`:
+
+| Item | How | Why |
+|---|---|---|
+| `db/base/base.tar.gz`, `db/base/pg_wal.tar.gz` | `pg_basebackup -X stream` inside the `db` container | A consistent physical copy of the cluster, taken with **no downtime**. This is what a restore uses: same image, untar, start. |
+| `db/postgres.dump` | `pg_dump -Fc` | Logical, for reading with `pg_restore -l` / `psql`, and the only path across a Postgres major version. Not the restore path. |
+| `db/config/` | copy of `/etc/postgresql-custom` | The pgsodium/Vault root key. Without it the restored cluster cannot open anything the Vault encrypted. |
+| `storage/` | copy of the storage-api file backend | Every uploaded attachment. `public.attachments.file_path` is plain text — the files and the rows travel together. |
+| `env` | `deploy/.env` | The keys the data was written with. Compared, not blindly reused, on restore. |
+
+restic then pushes the stage to **two** repositories — `RESTIC_REPO_ONSITE` (the desktop over
+SFTP, the ssh alias `desktop`) and `RESTIC_REPO_OFFSITE` (Backblaze B2) — encrypted with
+`RESTIC_PASSWORD` before anything leaves the Pi, keeps 14 daily / 8 weekly / 12 monthly
+snapshots, and finally pings the Uptime Kuma push monitor. **A missed ping is the alert.**
+Weekly, `/etc/cron.weekly/holigay-prune` reclaims space in both repositories.
+
+Treat the repositories like credentials: they hold `auth.users` password hashes and vendor
+PII. The restic password is in the password manager and in `deploy/.env` — nowhere else.
+
+## 1. Check that backups are happening
+
+```bash
+ssh pi 'systemctl list-timers holigay-backup.timer; journalctl -u holigay-backup.service -n 20 --no-pager'
+ssh pi 'cd /srv/holigay/app/deploy && set -a && RESTIC_PASSWORD=$(sed -n "s/^RESTIC_PASSWORD=//p" .env) restic -r "$(sed -n "s/^RESTIC_REPO_ONSITE=//p" .env)" snapshots --tag holigay --latest 3'
+```
+
+Uptime Kuma (`http://<desktop>:3001`) shows the push monitor green with a timestamp under
+six hours old. Red means the last run failed or never ran — `journalctl` says which.
+
+## 2. Take one by hand
+
+```bash
+ssh pi 'cd /srv/holigay/app/deploy && ./bin/backup.sh'
+```
+
+Do this before any stack upgrade (`docs/runbooks/upgrade-stack.md`) and before go-live.
+
+## 3. Restore — the quarterly drill, and the real thing
+
+The drill restores the latest production snapshot onto the **desktop**, as a separate
+Compose project the Pi does not route to, verifies it without the app (the staging image's
+baked-in URL points at staging's API, so the app would prove nothing), and wipes it.
+Production data never lands in the staging project (the rule from spec 007 stands).
+
+```bash
+ssh desktop
+# 3.1 an isolated project directory and data root
+sudo mkdir -p /srv/holigay-drill && sudo chown holigay:holigay /srv/holigay-drill
+cp -r /srv/holigay/app/deploy /srv/holigay-drill/deploy && cd /srv/holigay-drill/deploy
+sed -i 's|^name: holigay$|name: holigay-drill|; s|"127.0.0.1:5432:5432"|"127.0.0.1:5433:5432"|' compose.yml
+mkdir -p /srv/holigay-drill/data/{db/data,db/config,storage,caddy/data,caddy/config}
+# 3.2 the drill's .env: start from staging's, then edit these lines
+cp /srv/holigay/app/deploy/.env .env
+#   HOLIGAY_DATA=/srv/holigay-drill/data
+#   RESTIC_REPO_ONSITE=/srv/restic/holigay        (a local path — the repository IS on this host)
+#   RESTIC_PASSWORD=<production's, from the password manager — the repository was made with it>
+#   delete the COMPOSE_FILE line
+# The restored data was written under production's JWT secret. The drill's services all use
+# staging's, consistently, so password sign-in and signed URLs still work; the restored `env`
+# file (printed by restore.sh) diffed against production's .env is the check that nothing
+# else drifted.
+# 3.3 restore (refuses if the data dir is not empty), then stop what the drill does not need
+./bin/restore.sh
+docker compose stop app caddy
+```
+
+`restore.sh` restores `latest` (pass a snapshot id for an older one — `restic snapshots`
+lists them), starts `db`, then the rest. `caddy` cannot bind :80 here (staging owns it) and
+`app` would talk to staging — both are stopped on purpose.
+
+```bash
+# 3.4 verify — rows, files, auth, and one signed download, all inside the drill's network
+docker compose exec db psql -U postgres -d postgres -Atc "select 'auth.users', count(*) from auth.users union all select 'applications', count(*) from public.applications union all select 'attachments', count(*) from public.attachments union all select 'storage.objects', count(*) from storage.objects;"
+find /srv/holigay-drill/data/storage -type f | wc -l          # equals the storage.objects count
+ANON=$(sed -n 's/^ANON_KEY=//p' .env); SERVICE=$(sed -n 's/^SERVICE_ROLE_KEY=//p' .env)
+# sign in as the production admin (proves auth.users, identities and password hashes restored)
+docker run --rm --network holigay-drill_default curlimages/curl:8.11.1 -sS -o /dev/null -w 'auth token: HTTP %{http_code}\n' \
+  -X POST "http://auth:9999/token?grant_type=password" -H "apikey: $ANON" -H "Content-Type: application/json" \
+  -d '{"email":"<the production admin address>","password":"<its password>"}'
+# sign one restored object and download it (proves storage.objects rows, files and keys line up)
+P=$(docker compose exec db psql -U postgres -d postgres -Atc "select file_path from public.attachments order by created_at desc limit 1")
+SIGNED=$(docker run --rm --network holigay-drill_default curlimages/curl:8.11.1 -sS -X POST "http://storage:5000/object/sign/attachments/$P" \
+  -H "Authorization: Bearer $SERVICE" -H "Content-Type: application/json" -d '{"expiresIn":60}' | sed -E 's/.*"signedURL":"([^"]+)".*/\1/')
+docker run --rm --network holigay-drill_default curlimages/curl:8.11.1 -sS -o /dev/null -w 'download: HTTP %{http_code}, %{size_download} bytes\n' "http://storage:5000$SIGNED"
+```
+
+`HTTP 200` for the token and a non-zero download mean rows, files, hashes and keys all
+line up (V3). Record the elapsed time from 3.1 to the download in `quickstart.md`; the
+target is under one hour.
+
+```bash
+# 3.5 wipe — nothing from production stays on this host
+docker compose down -v
+cd / && sudo rm -rf /srv/holigay-drill
+```
+
+**The real thing** (the Pi is dead or its NVMe is gone) is `docs/runbooks/disaster-recovery.md`:
+the same `restore.sh`, on a host provisioned by the playbook, followed by repointing the
+router and DNS.
+
+## 4. Restore a single file or table
+
+```bash
+restic -r <repo> snapshots --tag holigay
+restic -r <repo> restore <id> --target /tmp/r --include '/srv/backup/latest/storage/attachments/uploads/<file>'
+restic -r <repo> restore <id> --target /tmp/r --include '/srv/backup/latest/db/postgres.dump'
+pg_restore -l /tmp/r/srv/backup/latest/db/postgres.dump | less      # what is in the logical dump
+```
+
+## Verified behaviour
+
+| # | Observed | Why it matters |
+|---|---|---|
+| 1 | The pinned image's `pg_hba.conf` has no `replication` entry (checked 2026-09-19) | `deploy/db/pg_hba.conf` adds one for the container's loopback only; re-diff on every image bump |
+| 2 | The image's entrypoint runs `find "$PGDATA" ! -user postgres -exec chown postgres` before starting | A restore extracted as `holigay` starts cleanly; no manual chown |
+| 3 | `restic forget` runs after every backup, `prune` only weekly | Pruning rewrites pack files and costs B2 transactions; six-hourly would be wasteful |
+| 4 | (filled in by the first drill, T024) | |
+```
+
+- [ ] **Step 6: `docs/runbooks/disaster-recovery.md`**
+
+```markdown
+# Runbook: Disaster recovery
+
+**Spec**: `specs/008-self-hosted-infrastructure/` (T022) · **Design**: `research.md` R6, R12, R17
+
+Target: production back on a green smoke test within one hour of deciding to recover, with
+at most six hours of data lost (the backup interval). Rehearsed once before go-live (T024)
+and quarterly after (`backup-restore.md` §3).
+
+## Scenarios
+
+| What died | Recover onto | Image source |
+|---|---|---|
+| The Pi's NVMe, or the Pi | A replacement Pi (best) or the desktop (fastest) | Replacement Pi: `ghcr.io/…:prod-<sha>` as usual. Desktop: build it locally — GHCR's prod image is arm64 only |
+| Both hosts (fire, theft, flood) | Any Debian box, later | The off-site repository (B2) has everything; `make build-local` for the image |
+| One file or table | Nothing — `backup-restore.md` §4 | — |
+| A bad deploy | Nothing — `deploy.md` §2 (rollback) | — |
+
+## A. Replacement Pi (or any fresh host)
+
+1. `docs/runbooks/host-setup.md` §1 by hand (image the NVMe), then the playbook:
+   `ansible-playbook site.yml --ask-vault-pass --limit pi` — it stops at the `.env` check.
+2. `deploy/.env` from the password manager (the *same* keys — the data was written with
+   them; a different `JWT_SECRET` would orphan every user session and the storage JWTs).
+3. Do **not** re-run the playbook yet (it would bring an empty stack up). Instead:
+   `cd /srv/holigay/app/deploy && ./bin/restore.sh` — from the on-site repository if the
+   desktop is alive (`RESTIC_REPO_ONSITE`), else `RESTIC_REPO=b2:holigay-backups:/ ./bin/restore.sh`.
+   `restore.sh` runs `docker compose down` first, which is a no-op on a fresh host, and
+   needs the image: `docker compose pull app` works once `.env` has `APP_IMAGE_TAG`.
+4. `ansible-playbook … --limit pi` now converges (timers, cron).
+5. Router: the DHCP reservation and port forwards follow the MAC address — update them
+   for the new board. DNS follows the public IP — unchanged, unless you also moved.
+6. `npm run smoke` with `SMOKE_STORAGE_EXPECT_PRIVATE=1` → `all 6 checks passed`; sign in;
+   open one application. Record the elapsed time in `quickstart.md`.
+
+## B. The desktop stands in for the Pi
+
+The desktop is amd64; the published prod image is arm64. Build it:
+
+```bash
+git clone https://github.com/Owen-Rose/Holigay-YYC /tmp/h && cd /tmp/h && git checkout <the sha production was running>
+make build-local TAG=prod-<sha> NEXT_PUBLIC_SUPABASE_URL=https://app.<domain> NEXT_PUBLIC_SUPABASE_ANON_KEY=<ANON_KEY from the production .env>
+```
+
+Then, on the desktop, stop staging (`cd /srv/holigay/app/deploy && docker compose down`),
+replace its `.env` with production's (keep a copy of staging's), delete the `COMPOSE_FILE`
+line, set `APP_HOST_RESOLVES_TO=host-gateway`, `APP_IMAGE_TAG=prod-<sha>`, and `./bin/restore.sh`.
+Router: forward 80/443 to the desktop instead of the Pi. Cloudflare's record needs no
+change. Smoke, then tell the organizers staging is off until the Pi is back.
+
+## C. Both hosts gone
+
+Any Debian 13 machine with the playbook (`host-setup.md` §1 replaced by whatever installs
+Debian on it), the password manager (`.env`, the restic password, the B2 key), and the
+B2 repository. Steps as in A with `RESTIC_REPO=b2:…`. Buy a new Pi when convenient and do A
+again to move back.
+
+## Before you need it
+
+- The password manager holds: `deploy/.env` for both hosts, the restic password, the B2
+  account id and key, the Cloudflare token, the WireGuard server key. If any is missing,
+  fix that today.
+- `restic -r b2:holigay-backups:/ snapshots --latest 1` from the workstation (with the B2
+  env and the restic password in the shell) proves the off-site copy is readable from
+  outside the house. Do it in the quarterly drill.
+```
+
+- [ ] **Step 7: Validate on the workstation** — shellcheck, unit syntax, and a real `backup.sh` run against a throwaway stack (the T013 Step 9 recipe, plus a local restic repository):
+
+```bash
+chmod +x deploy/bin/backup.sh deploy/bin/restore.sh
+docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable deploy/bin/backup.sh deploy/bin/restore.sh
+systemd-analyze verify deploy/systemd/holigay-backup.service deploy/systemd/holigay-backup.timer
+docker compose -f deploy/monitoring/compose.yml config --quiet && echo monitoring-ok
+docker compose -f deploy/compose.yml --env-file deploy/.env.example config --quiet && echo compose-ok
+
+# end-to-end against a throwaway stack (stop the CLI stack first: npx supabase stop)
+mkdir -p /tmp/holigay-data /tmp/holigay-restic && cp deploy/.env.example /tmp/holigay.env && deploy/bin/mint-keys.sh >> /tmp/holigay.env
+sed -i 's|^HOLIGAY_DATA=.*|HOLIGAY_DATA=/tmp/holigay-data|; s|^APP_HOST=.*|APP_HOST=app.localtest.me|; s|^RESTIC_REPO_ONSITE=.*|RESTIC_REPO_ONSITE=/tmp/holigay-restic|; s|^RESTIC_REPO_OFFSITE=.*|RESTIC_REPO_OFFSITE=/tmp/holigay-restic|' /tmp/holigay.env
+cp /tmp/holigay.env deploy/.env      # backup.sh reads ./.env; deleted below
+RESTIC_PASSWORD=$(sed -n 's/^RESTIC_PASSWORD=//p' deploy/.env) restic init -r /tmp/holigay-restic
+( cd deploy && docker compose up -d db && sleep 20 && docker compose up -d auth rest storage && sleep 20 )
+PW=$(sed -n 's/^POSTGRES_PASSWORD=//p' deploy/.env); npx supabase db push --db-url "postgresql://postgres:$PW@127.0.0.1:5432/postgres"
+sudo mkdir -p /srv/backup && sudo chown "$USER" /srv/backup
+deploy/bin/backup.sh
+ls -la /srv/backup/latest /srv/backup/latest/db/base
+RESTIC_PASSWORD=$(sed -n 's/^RESTIC_PASSWORD=//p' deploy/.env) restic -r /tmp/holigay-restic snapshots
+# restore into a second empty data root, same keys
+( cd deploy && docker compose down )
+sed -i 's|^HOLIGAY_DATA=.*|HOLIGAY_DATA=/tmp/holigay-data2|' deploy/.env && mkdir -p /tmp/holigay-data2/{db/data,db/config,storage,caddy/data,caddy/config}
+deploy/bin/restore.sh
+( cd deploy && docker compose ps && docker compose exec db psql -U postgres -d postgres -Atc "select count(*) from supabase_migrations.schema_migrations" )
+( cd deploy && docker compose down )
+rm -f deploy/.env; sudo rm -rf /tmp/holigay-data /tmp/holigay-data2 /tmp/holigay-restic /tmp/holigay.env /srv/backup/latest
+npx supabase start
+```
+
+Expected: shellcheck silent; `backup.sh: ok <timestamp>`; the stage holds `base.tar.gz` and `pg_wal.tar.gz`; one snapshot; after `restore.sh`, `db` healthy, `auth`/`storage`/`rest` healthy (their migration tables came back at the expected versions — V3 on the workstation), and the count prints `12`. If `pg_basebackup` reports `no pg_hba.conf entry for replication connection`, the `pg_hba.conf` mount from Step 1 is not in `compose.yml`.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add deploy/db/pg_hba.conf deploy/compose.yml deploy/bin/backup.sh deploy/bin/restore.sh deploy/systemd/holigay-backup.service deploy/systemd/holigay-backup.timer deploy/monitoring/compose.yml deploy/.env.example deploy/ansible/roles/holigay/tasks/main.yml docs/runbooks/backup-restore.md docs/runbooks/disaster-recovery.md docs/runbooks/upgrade-stack.md docs/runbooks/host-setup.md
+git commit -m "infra(backup): six-hourly physical backups to two restic repositories, restore script, DR runbook [008-T022]"
+```
+
+- [ ] T023 [manual] [US4] Repositories, timers, monitoring, and the alert proof. (1) Backblaze: create bucket `holigay-backups` (private, default encryption on, lifecycle "keep all versions" is fine — restic manages retention), then an application key scoped to that bucket only; store both in the password manager. (2) On the Pi, in `deploy/.env`: `RESTIC_PASSWORD` (already minted), `RESTIC_REPO_ONSITE=sftp:desktop:/srv/restic/holigay`, `RESTIC_REPO_OFFSITE=b2:holigay-backups:/`, `B2_ACCOUNT_ID`, `B2_ACCOUNT_KEY`. `ssh desktop` from the Pi as `holigay` must work non-interactively (the restic role set the alias and the key); then, with the restic env exported in the shell (`set -a; RESTIC_PASSWORD=…; B2_ACCOUNT_ID=…; B2_ACCOUNT_KEY=…; set +a`): `restic init -r sftp:desktop:/srv/restic/holigay` and `restic init -r b2:holigay-backups:/`. (3) `ansible-playbook site.yml --ask-vault-pass --limit pi` installs the units; `systemctl list-timers` shows `holigay-backup.timer`; run one by hand (`./bin/backup.sh`) and confirm `restic snapshots` on both repositories. (4) Uptime Kuma at `http://<desktop>:3001`: create the admin account; Settings → Notifications → SMTP with the relay values from `.env` and your address, "Default enabled"; monitors: HTTP(s) `https://app.<domain>/` (60 s), HTTP(s) keyword `https://app.<domain>/auth/v1/health` (60 s), and **Push** "holigay backup" with heartbeat interval 21600 s (6 h) and retries 0 — copy its push URL (up to and excluding `?`) into the Pi's `.env` as `UPTIME_KUMA_PUSH_URL`; run `backup.sh` once more and see the push monitor turn green. (5) The proof: on the Pi set `RESTIC_PASSWORD` in `.env` to a wrong value, run `./bin/backup.sh` (it fails, no ping), wait for the push monitor's heartbeat to expire (or temporarily set the interval to 300 s), confirm the alert email arrives, restore the password, run `backup.sh`, confirm the recovery email. Needs T020, T021, T022. evidence: the five T023 rows in quickstart.md — FR-024, FR-025, FR-027, SC-005
+
+- [ ] T024 [manual] [US4] The restore drill and the pull-the-plug test. (1) `docs/runbooks/backup-restore.md` §3 on the desktop, end to end, with a stopwatch: from 3.1 to the signed-URL download in 3.4; fill row 4 of the runbook's "Verified behaviour" table with what you observed (ownership, service start order, anything that surprised you) and the drill line under "Rehearsals and drills" in `quickstart.md`; wipe per 3.5 and confirm `/srv/holigay-drill` is gone. This is the DR rehearsal too: if the elapsed time exceeds one hour, the runbook is what needs fixing. (2) `docs/runbooks/disaster-recovery.md` "Before you need it": `restic … snapshots --latest 1` against B2 from the workstation succeeds. (3) Pull the plug: with the stack healthy and the timers active, unplug the Pi's power for 30 seconds during daytime (not event week). Expected: Uptime Kuma emails "down" within two minutes; on power the Pi boots from NVMe, `docker compose ps` shows everything healthy without any command, the "up" email arrives, `docker compose exec db psql -U postgres -d postgres -Atc "select count(*) from public.applications"` matches the count taken before the pull, and `journalctl -b -1 -u docker` shows the previous boot ended without a clean stop (the point of the test). If any service needs a hand to come back, that is a `restart:` or `depends_on` bug in `compose.yml` — fix in T022's files. Needs T023. evidence: the three T024 rows in quickstart.md — FR-026, FR-028, SC-004
+
+**Checkpoint**: two encrypted copies every six hours, an alert that has actually fired, a restore that has actually been done, and a power cut that was actually survived.
+
+---
+
+## Phase 7: User Story 5 — The self-hosted stack becomes the system of record (Priority: P5)
+
+**Goal**: A dated go-live day on which every gate is re-run against the live stack and recorded, after which the self-hosted stack is the truth and the hosted one is only a rollback.
+
+**Independent Test**: On one day, the smoke script, the event-week click-through and a live test submission all pass on `https://app.<domain>`, and `quickstart.md` says so.
+
+- [ ] T025 [manual] [US5] Go-live day. Preconditions: T018, T021, T023, T024 all ticked; no open finding from the organizer UAT that touches submission, review or email. (1) Reset production to admin-only: `docs/runbooks/deploy.md` §6 (down, wipe the data roots, up `db` then `auth rest storage`, `migrate.md`, `up -d`, sign up, `seed-role.sql` → `admin`). Keys unchanged, so no image rebuild. (2) `./bin/backup.sh` by hand — the first real snapshot of the system of record. (3) `docs/runbooks/event-week-smoke.md` end to end on production: `npm run smoke` with organizer credentials and `SMOKE_STORAGE_EXPECT_PRIVATE=1`; the ten-minute click-through with a real mailbox (the test vendor address on your own domain), a 5 MB attachment, both emails from the verified domain; the cleanup SQL through `docker compose exec db psql -U postgres -d postgres` (T026 rewrites that section for `psql`; until then run the same statements — the SQL is unchanged) and the storage object removed from `/srv/holigay/storage/attachments/uploads/` plus its `storage.objects` row. (4) Re-run and re-record on the same day: Cloudflare proxy off → smoke → on; `curl -I` on a signed URL (`private, no-store`, no cache HIT); `systemctl list-timers` on the Pi (backup) and the desktop (deploy); Uptime Kuma all green. (5) Write the date and "system of record" in the T025 rows; tell the organizers the address. The hosted stack stays reachable as a DNS flip for **two weeks** from this date; nothing on it is maintained. evidence: the four T025 rows in quickstart.md — SC-001, SC-002, SC-007
+
+**Checkpoint**: production is the Pi. The calendar note for T026 is two weeks out.
+
+---
+
+## Phase 8: User Story 6 — The hosted platforms are gone and the repository says so (Priority: P6)
+
+**Goal**: After two weeks live with no rollback, delete the hosted projects, remove the code and configuration that existed only for them, retire their secrets, and make the documentation describe the self-hosted stack.
+
+**Independent Test**: `grep -rn 'supabase.co\|VERCEL_ENV\|RESEND_API_KEY\|keepalive' src docs CLAUDE.md README.md .env.example .github package.json` finds only historical spec records; the Vercel and Supabase dashboards show no projects; the docs' first paragraphs are true.
+
+### T026 [US6] Repository cleanup and documentation
+
+**Files:**
+- Delete: `vercel.json`, `src/app/api/keepalive/route.ts` (and the directory), `src/test/keepalive-route.test.ts`, `.github/workflows/keepalive.yml`, `scripts/filter-dump-for-local.mjs`
+- Modify: `src/lib/env.ts`, `src/test/env.test.ts`, `.env.example`, `package.json`, `docs/runbooks/event-week-smoke.md`, `docs/ARCHITECTURE.md`, `docs/ROADMAP.md`, `CLAUDE.md`, `README.md`, `docs/DEV-ENVIRONMENT-SETUP.md`, `specs/007-production-readiness/contracts/env-contract.md`, `specs/README.md`
+
+**Interfaces:**
+- Produces from `@/lib/env`: `appEnv`, `isProduction`, `smtp`, `emailFromAddress` only (`cronSecret`, `keepaliveTargets`, `KeepaliveTarget` removed). `npm run db:types` = `supabase gen types typescript --local --schema public > src/types/database.ts`; `db:types:dev` and `db:types:local` removed.
+
+- [ ] **Step 1: Delete the keep-alive and the hosted-only tooling**
+
+```bash
+git rm vercel.json src/app/api/keepalive/route.ts src/test/keepalive-route.test.ts .github/workflows/keepalive.yml scripts/filter-dump-for-local.mjs
+rmdir src/app/api/keepalive 2>/dev/null || true
+```
+
+- [ ] **Step 2: Env module, test-first** — in `src/test/env.test.ts` remove `'CRON_SECRET'` and `'KEEPALIVE_SUPABASE_TARGETS'` from `ENV_VARS`, delete the `VALID_KEEPALIVE` constant and the two describe blocks `'@/lib/env cronSecret'` and `'@/lib/env keepaliveTargets'`, and add:
+
+```ts
+describe('@/lib/env surface', () => {
+  it('no longer exposes the keep-alive values', async () => {
+    stubEnv({ CRON_SECRET: 'x'.repeat(16), KEEPALIVE_SUPABASE_TARGETS: 'https://a.example|k' } as never);
+
+    const env = await import('@/lib/env');
+
+    expect('cronSecret' in env).toBe(false);
+    expect('keepaliveTargets' in env).toBe(false);
+  });
+});
+```
+
+Run `npx vitest run src/test/env.test.ts` — the new case FAILS. Then in `src/lib/env.ts`: delete `export type KeepaliveTarget`, the `CRON_SECRET` and `KEEPALIVE_SUPABASE_TARGETS` fields of the schema, the whole `parseKeepaliveTargets` function, the `cronSecret` and `keepaliveTargets` exports, and the sentence in the schema comment about them (leave "keeping the shape always-parseable is what makes the aggregated production message deterministic"). Run the test again — PASS. `grep -rn "cronSecret\|keepaliveTargets" src` prints nothing.
+
+- [ ] **Step 3: `.env.example` and `package.json`** — delete the whole `# Keep-alive (Vercel Production only …)` section from `.env.example`. In `package.json` replace the three `db:types*` scripts with one:
+
+```json
+    "db:types": "supabase gen types typescript --local --schema public > src/types/database.ts",
+```
+
+`npm run db:types` with the local stack up must produce a `src/types/database.ts` with no diff (`git diff --stat src/types/database.ts` empty) — proof that the local schema is the schema.
+
+- [ ] **Step 4: `docs/runbooks/event-week-smoke.md`** — the hosted references: §1's production command becomes
+
+```bash
+SMOKE_APP_URL=https://app.<domain> \
+SMOKE_SUPABASE_URL=https://app.<domain> \
+SMOKE_SUPABASE_ANON_KEY=<prod anon key, deploy/.env ANON_KEY> \
+SMOKE_ORGANIZER_EMAIL=<smoke organizer> SMOKE_ORGANIZER_PASSWORD=<pw> \
+SMOKE_STORAGE_EXPECT_PRIVATE=1 \
+npm run smoke
+```
+
+with the note "Both URLs are the same host: the API is path-routed under the app's origin (spec 008)". §1.1's `app-pages` row: replace "The deploy failed, or the production env guard refused the build (`resend.dev` sender, missing key)" with "The `app` container is down or unhealthy (`make status`), or the host is unreachable (`make logs`)". §3.2 becomes:
+
+```markdown
+### 3.2 Delete the storage object — the file and its row
+
+Storage is a directory on the production host plus a metadata row. Remove both, using the
+`file_path` from 3.1:
+
+```bash
+ssh pi 'rm -f /srv/holigay/storage/attachments/<file_path>'
+ssh pi 'cd /srv/holigay/app/deploy && docker compose exec db psql -U postgres -d postgres -c "delete from storage.objects where bucket_id = '"'"'attachments'"'"' and name = '"'"'<file_path>'"'"'"'
+```
+```
+
+§3.3's first comment line becomes `-- On the production host: cd /srv/holigay/app/deploy && docker compose exec db psql -U postgres -d postgres, then paste. Replace both placeholders throughout.` and drop the sentence about the editor rejecting the transaction. §4's table: the `app-pages` row → "The `app` container (`make status`, `make logs`); Caddy's certificate (`docker compose logs caddy`)"; delete the row about a paused free-tier project; add `| Every check fails with a TLS error | Caddy could not renew its certificate — \`docker compose logs caddy\`; \`docs/runbooks/host-setup.md\` §9 |`. "Verified behaviour" row 7 → `| 7 | Storage objects are files under \`/srv/holigay/storage/attachments/\` plus a \`storage.objects\` row; delete both | Nothing is orphaned on a self-hosted file backend, but a row without a file 404s and a file without a row is invisible |`.
+
+- [ ] **Step 5: Architecture, roadmap, CLAUDE.md, README, dev-environment doc, env contract, specs index** — exact replacements:
+
+`docs/ARCHITECTURE.md` §1 bullets:
+
+```markdown
+- **Runtime:** Next.js 16 (App Router, RSC) + React 19, TypeScript strict, one container image per environment (`Dockerfile`), deployed by Docker Compose from `deploy/`
+- **Hosts:** a Raspberry Pi 5 (production) and a desktop (staging, backup target, DR standby) on the maintainer's LAN, behind Cloudflare-proxied DNS — `specs/008-self-hosted-infrastructure/`
+- **Data:** self-hosted Supabase stack — `supabase/postgres` 17 + GoTrue + PostgREST + storage-api, pinned to the local CLI stack's versions
+- **Auth:** GoTrue (email/password), cookie sessions via `@supabase/ssr`
+- **Email:** plain SMTP via nodemailer (relay: Resend's SMTP endpoint, swappable by config)
+- **Files:** storage-api's file backend, single private `attachments` bucket, on the production host's NVMe
+- **Testing:** Vitest + Testing Library (unit tests, mocked Supabase) and a security suite against the local stack
+```
+
+§6 table: the Email row's "Where" → `src/lib/email/client.ts` behind `sendEmail()` (nodemailer/SMTP), swap cost "Config-only — any SMTP relay"; add a row `| Hosting | \`deploy/\` (Compose, Caddy, scripts, Ansible) | one directory | **None** — the app image runs anywhere Docker does |`. §8: append after the conclusion paragraph:
+
+```markdown
+**Update (spec 008, 2026):** the move happened — but as *self-hosting the Supabase software*,
+not leaving it. GoTrue, PostgREST and storage-api run in Docker on the maintainer's hardware;
+the schema, RLS and RPCs are unchanged; the app code changed only where it named the old
+platforms (`APP_ENV` for `VERCEL_ENV`, nodemailer for the Resend SDK). The hosted projects,
+Vercel and the keep-alive cron are gone. Design record: `specs/008-self-hosted-infrastructure/research.md`.
+```
+
+Delete §8's final "One operational caveat …" paragraph about free-tier pausing and the keep-alive.
+
+`docs/ROADMAP.md`: in "Explicitly not recommended", replace the "Migrating off Supabase / self-hosting" bullet with `- ~~**Migrating off Supabase / self-hosting.**~~ **Done differently by spec 008 (2026):** the Supabase *software* is self-hosted on the maintainer's hardware; nothing was rewritten. The original reasoning (the auth layer is the lock-in, don't rebuild it) held — it is exactly why the stack was kept.`; replace the Tier 4 "Supabase free-tier pause guard" bullet with `- ~~**Supabase free-tier pause guard**~~ — retired with the hosted projects (spec 008 T026).`; in "Current state" change the Deployment row to `| Deployment | Self-hosted (spec 008): Pi 5 production, desktop staging; runbooks in \`docs/runbooks/\` |`.
+
+`CLAUDE.md`: Tech Stack `**Email**` → `nodemailer over SMTP (relay: Resend SMTP endpoint)`; add `- **Hosting**: self-hosted Docker Compose stack in \`deploy/\` — Raspberry Pi 5 (production) + desktop (staging/backups); see \`docs/runbooks/\``; "Email System" first bullet → `\`src/lib/email/client.ts\` - SMTP transport (nodemailer) configuration`; delete the whole "Vercel Production only, never in .env.local" block (the `CRON_SECRET`/`KEEPALIVE_SUPABASE_TARGETS` code block and the paragraph after it) from "Environment Variables"; in the env-module bullet drop `\`cronSecret\`, \`keepaliveTargets\``; Route Structure: delete the `/api/keepalive` line; Runbooks table: add rows for `host-setup.md` (a new host), `deploy.md` (every deploy, rollback), `migrate.md` (every migration), `upgrade-stack.md` (image bumps, secret rotation), `disaster-recovery.md` (a dead host) and change `backup-restore.md`'s description to "the six-hourly restic backup and the quarterly restore drill"; "Development Commands": drop `db:types:dev` and `db:types:local`; add to "Current Development Phase" one sentence: `Spec 008 moved production to self-hosted hardware on <go-live date>; the hosted Supabase projects and Vercel were deleted on <date>.`; Recent Changes: update the 008 bullet to past tense with those dates.
+
+`README.md`: line 15 `**Email**: nodemailer over SMTP`; line 24's comment `# then fill in the Supabase pair (SMTP optional locally)`; add a line under the commands table: `| \`make deploy TAG=…\` | Deploy (or roll back) production — \`docs/runbooks/deploy.md\` |`.
+
+`docs/DEV-ENVIRONMENT-SETUP.md`: replace Part 8 ("Configure Vercel") with a two-line pointer: `## Part 8: Deploy targets — Production and staging are self-hosted; see \`deploy/README.md\` and \`docs/runbooks/host-setup.md\`. GitHub environments \`staging\`/\`production\` hold the two public build variables.`; delete Part 9 (`db:types` is local-only now) and renumber Part 10 → 9, replacing its step 7 `Vercel creates preview deployment automatically` with `Staging on the desktop deploys \`dev\` within five minutes` and step 8's URL wording with `https://staging.<domain>` (basic auth).
+
+`specs/007-production-readiness/contracts/env-contract.md`: delete the `CRON_SECRET` and `KEEPALIVE_SUPABASE_TARGETS` rows and the paragraph "Required for keep-alive …", the keep-alive rows of the deployment table, and rename its columns to `Local | Staging host | Production host`; delete the "Ordering rule for the next promotion" section. Also `specs/007-production-readiness/contracts/keepalive-route.md`: prepend `**Retired by spec 008 T026** — the route, cron and workflow were deleted with the hosted projects.`
+
+`specs/README.md`: the 008 row → `| 008 | Self-hosted infrastructure | ✅ Shipped; live <go-live date>, hosted projects deleted <date> | <PR links> | <date> |`.
+
+- [ ] **Step 6: Gate and commit**
+
+```bash
+npm run lint && npm test && npm run build
+grep -rn 'supabase\.co\|VERCEL_ENV\|RESEND_API_KEY\|keepalive' src docs CLAUDE.md README.md .env.example .github package.json vercel.json 2>/dev/null
+```
+
+Expected: gate green; the grep prints only lines inside `docs/M3-PLAN.md` and `docs/archive/` (historical) — anything else is a miss. Then:
+
+```bash
+git add -A
+git commit -m "chore(decommission): remove the keep-alive, Vercel config and hosted-only tooling; docs describe the self-hosted stack [008-T026]"
+```
+
+- [ ] T027 [manual] [US6] Delete the hosted platforms and retire their secrets. Preconditions: two weeks since T025 with no rollback; T026 merged. (1) Vercel → project → Settings → Advanced → Delete Project. (2) Supabase → each project (dev `kcokcufmzyckbodelqpb`, prod `hgmfjvjlxrhdojwlkgap`) → Settings → General → Delete project (nothing on them is needed: prod was reset before go-live and dev held test data; the last dumps taken by spec 007's runbook can be deleted from `backup/` on the workstation too). (3) Resend → API Keys → create a new sending key, put it in both hosts' `deploy/.env` (`SMTP_PASS`) and the password manager, `docker compose up -d app auth` on each, send one test email, then delete the old key (it was on Vercel and in the migration's shell history). (4) GitHub → Settings → Secrets → delete `KEEPALIVE_DEV_URL`, `KEEPALIVE_DEV_ANON_KEY`, `KEEPALIVE_PROD_URL`, `KEEPALIVE_PROD_ANON_KEY`. (5) `npx supabase unlink` on the workstation; `rm -rf supabase/.temp`. (6) Close spec 008: dates into `specs/README.md` and `CLAUDE.md` (the placeholders T026 left), and the closing line in `quickstart.md`. evidence: the four T027 rows in quickstart.md — FR-032, SC-006
+
+**Checkpoint**: the app runs on hardware the maintainer owns, every runbook has been executed at least once, and nothing in the repository or the accounts refers to a platform that no longer serves it.
+
+---
+
+## Dependencies and execution order
+
+- **T001** first (the task list is the source of truth).
+- **Phase 2** (T002, T003, T004) runs in parallel with Phase 3 code; **T012** needs T002–T004 and T008–T011; every Phase 4+ task needs T002.
+- **Phase 3**: T005 → T007 → T010; T008 → T009 (one PR); T006 and T011 independent; T012 last.
+- **Phase 4**: T013 → T014 and T015 (parallel) → T016 → T017 (needs T010, T012) → T018 (needs T011) → T019.
+- **Phase 5**: T020 (needs T013, T014, T015) → T021 (needs T004, T018).
+- **Phase 6**: T022 (needs T013, T020) → T023 (needs T021) → T024.
+- **Phase 7**: T025 needs T018, T021, T023, T024.
+- **Phase 8**: T026 two weeks after T025 → T027.
+- The hosted stack and the keep-alive stay alive until **T026/T027**; nothing before them deletes anything hosted.
+
+## Task-to-requirement map
+
+| FR | Tasks | FR | Tasks |
 |---|---|---|---|
-| 5 | US3 | T020 | `deploy/ansible/` (playbook `site.yml`, roles `base`, `docker`, `wireguard`, `ddclient`, `restic`, `holigay`, `inventory.example.ini`, `requirements.yml`, README), `deploy/compose.staging.yml`, `deploy/caddy/Caddyfile.staging` (plain HTTP, `auto_https off`, `trusted_proxies` = the Pi), `deploy/systemd/holigay-deploy.{service,timer}` (every 5 min); verified by `ansible-playbook --syntax-check`, `ansible-lint`, `docker compose -f compose.yml -f compose.staging.yml config` |
-| 5 | US3 | T021 [manual] | Desktop: Debian 13, provisioned by the playbook alone (second run `changed=0`); staging `.env` (own keys, `APP_ENV=staging`, `APP_HOST_RESOLVES_TO=<pi-lan-ip>`); Pi `.env` gets `STAGING_UPSTREAM` + a real basic-auth hash; GitHub `staging` variables; `dev` push → staging in < 5 min; V9; organizer completes the M3 UAT script (`docs/M3-PLAN.md` "UAT dry-run shape") |
-| 6 | US4 | T022 | `deploy/bin/backup.sh` (`pg_basebackup -Ft -z -X stream` as `supabase_admin` + `pg_dump -Fc` + storage/db-config/.env → `/srv/backup/latest/` → `restic backup` to `RESTIC_REPO_ONSITE` and `RESTIC_REPO_OFFSITE` → `restic forget --keep-daily 14 --keep-weekly 8 --keep-monthly 12 --prune` weekly → curl `UPTIME_KUMA_PUSH_URL`), `deploy/bin/restore.sh` (snapshot → empty data dir + config + storage → `up -d db`, then the rest), `deploy/systemd/holigay-backup.{service,timer}` (every 6 h), `deploy/monitoring/compose.yml` (Uptime Kuma 2.x, desktop), rewritten `docs/runbooks/backup-restore.md`, new `docs/runbooks/disaster-recovery.md`; `backup.sh` dry-run verified against the local CLI stack's `supabase_db_Holigay` container |
-| 6 | US4 | T023 [manual] | B2 bucket + scoped app key; `restic init` ×2; timers enabled on the Pi; Uptime Kuma monitors (`/`, `/auth/v1/health`, push) + email notification via the relay; deliberately failed backup → alert within one cycle |
-| 6 | US4 | T024 [manual] | Restore drill on the desktop as the isolated `holigay-drill` Compose project (prod image built locally with `make build-local`), time to green smoke (V3), wipe; pull-the-plug test on the Pi (down + recovery alerts, row counts unchanged) |
-| 7 | US5 | T025 [manual] | Go-live day: `deploy.md` §6 database reset, event-week runbook click-through on the live stack, one live test submission with both emails, every Phase 4–6 gate re-run and recorded |
-| 8 | US6 | T026 | Repo cleanup after two weeks live: remove `vercel.json`, `src/app/api/keepalive/`, `src/test/keepalive-route.test.ts`, `.github/workflows/keepalive.yml`, `scripts/filter-dump-for-local.mjs`; drop `CRON_SECRET`/`KEEPALIVE_SUPABASE_TARGETS` from `src/lib/env.ts` + tests + `.env.example`; `package.json` `db:types` → `--local` only (delete the two hosted-ref scripts); update `docs/runbooks/event-week-smoke.md` (hosts, `psql`, filesystem cleanup, hosted-project references), `docs/ARCHITECTURE.md` §1/§6/§8, `docs/ROADMAP.md` ("explicitly not recommended" + Tier 4 keep-alive), `CLAUDE.md`, `README.md`, `docs/DEV-ENVIRONMENT-SETUP.md` Parts 8–9, `specs/007-…/contracts/env-contract.md`, `specs/README.md` |
-| 8 | US6 | T027 [manual] | Delete the Vercel project and both hosted Supabase projects; rotate the Resend API key onto both hosts; remove the four GitHub keep-alive secrets |
-
-**Dependencies (all phases)**: T001 → everything. T002/T003/T004 → T012, T016+. T005 → T007 → T010 → T017. T008 → T009 → T012. T011 → T018. T013 → T014, T015 → T016 → T017 → T018 → T019. T013/T014 → T020 → T021. T020 → T022 → T023 → T024. T018 + T021 + T024 → T025 → (two weeks) → T026 → T027.
+| FR-001 | T005, T007, T010 | FR-017 | T002, T018, T025 |
+| FR-002 | T008, T012, T026 | FR-018 | T002, T018, T020 |
+| FR-003 | T003, T008, T009, T012 | FR-019 | T013, T018 |
+| FR-004 | T005, T012 | FR-020 | T013, T015, T016 |
+| FR-005 | T006 | FR-021 | T013, T020, T021 |
+| FR-006 | T004, T010, T017 | FR-022 | T014, T020, T021 |
+| FR-007 | T011 | FR-023 | T007, T013, T015, T020 |
+| FR-008 | T013 | FR-024 | T022, T023 |
+| FR-009 | T013, T014 | FR-025 | T022, T023 |
+| FR-010 | T013 | FR-026 | T022, T024 |
+| FR-011 | T013 | FR-027 | T022, T023 |
+| FR-012 | T013 | FR-028 | T013, T024 |
+| FR-013 | T013, T015, T017 | FR-029 | T015, T016, T020, T021 |
+| FR-014 | T015, T017, T026 | FR-030 | T014, T015, T022, T026 |
+| FR-015 | T002, T015, T016, T019 | FR-031 | T015, T016 |
+| FR-016 | T013, T018 | FR-032 | T026, T027 |
