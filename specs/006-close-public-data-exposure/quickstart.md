@@ -147,11 +147,13 @@ What happened, so the next person doesn't re-derive it:
 
 **Still owed on prod** (not done during the rollout session):
 
-- [ ] The manual probe checklist above against the prod URL (SC-001).
+- [x] The manual probe checklist above against the prod URL (SC-001). — 2026-09-18, spec 007
+      T012, PR [#21](https://github.com/Owen-Rose/Holigay-YYC/pull/21); evidence in `specs/007-production-readiness/quickstart.md`.
 - [ ] One real submission per form variant against a test event; confirm email +
       dashboard + signed-URL download; clean up test rows.
-- [ ] Dashboard → Storage → Policies visual confirmation that no old dashboard-named
-      policies linger alongside the three migration-named ones.
+- [x] Dashboard → Storage → Policies visual confirmation that no old dashboard-named
+      policies linger alongside the three migration-named ones. — 2026-09-18, spec 007 T012, PR [#21](https://github.com/Owen-Rose/Holigay-YYC/pull/21);
+      exactly the three, names as in migration 011.
 - [ ] Rotate the prod database password (it was handled locally during the rollout).
 
 ## Where things live
