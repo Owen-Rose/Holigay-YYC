@@ -30,7 +30,7 @@ the maintainer owns, without rewriting the application. The six stories reduce t
 Zero application logic changes: every Supabase endpoint is reached through
 `NEXT_PUBLIC_SUPABASE_URL` and the schema, RLS and RPCs are unchanged. The hosted stack is
 the DNS-flip rollback from the moment the real hostname moves to the Pi (end of US2) until
-US6. Reasoning record: `research.md`.
+US6. Reasoning record: `research.md`. Terminology: the spec's *artifact* is the container image built by the `Dockerfile`; its *health-check script* is `npm run smoke` (`scripts/smoke-check.mjs`); its *edge proxy* is Cloudflare.
 
 ## Technical Context
 
@@ -93,7 +93,7 @@ src/lib/email/client.ts                   # T009 — nodemailer transport
 src/lib/supabase/{server,client}.ts       # T006 — cookieOptions: { secure: true }
 src/middleware.ts                         # T006
 src/app/(auth)/signup/page.tsx            # T009 — dead confirmation copy removed
-src/test/{next-config,env,email-client,supabase-clients,keepalive-route}.test.ts
+src/test/{next-config,env,email-client,supabase-clients,keepalive-route,middleware}.test.ts
 
 deploy/
 ├── README.md                             # T013 — what lives here and how the pieces fit
@@ -112,7 +112,8 @@ deploy/
 ├── systemd/holigay-backup.{service,timer}   # T022 — every 6 h
 ├── monitoring/compose.yml                # T022 — Uptime Kuma (desktop)
 └── ansible/
-    ├── README.md, ansible.cfg, requirements.yml, inventory.example.ini, site.yml   # T020
+    ├── README.md, ansible.cfg, requirements.yml, inventory.example.ini, vault.example.yml, site.yml   # T020
+    ├── group_vars/all.yml, host_vars/{pi,desktop}.yml                                # T020 (public values only)
     └── roles/{base,docker,wireguard,ddclient,restic,holigay}/                     # T020
 
 docs/runbooks/

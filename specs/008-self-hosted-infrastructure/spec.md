@@ -94,8 +94,9 @@ form.
    **When** CI completes, **Then** an artifact tagged for that environment and commit
    exists in the code host's registry; pull requests never publish artifacts.
 6. **Given** the health-check script with organizer credentials supplied, **When** it runs,
-   **Then** it uploads an attachment, obtains an expiring link, downloads it and asserts
-   the response is marked non-cacheable; without credentials it behaves exactly as today.
+   **Then** it uploads an attachment, obtains an expiring link, downloads it and, where the
+   stack promises non-cacheable responses, asserts the response is marked so; without
+   credentials it behaves exactly as today.
 
 ---
 
@@ -281,7 +282,6 @@ records remain. The hosted dashboards show no projects.
   routine.
 - A restore drill must not leave vendor data on the staging host: the drill runs as a
   separate, isolated stack the production host does not route to, and is wiped at the end.
-- The edge proxy is turned off: everything must keep working; this is tested.
 
 ## Requirements *(mandatory)*
 
@@ -313,15 +313,15 @@ records remain. The hosted dashboards show no projects.
   natively for the target host's processor architecture, only after the existing lint, test,
   build and security jobs pass, and never for pull requests.
 - **FR-007**: The health-check script MUST gain an optional authenticated storage
-  round-trip (upload, expiring link, download, non-cacheable assertion) enabled by organizer
-  credentials, and MUST behave as today without them.
+  round-trip (upload, expiring link, download, and — where the stack promises it — a
+  non-cacheable assertion) enabled by organizer credentials, and MUST behave as today
+  without them.
 
 **Stack**
 
 - **FR-008**: Production MUST run only the services the application uses — reverse proxy,
   application, database, authentication, data API and file storage — as separately
-  restartable units; an administrative database console MAY exist as an optional profile
-  bound to the local interface only.
+  restartable units; an administrative database console MAY exist as an optional profile.
 - **FR-009**: Every service MUST be pinned to an explicit version, and the data-layer
   components MUST run the versions the local development stack runs (the pinning rule);
   upgrades MUST follow a documented procedure, staging first.
@@ -397,7 +397,8 @@ records remain. The hosted dashboards show no projects.
 
 - **FR-029**: The production host MUST be set up manually once from a host-setup runbook;
   provisioning automation MUST then reproduce it, be proven by provisioning the desktop
-  alone, and be idempotent (a second run reports no changes).
+  alone (the one manual step is placing the secrets file, which is never automated), and be
+  idempotent (a second run reports no changes).
 - **FR-030**: Runbooks MUST exist for host setup, deploy and rollback, migrations, stack
   upgrades (including secret rotation), disaster recovery and backup/restore, each written
   for someone who has not read the code; the event-week runbook MUST be updated for the new

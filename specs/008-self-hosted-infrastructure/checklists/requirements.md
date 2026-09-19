@@ -52,5 +52,7 @@
 - Zero clarification markers: every scope question was settled in the 2026-09-19
   brainstorm and is recorded verbatim under "Clarifications / Session 2026-09-19", with the
   reasoning behind each answer in `research.md`.
+- Angle-bracket placeholders (`<domain>`, `<pi-lan-ip>`, `<sha>`, the go-live dates T027 fills) are
+  deliberate substitution points, not unresolved items (Clarifications, Assumptions).
 - The requirement identifiers FR-001–FR-032 and SC-001–SC-009 are stable: `tasks.md`'s
   requirement map and `plan.md` cite them, and the rewrite preserved every number's intent.

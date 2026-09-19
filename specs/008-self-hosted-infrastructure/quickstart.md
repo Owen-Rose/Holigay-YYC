@@ -84,6 +84,7 @@ evidence itself.
 | T017 | `docker compose ps`: db, auth, rest, storage healthy | | |
 | T017 | `supabase migration list --db-url` shows 001–012 applied | | |
 | T017 | GitHub `production` variables set; first `prod-<sha>` image published | | |
+| T017 | Image tags on the Pi equal the local CLI stack's (SC-003) | | |
 | T018 | `app.<domain>` record created (proxied); certificate issued (V1: proxied first try / DNS-only fallback) | | |
 | T018 | `docker compose ps`: caddy and app healthy; admin account seeded | | |
 | T018 | `npm run smoke` with `SMOKE_STORAGE_EXPECT_PRIVATE=1`: `all 6 checks passed` | | |
@@ -91,6 +92,7 @@ evidence itself.
 | T018 | `curl -I` on a signed URL: `Cache-Control: private, no-store`, no `cf-cache-status: HIT` (V10) | | |
 | T018 | Proxy toggled off → smoke green → toggled on (SC-007) | | |
 | T018 | Rollback flip to Vercel and back rehearsed (time to serve each way) | | |
+| T018 | Image rollback with `make deploy` to the previous tag and forward again (time each way, SC-001) | | |
 | T018 | `curl` from inside the app container reaches the local Caddy with a valid cert (V7) | | |
 | T018 | ddclient status; one forced update logged | | |
 | T019 | WireGuard from outside the LAN (phone hotspot): SSH works; `make deploy` works | | |
