@@ -78,7 +78,7 @@ npm run smoke
 |---|---|---|
 | `app-pages` | `/` and `/apply` answer 200 | The deploy failed, or the production env guard refused the build (`resend.dev` sender, missing key) |
 | `private-tables-closed` | anon reads nothing from `vendors`, `applications`, `attachments`, `application_answers` | A policy re-added by hand in the dashboard; migration 011 missing on this project |
-| `questionnaire-invariant` | every active event has a questionnaire with at least one question | An event flipped to `active` from SQL, bypassing the builder |
+| `questionnaire-invariant` | no active event has a questionnaire with zero questions. An event with no questionnaire at all takes applications through the legacy form; those are counted in the note, not failed | Every question deleted in the builder before publishing, or a questionnaire row created from SQL |
 | `submit-rpc-event-gate` | `submit_public_application` exists, anon may call it, and it rejects an unknown event before writing | Migration 011 not applied, or anon's EXECUTE revoked — either way the public form is down |
 | `organizer-rpcs-denied` | anon cannot call the two organizer-only RPCs | Migration 011 not applied on this project |
 
@@ -91,6 +91,10 @@ last line · `2` one of the three variables is missing.
 check is a statement about active events, and there were none, so nothing was verified. The
 populated form carries the count — `(2 active events)` — for the same reason. Read the note,
 not just the word PASS.
+
+`(2 active events, 1 on the legacy form)` means one event has no questionnaire row and is
+serving the static form instead. That is supported — every event created before spec 005
+is in that state — but it is the one to give a questionnaire the next time it is a draft.
 
 ---
 
@@ -137,10 +141,15 @@ answered question, one `attachments` row, and one object under `uploads/` in the
 
 ### 2.5 The confirmation email
 
-It must arrive **from the verified domain**, not `onboarding@resend.dev`. A `resend.dev`
-sender means `EMAIL_FROM_ADDRESS` is unset on that environment — check the Vercel project's
-variables, not the code. Resend's test sender delivers only to the Resend account owner's
-mailbox, so in production it means every vendor email silently vanishes.
+It must arrive **from the verified domain**. Which sender you see tells you where you are:
+
+- On a **preview** deployment, `onboarding@resend.dev` is the expected fallback until the
+  domain is verified and `EMAIL_FROM_ADDRESS` is set (T002/T003). Resend's test sender
+  delivers only to the Resend account owner's mailbox, so on a preview nobody else receives
+  anything.
+- On **Production** it cannot happen: `src/lib/env.ts` refuses a `resend.dev` sender and a
+  missing `EMAIL_FROM_ADDRESS` at build time when `VERCEL_ENV=production`. If you see the
+  test sender, you are not looking at a Production deploy — check which URL you submitted on.
 
 ### 2.6 Review it and download the attachment (organizer)
 
@@ -201,8 +210,10 @@ Pick one, using the `file_path` from 3.1:
 ```bash
 # Dashboard: Storage → attachments → uploads/ → select the file → Delete. Simplest for one file.
 
-# CLI. --experimental is required (not optional, despite the help text) and --yes suppresses
-# the confirmation prompt. See backup-restore.md's "Verified behaviour" rows 5 and 9.
+# CLI. Needs the CLI linked to this project AND `SUPABASE_DB_PASSWORD` exported first —
+# `storage --linked` initialises a database role and fails without it (backup-restore.md
+# section 1, and its "Verified behaviour" row 6). --experimental is required, not optional,
+# despite the help text (row 5); --yes suppresses the confirmation prompt (row 9).
 npx supabase storage rm ss:///attachments/<file_path> --linked --experimental --yes
 ```
 
@@ -289,7 +300,7 @@ Then re-run `npm run smoke`. `questionnaire-invariant` should be back to its pre
 | Every Supabase check fails with `PGRST301` / HTTP 401 | The anon key is wrong or belongs to another project |
 | Every Supabase check fails with an empty code | The request never reached PostgREST: DNS, connection refused, or the 10 s timeout. A paused free-tier project presents as NXDOMAIN |
 | `private-tables-closed` names a table | A policy was added by hand. Compare against `011_close_public_data_exposure.sql`; the probe in `specs/006-close-public-data-exposure/quickstart.md` narrows it |
-| `questionnaire-invariant` names an event | Open that event in the builder and add a question, or set it back to draft. It is reachable at `/apply` right now with nothing to fill in |
+| `questionnaire-invariant` names an event | That event has a questionnaire row with no questions, so `/apply` is offering it with nothing to fill in. It cannot be unpublished from the UI (the only transition from active is closed) and its questionnaire is locked, so close it and create a replacement with its questions. An event with no questionnaire at all is *not* reported here — it serves the legacy form and appears in the PASS note instead |
 | `submit-rpc-event-gate` returns `PGRST202` or `42883` | Migration 011 is not applied to this project — the public form cannot submit at all |
 | `organizer-rpcs-denied` reports anon was allowed | Stop and treat it as an incident: anon can create events. Check migration 011's REVOKE and migration 012's in-function role gate |
 
@@ -305,12 +316,13 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
 | 2 | Nothing cascades into `vendors` | 3.3 step 4 is load-bearing; steps 2 and 3 are not, and are kept only for auditability and the stop-early case |
 | 3 | `vendors.email` is UNIQUE and the submission RPC upserts the vendor by address | A real address turns the test into a mutation of a real vendor record |
 | 4 | The UI refuses to delete an event that has applications, offering "Closed" instead (`src/lib/actions/events.ts`) | The cleanup is SQL by necessity, not preference |
-| 4a | The write policies on `event_questionnaires` and `event_questions` require the parent event to be `status = 'draft'`, and the draft → active transition fires `lock_event_questionnaire` | An event created straight to Active can never be given a questionnaire. Section 2 builds the questionnaire first and publishes second for this reason — and it is also how an active event ends up with no questions, which is precisely what `questionnaire-invariant` catches |
-| 5 | Deleting a `storage.objects` row by SQL orphans the bytes on hosted projects | Use the dashboard or `supabase storage rm`; SQL for reading only |
-| 6 | Attachment download links are signed URLs minted per click | A stale tab's expired link is not a failure; a 404 on a fresh click is |
-| 7 | `submit_public_application`'s event gate is its first executable statement, ahead of all other validation | The smoke check's nil-uuid probe reliably returns `P0002` without writing anything |
-| 8 | Anon has unrestricted SELECT on `event_questionnaires` and `event_questions`, and sees only `status = 'active'` rows in `events` | The questionnaire invariant is checkable with the anon key alone, in one embedded query |
-| 9 | `PASS questionnaire-invariant (no active events)` is vacuous | Read the note, not just the word PASS |
+| 5 | The write policies on `event_questionnaires` and `event_questions` require the parent event to be `status = 'draft'`, and the draft → active transition fires `lock_event_questionnaire`. The UI's only transition out of active is closed | An event created straight to Active can never be given a questionnaire, and a published one cannot be edited or unpublished. Section 2 builds the questionnaire first and publishes second for this reason |
+| 6 | `/apply` renders the legacy static form for an event with no `event_questionnaires` row (`src/app/(public)/apply/page.tsx`); every event created before spec 005 is in that state, and new events get the default questions seeded | No questionnaire is a supported state, so the smoke check counts it in the PASS note rather than failing it. A questionnaire with zero questions is the fault, and it is reachable: the builder has no minimum and publishing does not count questions |
+| 7 | Deleting a `storage.objects` row by SQL orphans the bytes on hosted projects | Use the dashboard or `supabase storage rm`; SQL for reading only |
+| 8 | Attachment download links are signed URLs valid for 60 seconds, minted per click | A stale tab's expired link is not a failure; a 404 on a fresh click is |
+| 9 | `submit_public_application`'s event gate is its first executable statement, ahead of all other validation | The smoke check's nil-uuid probe reliably returns `P0002` without writing anything |
+| 10 | Anon has unrestricted SELECT on `event_questionnaires` and `event_questions`, and sees only `status = 'active'` rows in `events` | The questionnaire invariant is checkable with the anon key alone, in one embedded query |
+| 11 | `PASS questionnaire-invariant (no active events)` is vacuous | Read the note, not just the word PASS |
 
 ---
 
@@ -318,7 +330,9 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
 
 - **2026-09-18, local stack (T011).** The five checks were exercised against the real local
   stack: a green run exited 0, a bogus app port exited 1 with the other four still green, and
-  a missing variable exited 2. The questionnaire invariant was proved in all three directions
-  against a temporary local-only fixture — healthy, a questionnaire with no questions, and no
-  questionnaire at all — because an empty database exercises only its vacuous path. The
+  a missing variable exited 2. The questionnaire invariant was proved in all three states
+  against a temporary local-only fixture, because an empty database exercises only its
+  vacuous path: a questionnaire with a question → `PASS (1 active event)`; the same
+  questionnaire with its question deleted → `FAIL … has a questionnaire with no questions`;
+  no questionnaire row at all → `PASS (1 active event, 1 on the legacy form)`. The
   click-through in section 2 has not yet been run end to end; T021 is the first live run.

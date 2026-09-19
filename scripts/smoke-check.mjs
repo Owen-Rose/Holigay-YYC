@@ -4,8 +4,8 @@
 // Run it before event week, after every promotion to `main`, and whenever a hosted project
 // wakes from a free-tier pause. It automates the spec 006 exposure probe — which existed
 // only as a block of curl in a quickstart nobody re-runs — and adds the three invariants an
-// organizer actually trips over on event day: the public pages answer, every active event
-// has a questionnaire with questions, and the public write path still exists while the
+// organizer actually trips over on event day: the public pages answer, no active event is
+// offering an empty questionnaire, and the public write path still exists while the
 // organizer-only RPCs still refuse anon.
 //
 // It cannot write. Both RPCs it calls raise before touching a row: the nil event id fails
@@ -203,7 +203,7 @@ async function checkPrivateTables(supabase) {
   return problems.length > 0 ? fail(problems.join('; ')) : pass();
 }
 
-/** 3. Every active event has a questionnaire, and that questionnaire has questions. */
+/** 3. No active event offers an empty questionnaire; legacy-form events are counted, not failed. */
 async function checkQuestionnaireInvariant(supabase) {
   // One embedded select rather than three round trips: PostgREST resolves both embeds
   // through the real foreign keys (event_questionnaires.event_id → events.id,
@@ -225,6 +225,7 @@ async function checkQuestionnaireInvariant(supabase) {
   if (data.length === 0) return pass('no active events');
 
   const problems = [];
+  let legacy = 0;
 
   for (const event of data) {
     const label = `"${event.name}" (${event.id})`;
@@ -236,16 +237,28 @@ async function checkQuestionnaireInvariant(supabase) {
       ? event.event_questionnaires[0]
       : event.event_questionnaires;
 
+    // Two states that look alike from the outside and are not:
+    //
+    // No questionnaire row is NOT a fault. /apply falls back to the legacy static form for
+    // such an event (src/app/(public)/apply/page.tsx), which is how every event that
+    // predates spec 005 still takes applications. It is counted into the PASS note so the
+    // operator can see it, and it can only be upgraded while the event is a draft anyway.
+    //
+    // A questionnaire row with NO questions is the broken state: the dynamic form renders
+    // with nothing to fill in. It is reachable — the builder has no minimum and publishing
+    // does not count questions — so it is the one this check exists to catch.
     if (!questionnaire) {
-      problems.push(`${label} has no event_questionnaires row`);
+      legacy += 1;
     } else if ((questionnaire.event_questions ?? []).length === 0) {
       problems.push(`${label} has a questionnaire with no questions`);
     }
   }
 
-  return problems.length > 0
-    ? fail(problems.join('; '))
-    : pass(`${data.length} active event${data.length === 1 ? '' : 's'}`);
+  if (problems.length > 0) return fail(problems.join('; '));
+
+  const count = `${data.length} active event${data.length === 1 ? '' : 's'}`;
+
+  return pass(legacy > 0 ? `${count}, ${legacy} on the legacy form` : count);
 }
 
 /** 4. The public write path exists and rejects an unknown event before writing. */

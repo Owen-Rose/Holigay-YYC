@@ -159,8 +159,10 @@ curl -s -X POST "$URL/rest/v1/rpc/create_event_with_default_questionnaire" \
   -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"p_event":{}}'
 ```
 
-After T011 lands, `npm run smoke` performs the same checks and this block is only the
-fallback.
+`npm run smoke` (T011) performs every check in this block except the anon `INSERT`
+attempt: the script is read-only by construction (R6), and if that policy had regressed the
+attempt itself would write a junk vendor row into prod. Run this block when the write
+posture specifically is in question; the script covers the rest.
 
 ## Vercel Preview scoping (found by T004, 2026-09-16)
 
