@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:security": "vitest run --project security",
+    "smoke": "node scripts/smoke-check.mjs",
     "db:types": "supabase gen types typescript --project-id hgmfjvjlxrhdojwlkgap > src/types/database.ts",
     "db:types:dev": "supabase gen types typescript --project-id kcokcufmzyckbodelqpb > src/types/database.ts",
     "db:types:local": "supabase gen types typescript --local --schema public > src/types/database.ts"

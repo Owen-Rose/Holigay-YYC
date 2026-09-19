@@ -39,11 +39,13 @@ Supabase setup details are in [docs/DEV-ENVIRONMENT-SETUP.md](./docs/DEV-ENVIRON
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier write |
 | `npm run db:types` | Regenerate Supabase types (production schema) |
+| `npm run smoke` | Read-only health check of a deployment (three `SMOKE_*` shell vars) |
 
 ## Documentation map
 
 - [CLAUDE.md](./CLAUDE.md) — architecture, route map, role/RBAC system, server-action patterns
 - [docs/DEV-ENVIRONMENT-SETUP.md](./docs/DEV-ENVIRONMENT-SETUP.md) — dev environment setup
+- [docs/runbooks/](./docs/runbooks/) — operational procedures: event-week smoke check, backup and restore
 - [specs/](./specs/) — active feature specs (Speckit workflow)
 - [.specify/memory/constitution.md](./.specify/memory/constitution.md) — project constitution (code-quality, testing, UX, and workflow rules)
 - [docs/archive/](./docs/archive/) — historical task trackers (Epics 1–6)

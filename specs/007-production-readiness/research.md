@@ -156,6 +156,15 @@ why `verify-db.ts` never ran).
 not precede the event gate for the minimal vendor object — if it does, send a valid
 minimal vendor so `P0002` is still the first failure.
 
+**T011 outcome (2026-09-18)**: the event gate is the RPC's first executable statement and
+the function has no vendor field validation at all, so the minimal vendor stands. One
+deliberate deviation from check 3 as written above: an active event with **no**
+`event_questionnaires` row passes — counted in the PASS note as "on the legacy form" —
+rather than failing, because `/apply` serves such events through the legacy static form
+and every event created before spec 005 is in that state. Prod's one live event is, so the
+strict form could never pass T021 without a production data change. A questionnaire row
+with zero questions still fails; that is the state that renders an empty form.
+
 ## R7. Backup contents and the restore drill
 
 **Decision**: `docs/runbooks/backup-restore.md` uses the linked-project CLI flow:
