@@ -66,8 +66,8 @@ passwords, no vendor PII.
 
 | Task | Project / env | Date | Evidence | Status |
 |---|---|---|---|---|
-| T012 Prod probe checklist run by hand (curl block below) | Supabase prod, anon key | | Four private tables → `[]`; public reads → rows; RPCs denied | ☐ |
-| T012 Storage → Policies visual check: exactly the three `attachments_*` policies, nothing dashboard-named | Supabase prod dashboard | | Policy names as displayed | ☐ |
+| T012 Prod probe checklist run by hand (curl block below) | Supabase prod, anon key | 2026-09-18 | `vendors`, `applications`, `attachments`, `application_answers` → `[]`; `events?status=eq.active` → one row (*Winter Holigay Market 2025*, dated 2025-02-15, deadline 2026-02-01 — stale, no questionnaire row, legacy form; to be cleared before T021); anon `INSERT` into `vendors` → HTTP 401 `42501`; `create_event_with_default_questionnaire` and `ensure_event_questionnaire` → `42501`. Migration 011 confirmed live on prod | ☑ |
+| T012 Storage → Policies visual check: exactly the three `attachments_*` policies, nothing dashboard-named | Supabase prod dashboard | 2026-09-18 | `attachments_anon_insert` (INSERT, anon + authenticated), `attachments_authenticated_delete` (DELETE, authenticated), `attachments_authenticated_select` (SELECT, authenticated) — exactly three, names match migration 011, nothing dashboard-named. Prod project confirmed by the maintainer; screenshot kept outside the repo | ☑ |
 | T021 `npm run smoke` passes against prod | terminal → prod | | Exit code 0; per-check output | ☐ |
 | T021 One live submission per form variant on a test event; emails from the verified domain; dashboard review; signed-URL download; test rows cleaned up | prod | | Which variants; which three emails arrived | ☐ |
 | T021 The four "Still owed on prod" boxes in `specs/006-close-public-data-exposure/quickstart.md` ticked | repo | | Commit | ☐ |
