@@ -20,6 +20,7 @@ npm test                 # Run tests once
 npm run test:watch       # Run tests in watch mode
 npm run test:coverage    # Generate coverage report
 npm run test:security    # Run only the security suite (needs a local Supabase stack)
+npm run smoke            # Smoke-check a deployment (needs the three SMOKE_* shell vars)
 npm run db:types         # Regenerate Supabase types (production)
 npm run db:types:dev     # Regenerate Supabase types (dev)
 npm run db:types:local   # Regenerate Supabase types (local stack)
@@ -290,7 +291,18 @@ SET role = 'admin'
 WHERE id = (SELECT id FROM auth.users WHERE email = 'your-email@example.com');
 ```
 
-Or use `scripts/seed-admin.sql` (replace email first).
+Or use `scripts/seed-role.sql`, which sets any role: replace `<role>`
+(`vendor | organizer | admin`) and both `<email>` placeholders first.
+
+### Runbooks
+
+Operational procedures live in `docs/runbooks/`, written to be followed by someone who
+has not read the code:
+
+| Runbook | When to run it |
+|---|---|
+| `event-week-smoke.md` | Before event week and after every promotion to `main` — `npm run smoke`, a ten-minute click-through, and the SQL that cleans up after it |
+| `backup-restore.md` | The three-part backup (schema, data, `attachments` bucket) and the restore drill |
 
 ### Task Workflow
 
