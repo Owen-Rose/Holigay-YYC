@@ -1,7 +1,7 @@
 # Implementation Plan: Self-Hosted Infrastructure
 
 **Branch**: `008-self-hosted-infrastructure` | **Date**: 2026-09-19 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/008-self-hosted-infrastructure/spec.md`; design record `research.md` (R1–R19, checks V1–V10)
+**Input**: Feature specification from `/specs/008-self-hosted-infrastructure/spec.md` (clarifications recorded in its Session 2026-09-19 block); design record `research.md` (R1–R19, checks V1–V10)
 
 ## Summary
 
@@ -71,6 +71,9 @@ specs/008-self-hosted-infrastructure/
 ├── spec.md              # stories US1–US6, FR-001–FR-032, SC-001–SC-009
 ├── plan.md              # This file
 ├── research.md          # R1–R19 decisions, inventory facts, checks V1–V10
+├── checklists/requirements.md   # spec quality checklist (passed 2026-09-19, second pass)
+├── contracts/deploy-env.md      # every key of deploy/.env: who reads it, per environment, secret or not
+├── contracts/operator-interface.md  # make targets, scripts, units, tags, smoke inputs, routes, ports
 ├── quickstart.md        # the ops/evidence record for every [manual] task (created with tasks.md)
 └── tasks.md             # T001–T027
 ```

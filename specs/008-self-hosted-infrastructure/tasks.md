@@ -1,11 +1,11 @@
 # Tasks: Self-Hosted Infrastructure
 
 **Input**: Design documents from `/specs/008-self-hosted-infrastructure/`
-**Prerequisites**: plan.md, spec.md, research.md (R1–R19, checks V1–V10), quickstart.md (the ops record). No data-model.md — the spec's entities are hosts, images, snapshots and runbooks, none persisted by the app.
+**Prerequisites**: plan.md, spec.md (with `checklists/requirements.md` passed), research.md (R1–R19, checks V1–V10), contracts/deploy-env.md, contracts/operator-interface.md, quickstart.md (the ops record). No data-model.md — the spec's entities are hosts, images, snapshots and runbooks, none persisted by the app.
 
 **Tests**: Included — plan.md's constitution check (Principle II) requires test-first for `next.config.ts`, the env module, the email client and the Supabase client factories. Infrastructure files are verified by `docker compose config`, `caddy validate`, `shellcheck`, `ansible-playbook --syntax-check`, a local `docker build` + run, and `npm run smoke` against every environment.
 
-**Organization**: Task IDs T001–T027 are fixed: `quickstart.md`'s evidence rows and `plan.md` cite them. Phases follow spec priority. Phase 2 is the manual prerequisites (accounts, DNS, router) that US1's last task and every later story depend on; they run in parallel with the US1 code. `[manual]` tasks are dashboard, hardware or terminal work done by the maintainer; each ends with an **evidence:** clause and is ticked only when the matching row in `quickstart.md` is filled (spec 005 T062 / spec 006 T004 / spec 007 precedent). Each repo task is one branch off `dev` and one PR, commits tagged `[008-Txxx]`, gated by `npm run lint && npm test && npm run build` with the local stack up (`docker restart supabase_kong_Holigay` if auth health returns 502 after a reset). **No Claude co-authoring trailers on commits or PRs.** `<domain>` is a placeholder everywhere below (research R3); substitute the real name on the hosts and in the evidence rows, never in committed files beyond `deploy/.env.example`.
+**Organization**: Task IDs T001–T027 are fixed: `quickstart.md`'s evidence rows and `plan.md` cite them. Phases follow spec priority. Phase 2 is the manual prerequisites (accounts, DNS, router) that US1's last task and every later story depend on; they run in parallel with the US1 code. `[manual]` tasks are dashboard, hardware or terminal work done by the maintainer; each ends with an **evidence:** clause and is ticked only when the matching row in `quickstart.md` is filled (spec 005 T062 / spec 006 T004 / spec 007 precedent). Every task is one `- [ ] Txxx [P?] [USn] …` line — the Speckit checklist format that `/speckit-implement` ticks — and the fourteen repo tasks carry their **Files**, **Interfaces** and step-by-step checkboxes beneath that line (the superpowers plan format; the steps are sub-items, not tasks). Each repo task is one branch off `dev` and one PR, commits tagged `[008-Txxx]`, gated by `npm run lint && npm test && npm run build` with the local stack up (`docker restart supabase_kong_Holigay` if auth health returns 502 after a reset). **No Claude co-authoring trailers on commits or PRs.** `<domain>` is a placeholder everywhere below (research R3); substitute the real name on the hosts and in the evidence rows, never in committed files beyond `deploy/.env.example`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement the repo tasks task-by-task. `[manual]` tasks are for the maintainer; an agent stops at them and reports what is needed. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -67,7 +67,7 @@
 
 **Independent Test**: `docker build` produces an image that serves the app against `supabase start`; `npm test` passes the new cases; after promotion, Vercel production builds with `APP_ENV=production` and a 5 MB attachment uploads through `/apply`.
 
-### T005 [US1] `next.config.ts` — standalone output and the server-action body limit
+- [ ] T005 [US1] `next.config.ts` — standalone output and the server-action body limit — in `next.config.ts` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `next.config.ts`
@@ -140,7 +140,7 @@ git add next.config.ts src/test/next-config.test.ts
 git commit -m "fix(upload): raise the server-action body limit; emit a standalone build [008-T005]"
 ```
 
-### T006 [P] [US1] `Secure` session cookies
+- [ ] T006 [P] [US1] `Secure` session cookies — in `src/lib/supabase/server.ts` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `src/lib/supabase/server.ts`, `src/lib/supabase/client.ts`, `src/middleware.ts`
@@ -261,7 +261,7 @@ git add src/lib/supabase/server.ts src/lib/supabase/client.ts src/middleware.ts 
 git commit -m "feat(auth): mark session cookies Secure [008-T006]"
 ```
 
-### T007 [P] [US1] Dockerfile and local image run
+- [ ] T007 [P] [US1] Dockerfile and local image run — in `Dockerfile` (files, interfaces and steps below)
 
 **Files:**
 - Create: `Dockerfile`, `.dockerignore`
@@ -365,7 +365,7 @@ git add Dockerfile .dockerignore .gitignore
 git commit -m "build: multi-stage Dockerfile for the standalone app image [008-T007]"
 ```
 
-### T008 [US1] Environment contract: `APP_ENV` and SMTP replace `VERCEL_ENV` and `RESEND_API_KEY`
+- [ ] T008 [US1] Environment contract: `APP_ENV` and SMTP replace `VERCEL_ENV` and `RESEND_API_KEY` — in `src/lib/env.ts` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `src/lib/env.ts`, `src/test/env.test.ts`, `src/test/keepalive-route.test.ts` (stub list only), `.env.example`, `CLAUDE.md` ("Environment Variables" section), `specs/007-production-readiness/contracts/env-contract.md`, `docs/DEV-ENVIRONMENT-SETUP.md` (Part 8 table)
@@ -918,7 +918,7 @@ silently vanishes. Staging and local builds stay lenient.
 
 - [ ] **Step 6: Commit (together with T009 below, one PR)** — no commit yet; T009 finishes the build.
 
-### T009 [US1] Email over SMTP with nodemailer
+- [ ] T009 [US1] Email over SMTP with nodemailer — in `src/lib/email/client.ts` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `src/lib/email/client.ts`, `src/test/email-client.test.ts`, `package.json` + `package-lock.json` (add `nodemailer`, `@types/nodemailer`; remove `resend`), `src/app/(auth)/signup/page.tsx`
@@ -1289,7 +1289,7 @@ git commit -m "feat(email): send over SMTP with nodemailer; APP_ENV replaces VER
 
 PR body must state the ordering rule: **before the next `dev → main` promotion, Vercel Production needs `APP_ENV=production`, the four `SMTP_*` values and `EMAIL_FROM_ADDRESS`, and `RESEND_API_KEY` can be deleted** — otherwise the production build fails on purpose (T012).
 
-### T010 [US1] CI: Node 22 and the `build-image` job
+- [ ] T010 [US1] CI: Node 22 and the `build-image` job — in `.github/workflows/ci.yml` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `.github/workflows/ci.yml`, `package.json` (`@types/node` → `^22`)
@@ -1374,7 +1374,7 @@ git commit -m "ci: Node 22; build-image job publishing per-environment images to
 
 After merge to `dev`: the `build-image` job runs, prints the "not set for this environment" line and succeeds without pushing. Once T021 sets the staging variables, the first real push creates the package **private** — `[manual]`: GitHub → Packages → `holigay-app` → Package settings → Change visibility → **Public** (the repo is public; anonymous pulls need no token on the hosts). Record in the T010 row of quickstart.md.
 
-### T011 [US1] Smoke check: optional authenticated storage round-trip
+- [ ] T011 [US1] Smoke check: optional authenticated storage round-trip — in `scripts/smoke-check.mjs` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `scripts/smoke-check.mjs`, `.env.example` (smoke section), `docs/runbooks/event-week-smoke.md` (§1 and §1.1 only — the host changes are T026)
@@ -1549,7 +1549,7 @@ git commit -m "feat(smoke): optional authenticated storage round-trip [008-T011]
 
 **Independent Test**: From a freshly imaged Pi, following `docs/runbooks/host-setup.md` reaches `npm run smoke … SMOKE_STORAGE_EXPECT_PRIVATE=1` → `all 6 checks passed` on `https://app.<domain>`; the click-through passes; the proxy toggles off and on with no change; DNS flips back to Vercel and forward again.
 
-### T013 [US2] The stack: `deploy/compose.yml`, Caddy, init SQL, key minting
+- [ ] T013 [US2] The stack: `deploy/compose.yml`, Caddy, init SQL, key minting — in `deploy/README.md` (files, interfaces and steps below)
 
 **Files:**
 - Create: `deploy/README.md`, `deploy/compose.yml`, `deploy/caddy/Caddyfile`, `deploy/caddy/supabase-api.caddy`, `deploy/.env.example`, `deploy/db/init/roles.sql`, `deploy/db/init/jwt.sql`, `deploy/bin/mint-keys.sh`
@@ -2096,7 +2096,7 @@ git add deploy/README.md deploy/compose.yml deploy/caddy deploy/.env.example dep
 git commit -m "infra(deploy): compose stack, Caddy routing, init SQL and key minting [008-T013]"
 ```
 
-### T014 [P] [US2] `deploy.sh`, the `Makefile`, and the deploy + upgrade runbooks
+- [ ] T014 [P] [US2] `deploy.sh`, the `Makefile`, and the deploy + upgrade runbooks — in `deploy/bin/deploy.sh` (files, interfaces and steps below)
 
 **Files:**
 - Create: `deploy/bin/deploy.sh`, `Makefile`, `docs/runbooks/deploy.md`, `docs/runbooks/upgrade-stack.md`
@@ -2358,7 +2358,7 @@ git add deploy/bin/deploy.sh Makefile docs/runbooks/deploy.md docs/runbooks/upgr
 git commit -m "infra(deploy): deploy script, Makefile, deploy and upgrade runbooks [008-T014]"
 ```
 
-### T015 [P] [US2] Runbooks: `host-setup.md` and `migrate.md`
+- [ ] T015 [P] [US2] Runbooks: `host-setup.md` and `migrate.md` — in `docs/runbooks/host-setup.md` (files, interfaces and steps below)
 
 **Files:**
 - Create: `docs/runbooks/host-setup.md`, `docs/runbooks/migrate.md`
@@ -2695,7 +2695,7 @@ git commit -m "docs(runbooks): manual host setup and migration procedures [008-T
 
 **Independent Test**: A fresh Debian 13 desktop provisioned by `ansible-playbook site.yml --limit desktop` alone serves `https://staging.<domain>` behind basic auth; a second run reports `changed=0`; a push to `dev` is live on staging within five minutes; an organizer completes the M3 acceptance script.
 
-### T020 [US3] Ansible playbook, staging overrides, deploy timer
+- [ ] T020 [US3] Ansible playbook, staging overrides, deploy timer — in `deploy/compose.staging.yml` (files, interfaces and steps below)
 
 **Files:**
 - Create: `deploy/compose.staging.yml`, `deploy/caddy/Caddyfile.staging`, `deploy/systemd/holigay-deploy.service`, `deploy/systemd/holigay-deploy.timer`, `deploy/ansible/README.md`, `deploy/ansible/ansible.cfg`, `deploy/ansible/requirements.yml`, `deploy/ansible/inventory.example.ini`, `deploy/ansible/vault.example.yml`, `deploy/ansible/site.yml`, `deploy/ansible/group_vars/all.yml`, `deploy/ansible/host_vars/pi.yml`, `deploy/ansible/host_vars/desktop.yml`, `deploy/ansible/roles/{base,docker,wireguard,ddclient,restic,holigay}/tasks/main.yml`, `deploy/ansible/roles/{base,docker,wireguard,ddclient}/handlers/main.yml`, `deploy/ansible/roles/wireguard/templates/wg0.conf.j2`, `deploy/ansible/roles/ddclient/templates/ddclient.conf.j2`, `deploy/ansible/roles/holigay/handlers/main.yml`
@@ -3419,7 +3419,7 @@ git commit -m "infra(ansible): playbook for both hosts; staging overrides and au
 
 **Independent Test**: `holigay-backup.timer` fires and both `restic snapshots` lists grow; a deliberately broken repository password produces an alert email within one cycle; `restore.sh` on the desktop yields a stack that passes `npm run smoke`; the Pi survives a power pull with alerts sent and data intact.
 
-### T022 [US4] `backup.sh`, `restore.sh`, the backup timer, monitoring, and the runbooks
+- [ ] T022 [US4] `backup.sh`, `restore.sh`, the backup timer, monitoring, and the runbooks — in `deploy/db/pg_hba.conf` (files, interfaces and steps below)
 
 **Files:**
 - Create: `deploy/db/pg_hba.conf`, `deploy/bin/backup.sh`, `deploy/bin/restore.sh`, `deploy/systemd/holigay-backup.service`, `deploy/systemd/holigay-backup.timer`, `deploy/monitoring/compose.yml`, `docs/runbooks/disaster-recovery.md`
@@ -3907,7 +3907,7 @@ git commit -m "infra(backup): six-hourly physical backups to two restic reposito
 
 **Independent Test**: `grep -rn 'supabase.co\|VERCEL_ENV\|RESEND_API_KEY\|keepalive' src docs CLAUDE.md README.md .env.example .github package.json` finds only historical spec records; the Vercel and Supabase dashboards show no projects; the docs' first paragraphs are true.
 
-### T026 [US6] Repository cleanup and documentation
+- [ ] T026 [US6] Repository cleanup and documentation — in `vercel.json` (files, interfaces and steps below)
 
 **Files:**
 - Delete: `vercel.json`, `src/app/api/keepalive/route.ts` (and the directory), `src/test/keepalive-route.test.ts`, `.github/workflows/keepalive.yml`, `scripts/filter-dump-for-local.mjs`
@@ -4044,6 +4044,21 @@ git commit -m "chore(decommission): remove the keep-alive, Vercel config and hos
 - **Phase 7**: T025 needs T018, T021, T023, T024.
 - **Phase 8**: T026 two weeks after T025 → T027.
 - The hosted stack and the keep-alive stay alive until **T026/T027**; nothing before them deletes anything hosted.
+
+## Parallel execution examples
+
+- **Phase 2 with Phase 3**: T002, T003 and T004 (accounts, all yours) run while T005–T011 are built; only T012 waits for both.
+- **Phase 3**: T005, T006 and T007 touch disjoint files and can be three parallel branches; T008 → T009 is one PR; T010 and T011 are independent of each other and of T006/T007.
+- **Phase 4**: T014 and T015 (scripts + runbooks) in parallel once T013's file names exist; the host tasks T016 → T017 → T018 → T019 are sequential by nature.
+- **Phase 5 and 6**: T020 (automation) and T022 (backup scripts and runbooks) can be written in parallel; their manual counterparts T021, T023, T024 are sequential.
+
+## Implementation strategy
+
+- **MVP is User Story 1 alone**: after T012 the app runs on the current platform from the same artifact and contract the self-hosted hosts will use, the upload defect is fixed, and nothing self-hosted exists yet. Stop there if the migration is deferred; nothing is lost.
+- **Increment 2 is User Story 2**: production on the maintainer's hardware with the old platform one DNS flip away. This is the first point at which the goal is met.
+- **Increments 3–4 (US3, US4)** add staging, automation, backups and monitoring; each ends with a rehearsal.
+- **US5 and US6** are dated gates, not builds.
+- Every repo task ends with the constitution's local gate; every `[manual]` task ends with an evidence row. A task is ticked only when its PR is merged (constitution, Development Workflow §6).
 
 ## Task-to-requirement map
 
