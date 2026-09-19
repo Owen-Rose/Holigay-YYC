@@ -13,7 +13,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 005 | Dynamic per-event questionnaires | ✅ Shipped; on `main`/prod 2026-09-13. Phase 11 (atomic save, migration `012`) on `dev` 2026-09-14 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7), [#8](https://github.com/Owen-Rose/Holigay-YYC/pull/8) | 2026-08-22 |
 | 006 | Close the public data exposure | ✅ Shipped; prod migrated 2026-09-13 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 | 007 | Production readiness (M3) | 🚧 In progress | [#9](https://github.com/Owen-Rose/Holigay-YYC/pull/9) | — |
-| 008 | Self-hosted infrastructure | 📐 Design approved 2026-09-19 (`spec.md`, `research.md`); `plan.md`/`tasks.md` pending | — | — |
+| 008 | Self-hosted infrastructure | 🚧 In progress — design, plan and tasks T001–T027 written 2026-09-19 | [#23](https://github.com/Owen-Rose/Holigay-YYC/pull/23) | — |
 
 ### Post-merge detail
 
