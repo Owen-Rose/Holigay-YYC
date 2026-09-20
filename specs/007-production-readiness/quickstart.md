@@ -43,11 +43,11 @@ passwords, no vendor PII.
 
 | Task | Project / env | Date | Evidence | Status |
 |---|---|---|---|---|
-| T002 Resend domain added; DNS records handed to the DNS owner | Resend | | Domain name; date records were sent | ☐ |
-| T002 Domain shows **Verified** in Resend | Resend | | | ☐ |
-| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set | Vercel Preview | | | ☐ |
-| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set | Vercel Production | | | ☐ |
-| T006 Test email from the verified domain received via local `/api/test-email` | local → real mailbox | | From-name shown by the mail client; not in spam | ☐ |
+| T002 Resend domain added; DNS records handed to the DNS owner | Resend | 2026-09-20 | Domain `holigayeventsyyc.ca`, region US East. No hand-off needed: the organizer granted GoDaddy **Delegate Access** ("Products & Domains") to the maintainer's own GoDaddy account on 2026-09-20, so the maintainer added the three records (DKIM `TXT resend._domainkey`, `CNAME rsend`, `CNAME send`) directly. `dig @ns65.domaincontrol.com` showed all three within a minute | ☑ |
+| T002 Domain shows **Verified** in Resend | Resend | 2026-09-20 | "DNS verified, domain verified" a minute after **I've already added the records** | ☑ |
+| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set | Vercel Preview | 2026-09-20 | One `RESEND_API_KEY` (type Secret) scoped to Production + Preview, holding a fresh key created in Resend → API Keys with **Sending access** limited to `holigayeventsyyc.ca`. The two pre-existing entries (`All Environments` from 2025-12-25 and a `dev`-branch one from 2026-02-07, both flagged **Needs Attention**) were replaced: the first edited in place, the second deleted. `EMAIL_FROM_ADDRESS` (type Config) = `<display name> <noreply@holigayeventsyyc.ca>` | ☑ |
+| T003 `EMAIL_FROM_ADDRESS` + `RESEND_API_KEY` set | Vercel Production | 2026-09-20 | Same two entries (each ticked for both environments). Production redeployed from `main` (`66fc1dd`) afterwards so the variables took effect: **Ready** in 1m 2s, so the production env guard accepted them | ☑ |
+| T006 Test email from the verified domain received via local `/api/test-email` | local → real mailbox | 2026-09-20 | Route returned `success: true` with a Resend message id and `fromAddress: "Holigay Events YYC <noreply@holigayeventsyyc.ca>"`. Gmail showed it in **Inbox**, From line `Holigay Events YYC <noreply@holigayeventsyyc.ca>`, no "via" or unverified-sender marker. First attempt failed with `API key is invalid` because the key had been pasted into `.env.local` with the variable name duplicated; corrected and re-run | ☑ |
 
 ### Uptime and backups (US2)
 
@@ -78,15 +78,15 @@ passwords, no vendor PII.
 |---|---|---|---|---|
 | T013a Built-in auth mailer restriction wording recorded | Supabase dev | 2026-09-19 | Authentication → Emails, amber banner, verbatim: **"Set up custom SMTP — You're using the built-in email service. This service has rate limits and is not meant to be used for production apps."** Identical wording on prod | ☑ |
 | T013a Site URL + redirect URLs set; "Confirm email" state recorded | Supabase dev | 2026-09-19 | Site URL = the `dev`-branch Vercel preview origin; Redirect URLs = that origin `/**` plus the `uat-` branch alias `/**` (list was empty before; Total URLs: 2). **"Confirm email" = OFF** — left unchanged per R8 | ☑ |
-| T013a Same | Supabase prod | 2026-09-19 | Site URL = the production origin; Redirect URLs = that origin `/**` plus the `main`-branch alias `/**`. **"Confirm email" = ON** — left unchanged per R8. No custom domain exists yet (the organizer who requested the app still owes it), so the production origin is the Vercel-assigned host and **Site URL must be re-pointed when the custom domain lands** | ☑ |
+| T013a Same | Supabase prod | 2026-09-19 | Site URL = the production origin; Redirect URLs = that origin `/**` plus the `main`-branch alias `/**`. **"Confirm email" = ON** — left unchanged per R8. No custom domain existed yet at the time, so the production origin was the Vercel-assigned host. **Re-pointed 2026-09-20**: Site URL = `https://vendors.holigayeventsyyc.ca`, Redirect URLs = the two earlier entries plus `https://vendors.holigayeventsyyc.ca/**` (Total URLs: 3) — see "Custom domain" below | ☑ |
 | T013b Custom SMTP via Resend configured | Supabase dev | | Sender address; test sign-up mail from the verified domain | ☐ |
-| T013b Same | Supabase prod | | | ☐ |
+| T013b Same | Supabase prod | 2026-09-20 | Authentication → Emails → SMTP Settings: Custom SMTP enabled, host `smtp.resend.com`, port 465, user `resend`, password = the T003 key, sender `noreply@holigayeventsyyc.ca` / "Holigay Events YYC". Signed up a throwaway `+smtp` vendor on `https://vendors.holigayeventsyyc.ca/signup`: confirmation mail arrived in Inbox from the branded address; its link landed on `http://vendors.holigayeventsyyc.ca/?code=…` (Vercel 308s to https); signing in afterwards reached `/vendor-dashboard`. Throwaway user deleted from Authentication → Users | ☑ |
 | T014 Organizer accounts created (dashboard Add user, auto-confirm) + role set via `scripts/seed-role.sql`; each signs in and lands on `/dashboard` | Supabase dev | 2026-09-19 | **Partial — maintainer's organizer access only; the real organizer accounts do not exist yet.** No account needed: dev already held 2 users, the maintainer's `admin` and a pre-existing `organizer@test.com` whose `user_profiles.role` was already `organizer` (confirmed). Signed in on the `dev` preview → landed on `/dashboard`. Enough for T017, which needs one organizer who can sign in | ☐ |
 | T015 Same | Supabase prod | 2026-09-19 | **Partial — same scope as T014.** Prod held only the maintainer's `admin`. Created one organizer via Add user with **Auto Confirm User** ticked (required here — prod has "Confirm email" ON and no working mailer until T013b), then `UPDATE user_profiles … RETURNING id, role` returned one row showing `organizer`. Signed in on the production deployment → landed on `/dashboard`, UI showed the organizer role. The address is a placeholder on a domain the maintainer does not control, so **it can never receive mail** — a password reset would have to go through the dashboard, and it should be replaced when the real organizers are added | ☐ |
 
 **Recorded while running T013a — two consequences of the settings above, neither changed:**
 
-- **Vendor sign-up on prod cannot complete today.** "Confirm email" is ON there and the only
+- **Vendor sign-up on prod cannot complete today** (resolved 2026-09-20 by T013b on prod — see its row). "Confirm email" is ON there and the only
   sender is the built-in service, which is rate-limited and delivers to project team members
   only — a real vendor's confirmation mail never arrives. This is exactly what T013b fixes, so
   it is a sequencing fact rather than a defect, and it does **not** touch `/apply`: public
@@ -98,6 +98,22 @@ passwords, no vendor PII.
   already tells them to sign in afterwards, so the flow completes — it is a rough edge, logged
   for T017 at severity **backlog**, not a blocker. On dev it never triggers at all, since
   "Confirm email" is OFF and `signUp` returns a session directly.
+
+### Custom domain (2026-09-20)
+
+Not a task in `tasks.md` — it was the prerequisite for the Phase 8 email tasks and landed the
+same afternoon. Recorded here because the ordering rule in `contracts/env-contract.md` and the
+T013a rows above both assumed it did not exist.
+
+| Item | Where | Evidence |
+|---|---|---|
+| Domain | GoDaddy, owned by an organizer | `holigayeventsyyc.ca`. Before today it resolved to GoDaddy's "coming soon" parking IPs with no MX; `www` was a CNAME to the root. Nothing was preserved because nothing was in use |
+| Access | GoDaddy Delegate Access | Granted to the maintainer's own GoDaddy account ("Products & Domains"). No credentials or ownership changed hands |
+| App hostname | Vercel → Domains | `vendors.holigayeventsyyc.ca` on the **Production** environment. The root is deliberately left free for the organizer's brand site (currently the Carrd page). GoDaddy record: `CNAME vendors → 2dca14a070d5bcca.vercel-dns-017.com` (Vercel's per-project target; `cname.vercel-dns.com` also works). Valid Configuration + certificate within two minutes; `curl -L` returned 200 over https |
+| Old hosts | Vercel | `holigay-yyc.vercel.app` (Production) and `uat-holigay-yyc.vercel.app` (`dev` previews) still exist and still serve. Nothing in `src/` references either |
+| Not done | Supabase custom domain | Deliberately skipped: paid add-on, only rebrands the API URL |
+| Not done | DMARC | GoDaddy's default `_dmarc` record (`p=quarantine`) was already present and left alone |
+| Note | DNS ownership | The `send` / `rsend` CNAMEs and `resend._domainkey` TXT belong to Resend; the `vendors` CNAME belongs to Vercel. Anyone re-doing the root later must leave those four records in place |
 
 ### Close-out
 
