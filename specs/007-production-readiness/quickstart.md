@@ -76,13 +76,28 @@ passwords, no vendor PII.
 
 | Task | Project / env | Date | Evidence | Status |
 |---|---|---|---|---|
-| T013a Built-in auth mailer restriction wording recorded | Supabase dev | | Exact dashboard wording | ☐ |
-| T013a Site URL + redirect URLs set; "Confirm email" state recorded | Supabase dev | | URLs entered; confirm-email on/off | ☐ |
-| T013a Same | Supabase prod | | | ☐ |
+| T013a Built-in auth mailer restriction wording recorded | Supabase dev | 2026-09-19 | Authentication → Emails, amber banner, verbatim: **"Set up custom SMTP — You're using the built-in email service. This service has rate limits and is not meant to be used for production apps."** Identical wording on prod | ☑ |
+| T013a Site URL + redirect URLs set; "Confirm email" state recorded | Supabase dev | 2026-09-19 | Site URL = the `dev`-branch Vercel preview origin; Redirect URLs = that origin `/**` plus the `uat-` branch alias `/**` (list was empty before; Total URLs: 2). **"Confirm email" = OFF** — left unchanged per R8 | ☑ |
+| T013a Same | Supabase prod | 2026-09-19 | Site URL = the production origin; Redirect URLs = that origin `/**` plus the `main`-branch alias `/**`. **"Confirm email" = ON** — left unchanged per R8. No custom domain exists yet (the organizer who requested the app still owes it), so the production origin is the Vercel-assigned host and **Site URL must be re-pointed when the custom domain lands** | ☑ |
 | T013b Custom SMTP via Resend configured | Supabase dev | | Sender address; test sign-up mail from the verified domain | ☐ |
 | T013b Same | Supabase prod | | | ☐ |
-| T014 Organizer accounts created (dashboard Add user, auto-confirm) + role set via `scripts/seed-role.sql`; each signs in and lands on `/dashboard` | Supabase dev | | Number of accounts; sign-in observed | ☐ |
-| T015 Same | Supabase prod | | | ☐ |
+| T014 Organizer accounts created (dashboard Add user, auto-confirm) + role set via `scripts/seed-role.sql`; each signs in and lands on `/dashboard` | Supabase dev | 2026-09-19 | **Partial — maintainer's organizer access only; the real organizer accounts do not exist yet.** No account needed: dev already held 2 users, the maintainer's `admin` and a pre-existing `organizer@test.com` whose `user_profiles.role` was already `organizer` (confirmed). Signed in on the `dev` preview → landed on `/dashboard`. Enough for T017, which needs one organizer who can sign in | ☐ |
+| T015 Same | Supabase prod | 2026-09-19 | **Partial — same scope as T014.** Prod held only the maintainer's `admin`. Created one organizer via Add user with **Auto Confirm User** ticked (required here — prod has "Confirm email" ON and no working mailer until T013b), then `UPDATE user_profiles … RETURNING id, role` returned one row showing `organizer`. Signed in on the production deployment → landed on `/dashboard`, UI showed the organizer role. The address is a placeholder on a domain the maintainer does not control, so **it can never receive mail** — a password reset would have to go through the dashboard, and it should be replaced when the real organizers are added | ☐ |
+
+**Recorded while running T013a — two consequences of the settings above, neither changed:**
+
+- **Vendor sign-up on prod cannot complete today.** "Confirm email" is ON there and the only
+  sender is the built-in service, which is rate-limited and delivers to project team members
+  only — a real vendor's confirmation mail never arrives. This is exactly what T013b fixes, so
+  it is a sequencing fact rather than a defect, and it does **not** touch `/apply`: public
+  submissions go through `submit_public_application` and need no account. It does mean US5
+  scenario 4 stays unprovable until T013b lands.
+- **Nothing exchanges the confirmation link's code.** `@supabase/ssr` defaults to PKCE and the
+  app has no auth callback route, so a confirmation link returns `?code=…` to the Site URL and
+  the address is confirmed but the visitor is left signed out. `src/app/(auth)/signup/page.tsx`
+  already tells them to sign in afterwards, so the flow completes — it is a rough edge, logged
+  for T017 at severity **backlog**, not a blocker. On dev it never triggers at all, since
+  "Confirm email" is OFF and `signUp` returns a session directly.
 
 ### Close-out
 
