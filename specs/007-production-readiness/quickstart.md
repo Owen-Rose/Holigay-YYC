@@ -130,6 +130,11 @@ T013a rows above both assumed it did not exist.
 - Script and findings template: written by T016 at
   `specs/007-production-readiness/rehearsal/<date>-solo-lifecycle.md` (shape in
   `research.md` R10). T017 fills the observed column and the findings table and commits it.
+  **2026-09-23**: the template is `rehearsal/2026-09-23-solo-lifecycle.md`. Because the Phase 8
+  email tasks closed first (T002/T003 on 2026-09-20, T013b on dev 2026-09-23), the run judges
+  steps 3 and 7 against the verified domain directly — the "passed on fallback sender"
+  carve-out below is moot. Four findings are pre-seeded (the three expected ones plus the
+  PKCE confirmation-link gap from the T013a notes, as F-004 at severity backlog).
 - Environment: the `dev` branch Vercel preview, dev Supabase, keep-alive live, organizer
   account from T014, the maintainer's own mailbox as the vendor email.
 - Pass criteria (spec US4 / SC-005): all eleven steps' expected results observed; the
