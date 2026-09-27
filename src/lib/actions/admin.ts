@@ -27,6 +27,8 @@ export type UserWithRole = {
   role: Role;
   createdAt: string;
   roleUpdatedAt: string | null;
+  /** Invited and never signed in (spec 009) — drives the Pending badge and Resend. */
+  invitePending: boolean;
 };
 
 /**
@@ -79,7 +81,7 @@ export async function getUsers(): Promise<GetUsersResponse> {
   // ---------------------------------------------------------------------------
   const { data, error } = await supabase
     .from('users_with_roles' as 'user_profiles')
-    .select('id, email, role, created_at, role_updated_at')
+    .select('id, email, role, created_at, role_updated_at, invite_pending')
     .order('created_at', { ascending: false })
     .returns<UsersWithRolesRow[]>();
 
@@ -103,6 +105,7 @@ export async function getUsers(): Promise<GetUsersResponse> {
       role: user.role as Role,
       createdAt: user.created_at!,
       roleUpdatedAt: user.role_updated_at,
+      invitePending: user.invite_pending === true,
     }));
 
   return {

@@ -275,13 +275,23 @@ evidence row. It was fixed on 2026-09-23 (007 T013b) and nothing has changed it 
 successful invite (existing `onInvited` callback), which is what makes the new row appear
 "at once" (US1 scenario 1).
 
-## R20. A pre-existing exposure, noted and left alone
+## R20. A pre-existing exposure, partly closed here
 
-`users_with_roles` is readable by **any** `authenticated` JWT, so a signed-in vendor can list
-every account's email through PostgREST with the anon key. This predates 009 (migration
-006), the admin check lives in the server action only, and this spec does not widen it — the
-new column is a boolean. Out of scope here; the docs task adds it to `docs/ROADMAP.md` Tier 3
-as a candidate (`security_invoker` + an admin-only policy, or an admin-only RPC).
+`users_with_roles` (migration 006) runs as its owner, so it reads `auth.users` past RLS.
+Supabase's default privileges gave **both** `anon` and `authenticated` ALL on it when 006
+created it, so the public anon key alone — no sign-in — could list every account's id,
+email and role through PostgREST. Found while implementing T003 (2026-09-27): the local
+grant table showed it and an anon-key `curl` returned rows. The original note here
+assumed only signed-in users could read the view.
+
+Migration `013` revokes every `anon` privilege and the write privileges of
+`authenticated`; `src/test/security/invite-flow.test.ts` asserts anon gets `42501`.
+Dev and prod stay exposed until `013` is pushed (T008, T017).
+
+What remains is the narrower original concern: any **authenticated** JWT (a signed-in
+vendor) can still list every email, because the admin check lives in the server action
+only. Out of scope here; the docs task adds it to `docs/ROADMAP.md` Tier 3 as a
+candidate (`security_invoker` + an admin-only policy, or an admin-only RPC).
 
 ## R21. Migration mechanics
 

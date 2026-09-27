@@ -10,7 +10,7 @@ the model is state that already lives in `auth.users` and `user_profiles`.
 ```sql
 -- Holigay Vendor Market - users_with_roles: invite_pending
 -- Migration: 013_users_with_roles_invite_pending.sql
--- Spec: specs/009-organizer-invites/ (FR-023, FR-029; research R5)
+-- Spec: specs/009-organizer-invites/ (FR-023, FR-029; research R5, R20)
 --
 -- Adds one trailing column so the Team page can mark accounts that were invited
 -- and have not accepted. The condition is the same one GoTrue uses to decide
@@ -29,8 +29,15 @@ SELECT
 FROM auth.users u
 LEFT JOIN public.user_profiles p ON p.id = u.id;
 
--- The 006 grant (SELECT to authenticated) is unchanged; the admin gate stays in
--- the server action. anon has no grant (asserted by the security suite).
+-- Close the anon read (research R20). Supabase's default privileges granted
+-- anon and authenticated ALL on this view when 006 created it, and the view
+-- runs as its owner, so anyone holding the public anon key could list every
+-- account's email. anon loses every privilege; authenticated keeps only the
+-- SELECT that 006 granted explicitly (the admin gate stays in the server
+-- action). Asserted by src/test/security/invite-flow.test.ts.
+REVOKE ALL ON public.users_with_roles FROM anon;
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER
+  ON public.users_with_roles FROM authenticated;
 ```
 
 After `supabase db reset`, `npm run db:types:local` regenerates `src/types/database.ts`;
