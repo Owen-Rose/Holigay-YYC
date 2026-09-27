@@ -171,7 +171,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 Optional:
 ```
 RESEND_API_KEY=re_...              # Email sending (logged to console if unset)
-SUPABASE_SERVICE_ROLE_KEY=eyJ...   # Server-only, needed for organizer invites (Epic 4)
+SUPABASE_SERVICE_ROLE_KEY=eyJ...   # Server-only; required on Production; Preview holds the dev project's key — spec 009
 EMAIL_FROM_ADDRESS=Holigay Vendor Market <noreply@yourdomain.com>  # Custom sender
 ```
 
@@ -191,8 +191,8 @@ build-time requirement: unset, the route answers `401` (no secret) or `500`
 
 **Production strictness keys on `VERCEL_ENV === 'production'`, never `NODE_ENV`.**
 Vercel builds previews with `NODE_ENV=production`, so keying on it would break every
-preview. On a Production deploy of `main`, `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS`
-are required and a sender containing `resend.dev` is refused — that test sender
+preview. On a Production deploy of `main`, `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS` and
+`SUPABASE_SERVICE_ROLE_KEY` (spec 009) are required and a sender containing `resend.dev` is refused — that test sender
 delivers only to the Resend account owner's mailbox, so using it in production means
 every vendor email silently vanishes. Previews and local builds stay lenient.
 

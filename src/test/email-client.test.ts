@@ -19,13 +19,19 @@ vi.mock('resend', () => {
   return { Resend: MockResend };
 });
 
-const ENV_VARS = ['VERCEL_ENV', 'RESEND_API_KEY', 'EMAIL_FROM_ADDRESS'] as const;
+const ENV_VARS = [
+  'VERCEL_ENV',
+  'RESEND_API_KEY',
+  'EMAIL_FROM_ADDRESS',
+  'SUPABASE_SERVICE_ROLE_KEY',
+] as const;
 
 /**
- * Stubs every variable the email client reads through @/lib/env; anything absent
- * from `overrides` is explicitly unset. Note that a production-shaped case must
- * set all three — @/lib/env refuses to parse in production without a
- * verified-domain sender, and the dynamic import below would throw.
+ * Stubs every variable @/lib/env requires in production; anything absent from
+ * `overrides` is explicitly unset. Note that a production-shaped case must set
+ * all four — @/lib/env refuses to parse in production without a verified-domain
+ * sender or the service role key (spec 009), and the dynamic import below would
+ * throw.
  */
 function stubEnv(overrides: Partial<Record<(typeof ENV_VARS)[number], string>> = {}) {
   for (const name of ENV_VARS) {
@@ -120,6 +126,7 @@ describe('sendEmail', () => {
       VERCEL_ENV: 'production',
       RESEND_API_KEY: 're_live_key',
       EMAIL_FROM_ADDRESS: 'Holigay Vendor Market <noreply@holigay.co>',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
     });
     mockSend.mockResolvedValue({ data: { id: 'msg-123' }, error: null });
 

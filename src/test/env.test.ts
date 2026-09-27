@@ -17,6 +17,7 @@ const ENV_VARS = [
   'EMAIL_FROM_ADDRESS',
   'CRON_SECRET',
   'KEEPALIVE_SUPABASE_TARGETS',
+  'SUPABASE_SERVICE_ROLE_KEY',
 ] as const;
 
 /**
@@ -91,13 +92,39 @@ describe('@/lib/env-public', () => {
 // ---------------------------------------------------------------------------
 
 describe('@/lib/env production strictness', () => {
-  it('names every missing sender variable in one error', async () => {
+  it('names every missing required variable in one error', async () => {
     stubEnv({ VERCEL_ENV: 'production' });
 
     await expect(import('@/lib/env')).rejects.toThrow(
       'Invalid environment: RESEND_API_KEY (required when VERCEL_ENV=production); ' +
-        'EMAIL_FROM_ADDRESS (required when VERCEL_ENV=production)'
+        'EMAIL_FROM_ADDRESS (required when VERCEL_ENV=production); ' +
+        'SUPABASE_SERVICE_ROLE_KEY (required when VERCEL_ENV=production)'
     );
+  });
+
+  it('requires the service role key once the sender is valid', async () => {
+    stubEnv({
+      VERCEL_ENV: 'production',
+      RESEND_API_KEY: 're_live_key',
+      EMAIL_FROM_ADDRESS: 'noreply@holigay.co',
+    });
+
+    await expect(import('@/lib/env')).rejects.toThrow(
+      'SUPABASE_SERVICE_ROLE_KEY (required when VERCEL_ENV=production)'
+    );
+  });
+
+  it('exposes the service role key when set', async () => {
+    stubEnv({
+      VERCEL_ENV: 'production',
+      RESEND_API_KEY: 're_live_key',
+      EMAIL_FROM_ADDRESS: 'noreply@holigay.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+    });
+
+    const env = await import('@/lib/env');
+
+    expect(env.supabaseServiceRoleKey).toBe('service-role-key');
   });
 
   it('refuses the resend.dev test sender', async () => {
@@ -132,6 +159,7 @@ describe('@/lib/env production strictness', () => {
       VERCEL_ENV: 'production',
       RESEND_API_KEY: 're_live_key',
       EMAIL_FROM_ADDRESS: address,
+      SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
     });
 
     const env = await import('@/lib/env');
@@ -173,6 +201,7 @@ describe('@/lib/env outside production', () => {
     expect(env.isProduction).toBe(false);
     expect(env.resendApiKey).toBeUndefined();
     expect(env.emailFromAddress).toBeUndefined();
+    expect(env.supabaseServiceRoleKey).toBeUndefined();
   });
 
   // Only the *requirement* is production-gated. The values must still pass
