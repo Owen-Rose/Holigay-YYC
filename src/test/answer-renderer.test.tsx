@@ -1,7 +1,28 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import * as React from 'react';
+
+const mockCreateSignedUrl = vi.fn();
+const mockFrom = vi.fn(() => ({ createSignedUrl: mockCreateSignedUrl }));
+
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: () => ({ storage: { from: mockFrom } }),
+}));
+
 import { AnswerRenderer } from '@/components/questionnaire/answer-renderer';
+
+const FILE_ANSWER = {
+  kind: 'file',
+  path: 'uploads/app-123/document.pdf',
+  name: 'document.pdf',
+  mimeType: 'application/pdf',
+  size: 1024,
+};
+
+beforeEach(() => {
+  mockCreateSignedUrl.mockReset();
+  mockFrom.mockClear();
+});
 
 const BASE_QUESTION = {
   id: 'q1',
@@ -106,22 +127,46 @@ describe('AnswerRenderer', () => {
     expect(screen.getByText('No')).toBeInTheDocument();
   });
 
-  it('renders a file answer as a link with the file name', () => {
+  it('renders a file answer as a button that opens a signed URL, not the raw storage path', async () => {
+    const tab = { opener: {}, location: { href: '' }, close: vi.fn() };
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window);
+    mockCreateSignedUrl.mockResolvedValue({
+      data: { signedUrl: 'https://storage.example/signed/document.pdf?token=abc' },
+      error: null,
+    });
+
     render(
-      <AnswerRenderer
-        question={{ ...BASE_QUESTION, type: 'file_upload' }}
-        rawValue={{
-          kind: 'file',
-          path: 'uploads/app-123/document.pdf',
-          name: 'document.pdf',
-          mimeType: 'application/pdf',
-          size: 1024,
-        }}
-      />
+      <AnswerRenderer question={{ ...BASE_QUESTION, type: 'file_upload' }} rawValue={FILE_ANSWER} />
     );
-    const link = screen.getByRole('link', { name: 'document.pdf' });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', 'uploads/app-123/document.pdf');
+
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'document.pdf' }));
+
+    await waitFor(() =>
+      expect(tab.location.href).toBe('https://storage.example/signed/document.pdf?token=abc')
+    );
+    expect(mockFrom).toHaveBeenCalledWith('attachments');
+    expect(mockCreateSignedUrl).toHaveBeenCalledWith('uploads/app-123/document.pdf', 60);
+    expect(tab.opener).toBeNull();
+    openSpy.mockRestore();
+  });
+
+  it('closes the tab and shows an error when the signed URL cannot be created', async () => {
+    const tab = { opener: {}, location: { href: '' }, close: vi.fn() };
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window);
+    mockCreateSignedUrl.mockResolvedValue({ data: null, error: { message: 'Object not found' } });
+
+    render(
+      <AnswerRenderer question={{ ...BASE_QUESTION, type: 'file_upload' }} rawValue={FILE_ANSWER} />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'document.pdf' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not open this file. Please try again.'
+    );
+    expect(tab.close).toHaveBeenCalled();
+    openSpy.mockRestore();
   });
 
   it('renders — for a null rawValue (parse failure)', () => {

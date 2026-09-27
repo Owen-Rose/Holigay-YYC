@@ -33,6 +33,10 @@ vi.mock('@/app/dashboard/applications/[id]/attachments-list', () => ({
   AttachmentsList: () => React.createElement('div', { 'data-testid': 'attachments' }),
 }));
 
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: vi.fn(),
+}));
+
 vi.mock('next/navigation', () => ({
   notFound: vi.fn(() => {
     throw new Error('notFound called');
