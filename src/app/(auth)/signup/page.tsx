@@ -49,11 +49,8 @@ export default function SignupPage() {
       {success && (
         <div className="rounded-md bg-green-500/10 p-4">
           <p className="text-sm text-green-400">
-            Account created successfully! Please check your email to verify your account, then{' '}
-            <Link href="/login" className="font-medium underline">
-              sign in
-            </Link>
-            .
+            Account created! Check your email for a confirmation link — clicking it will sign you
+            in.
           </p>
         </div>
       )}
