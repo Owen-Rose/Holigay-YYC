@@ -48,7 +48,7 @@
 
 **⚠️ CRITICAL**: T005–T007 depend on T002 and/or T003.
 
-- [ ] T002 [P] Env field `SUPABASE_SERVICE_ROLE_KEY`, the contained admin client and the containment test — in `src/lib/env.ts`, `src/lib/supabase/admin.ts` (files, interfaces and steps below)
+- [X] T002 [P] Env field `SUPABASE_SERVICE_ROLE_KEY`, the contained admin client and the containment test — in `src/lib/env.ts`, `src/lib/supabase/admin.ts` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `src/lib/env.ts` (one `optionalEnv` field + one `superRefine` rule + one export), `.env.example` (uncomment and re-describe lines 11–12), `specs/007-production-readiness/contracts/env-contract.md` (replace the row at line 29 with the row in `contracts/admin-client-and-env.md`), `CLAUDE.md` line 174 (comment: "Server-only; required on Production; Preview holds the dev project's key — spec 009")
