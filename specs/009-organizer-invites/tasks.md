@@ -182,7 +182,7 @@
 
 **Independent Test**: quickstart.md row D8 — invite a second throwaway, do not click, see Pending + Resend, click Resend → second mail + "Invitation re-sent" toast, submit the same address in the form → same, click the link → badge gone.
 
-- [ ] T013 [US3] Pending badge and Resend button on the Team page — in `src/app/dashboard/team/page.tsx` (files, interfaces and steps below). Needs T003, T007. Build it straight after T007 — T009 and T012 depend on it (US1 scenario 1 names the Pending badge).
+- [X] T013 [US3] Pending badge and Resend button on the Team page — in `src/app/dashboard/team/page.tsx` (files, interfaces and steps below). Needs T003, T007. Build it straight after T007 — T009 and T012 depend on it (US1 scenario 1 names the Pending badge).
 
 
 **Files:**
