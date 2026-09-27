@@ -221,7 +221,7 @@
 - [ ] **Step 2: Implement** — the copy change only; nothing else on the page (US4 scenario 3). Re-run → PASS.
 - [ ] **Step 3: Gate and commit** — `npm run lint && npm test && npm run build`; `git commit -m "fix(auth): describe the confirmation link on the signup success message [009-T015]"`. PR to `dev`.
 
-- [ ] T016 [manual] [US4] Dev **Confirm signup** template: Supabase dev → Authentication → Email Templates → Confirm signup → subject and body from `contracts/email-templates.md` §3 (link `…&type=signup&next=/vendor-dashboard`). No mail is sent on dev (confirmations off), so the verification is that the saved template matches §3 character for character; the live test is P8. evidence: quickstart.md row **D5** — FR-027, FR-030
+- [X] T016 [manual] [US4] Dev **Confirm signup** template: Supabase dev → Authentication → Email Templates → Confirm signup → subject and body from `contracts/email-templates.md` §3 (link `…&type=signup&next=/vendor-dashboard`). No mail is sent on dev (confirmations off), so the verification is that the saved template matches §3 character for character; the live test is P8. evidence: quickstart.md row **D5** — FR-027, FR-030
 
 **Checkpoint**: All four stories are implemented; dev is fully configured; every dev evidence row (V1, V3, D1–D12) is filled.
 

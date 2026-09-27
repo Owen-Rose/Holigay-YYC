@@ -56,7 +56,7 @@ Task IDs are filled in by `/speckit-tasks`; the rows are fixed now so `tasks.md`
 |---|---|---|---|---|---|
 | V1 | Minimum password length read (research R17); expected 6 | Supabase dev → Authentication → Sign In / Providers → Email | 2026-09-27 | 6 — read by the maintainer; matches `min(6)`, no schema change | ☑ |
 | V2 | Same | Supabase prod | 2026-09-27 | 6 — read by the maintainer; matches `min(6)`, no schema change | ☑ |
-| V3 | Site URL re-read = `dev`-branch preview origin alone (research R18) | Supabase dev → Authentication → URL Configuration | | | ☐ |
+| V3 | Site URL re-read = `dev`-branch preview origin alone (research R18) | Supabase dev → Authentication → URL Configuration | 2026-09-27 | `site_url` = `https://holigay-yyc-git-dev-owen-roses-projects.vercel.app` alone; Redirect URLs unchanged (that origin + `uat-holigay-yyc`). Read via the Management API (`GET`/`PATCH /v1/projects/kcokcufmzyckbodelqpb/config/auth`, CLI login token) from the maintainer-approved implementation session; sender `noreply@holigayeventsyyc.ca` / "Holigay Events YYC", `password_min_length` 6 | ☑ |
 | V4 | Site URL = `https://vendors.holigayeventsyyc.ca` | Supabase prod | | | ☐ |
 
 ### Dev project and preview
@@ -65,9 +65,9 @@ Task IDs are filled in by `/speckit-tasks`; the rows are fixed now so `tasks.md`
 |---|---|---|---|---|---|
 | D1 | Migration `013` applied (`supabase db push` against dev); `users_with_roles` has `invite_pending` | Supabase dev | 2026-09-27 | `supabase migration list --linked` showed 001–012 on both sides and 013 local-only; `db push --dry-run` offered only 013; `db push` applied it (maintainer's terminal, CLI 2.65.6). Anon-key `GET /rest/v1/users_with_roles` on dev → `401` / `42501 permission denied for view users_with_roles` (research R20 closed on dev); the same key → `events` 200 as a control. The column itself is not yet seen through an admin session (T009 exercises it) | ☑ |
 | D2 | `SUPABASE_SERVICE_ROLE_KEY` = dev project's key, **Preview** scope, all branches | Vercel → Settings → Environment Variables | | | ☐ |
-| D3 | Invite template set per `contracts/email-templates.md` §1 | Supabase dev → Email Templates | | | ☐ |
-| D4 | Reset-password template set per §2 | Supabase dev | | | ☐ |
-| D5 | Confirm-signup template set per §3 (no visible effect: confirmations off) | Supabase dev | | | ☐ |
+| D3 | Invite template set per `contracts/email-templates.md` §1 | Supabase dev → Email Templates | 2026-09-27 | `mailer_subjects_invite` + `mailer_templates_invite_content` PATCHed from the contract's §1 subject and HTML block via the Management API (`GET`/`PATCH /v1/projects/kcokcufmzyckbodelqpb/config/auth`, CLI login token) from the maintainer-approved implementation session; read back character-for-character equal. Replaced the console defaults ("You have been invited"). A real invite mail is checked in D6 | ☑ |
+| D4 | Reset-password template set per §2 | Supabase dev | 2026-09-27 | Same method as D3 for `mailer_subjects_recovery` / `mailer_templates_recovery_content`; read back equal. T011's real reset mail from the preview (sender, link host) is still owed and rides with D9 | ☑ |
+| D5 | Confirm-signup template set per §3 (no visible effect: confirmations off) | Supabase dev | 2026-09-27 | Same method as D3 for `mailer_subjects_confirmation` / `mailer_templates_confirmation_content`; read back equal. `mailer_autoconfirm` is still `true` on dev, so it never sends there (US4 scenario 3) | ☑ |
 | D6 | **Story 1 walkthrough**: Send Invite to a throwaway → toast "Invitation sent" → row Pending/Organizer → mail in Inbox from the branded sender → link lands signed in on `/set-password` (no landing page, no login form) → password set → `/dashboard` as organizer; Team page shows Organizer, no Pending | dev preview + mailbox | | | ☐ |
 | D7 | Story 1 refusals: invite the maintainer's own admin address → FR-002 message, no mail; invite the same throwaway again after acceptance → FR-002 message | dev preview | | | ☐ |
 | D8 | **Story 3 walkthrough**: invite a second throwaway, do not click → Pending badge + Resend → Resend → second mail, toast "Invitation re-sent" → submit the same address in the form → same → click link → badge gone | dev preview + mailbox | | | ☐ |
