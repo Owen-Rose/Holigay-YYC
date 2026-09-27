@@ -80,7 +80,7 @@ Task IDs are filled in by `/speckit-tasks`; the rows are fixed now so `tasks.md`
 
 | Row | Item | Where | Date | Evidence | Done |
 |---|---|---|---|---|---|
-| P1 | Migration `013` applied to prod | Supabase prod | | | ☐ |
+| P1 | Migration `013` applied to prod | Supabase prod | 2026-09-27 | Pushed early, ahead of the rest of T017, to close the anon read (research R20) — safe alone because prod's code never reads the new column. `supabase migration list --linked` showed 001–012 on both sides and 013 local-only; `db push --dry-run` offered only 013; `db push` applied it (maintainer's terminal, CLI 2.65.6; CLI re-linked to dev afterwards). Anon-key `GET /rest/v1/users_with_roles` on prod → `401` / `42501 permission denied for view users_with_roles`; the same key → `events` 200 as a control | ☑ |
 | P2 | `SUPABASE_SERVICE_ROLE_KEY` = prod project's key, **Production** scope | Vercel | | | ☐ |
 | P3 | Invite template set per §1 | Supabase prod → Email Templates | | | ☐ |
 | P4 | Reset-password template set per §2 | Supabase prod | | | ☐ |
