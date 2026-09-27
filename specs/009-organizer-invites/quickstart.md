@@ -63,7 +63,7 @@ Task IDs are filled in by `/speckit-tasks`; the rows are fixed now so `tasks.md`
 
 | Row | Item | Where | Date | Evidence | Done |
 |---|---|---|---|---|---|
-| D1 | Migration `013` applied (`supabase db push` against dev); `users_with_roles` has `invite_pending` | Supabase dev | | | ☐ |
+| D1 | Migration `013` applied (`supabase db push` against dev); `users_with_roles` has `invite_pending` | Supabase dev | 2026-09-27 | `supabase migration list --linked` showed 001–012 on both sides and 013 local-only; `db push --dry-run` offered only 013; `db push` applied it (maintainer's terminal, CLI 2.65.6). Anon-key `GET /rest/v1/users_with_roles` on dev → `401` / `42501 permission denied for view users_with_roles` (research R20 closed on dev); the same key → `events` 200 as a control. The column itself is not yet seen through an admin session (T009 exercises it) | ☑ |
 | D2 | `SUPABASE_SERVICE_ROLE_KEY` = dev project's key, **Preview** scope, all branches | Vercel → Settings → Environment Variables | | | ☐ |
 | D3 | Invite template set per `contracts/email-templates.md` §1 | Supabase dev → Email Templates | | | ☐ |
 | D4 | Reset-password template set per §2 | Supabase dev | | | ☐ |
