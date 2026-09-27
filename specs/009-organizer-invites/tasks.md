@@ -80,7 +80,7 @@
 - [ ] **Step 4: Migrations README** — append `| \`013_users_with_roles_invite_pending.sql\` | Appends \`invite_pending\` to \`users_with_roles\` (research R5, spec 009) |` after line 20.
 - [ ] **Step 5: Gate and commit** — `npm run lint && npm test && npm run build` (security suite included with the stack up); `git commit -m "feat(db): add invite_pending to users_with_roles and surface it on getUsers [009-T003]"`. PR to `dev`.
 
-- [ ] T004 [P] [manual] Minimum password length on both hosted projects (research R17): Supabase dev (`kcokcufmzyckbodelqpb`) and prod (`hgmfjvjlxrhdojwlkgap`) → Authentication → Sign In / Providers → Email → "Minimum password length". Expected 6 on both. If either is stricter, T006 raises `min(6)` in `loginSchema`, `signupSchema` and `setPasswordSchema` together and notes it in its PR. evidence: quickstart.md rows **V1** (dev) and **V2** (prod) — spec Clarifications item 2
+- [X] T004 [P] [manual] Minimum password length on both hosted projects (research R17): Supabase dev (`kcokcufmzyckbodelqpb`) and prod (`hgmfjvjlxrhdojwlkgap`) → Authentication → Sign In / Providers → Email → "Minimum password length". Expected 6 on both. If either is stricter, T006 raises `min(6)` in `loginSchema`, `signupSchema` and `setPasswordSchema` together and notes it in its PR. evidence: quickstart.md rows **V1** (dev) and **V2** (prod) — spec Clarifications item 2
 
 **Checkpoint**: `npm test` green with `013` on the local stack; `createAdminClient()` exists with one permitted importer; the password-length assumption is recorded.
 

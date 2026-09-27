@@ -54,8 +54,8 @@ Task IDs are filled in by `/speckit-tasks`; the rows are fixed now so `tasks.md`
 
 | Row | Item | Where | Date | Evidence | Done |
 |---|---|---|---|---|---|
-| V1 | Minimum password length read (research R17); expected 6 | Supabase dev → Authentication → Sign In / Providers → Email | | | ☐ |
-| V2 | Same | Supabase prod | | | ☐ |
+| V1 | Minimum password length read (research R17); expected 6 | Supabase dev → Authentication → Sign In / Providers → Email | 2026-09-27 | 6 — read by the maintainer; matches `min(6)`, no schema change | ☑ |
+| V2 | Same | Supabase prod | 2026-09-27 | 6 — read by the maintainer; matches `min(6)`, no schema change | ☑ |
 | V3 | Site URL re-read = `dev`-branch preview origin alone (research R18) | Supabase dev → Authentication → URL Configuration | | | ☐ |
 | V4 | Site URL = `https://vendors.holigayeventsyyc.ca` | Supabase prod | | | ☐ |
 
