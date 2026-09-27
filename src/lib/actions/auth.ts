@@ -1,9 +1,10 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { loginSchema, signupSchema } from '@/lib/validations/auth';
-import type { LoginInput, SignupInput } from '@/lib/validations/auth';
+import { loginSchema, setPasswordSchema, signupSchema } from '@/lib/validations/auth';
+import type { LoginInput, SetPasswordInput, SignupInput } from '@/lib/validations/auth';
 import { hasMinimumRole, type Role } from '@/lib/constants/roles';
+import { requireRole } from '@/lib/auth/roles';
 
 // Response type for auth actions
 export type AuthResponse = {
@@ -14,6 +15,12 @@ export type AuthResponse = {
 // Extended response type for signIn that includes role-based redirect
 export type SignInResponse = AuthResponse & {
   redirectTo: string | null;
+};
+
+export type SetPasswordResponse = {
+  success: boolean;
+  error: string | null;
+  data: { redirectTo: '/dashboard' | '/vendor-dashboard' } | null;
 };
 
 /**
@@ -137,5 +144,43 @@ export async function signOut(): Promise<AuthResponse> {
   return {
     error: null,
     success: true,
+  };
+}
+
+/**
+ * Set the signed-in user's password.
+ *
+ * Reached from /set-password after an invite or recovery link has signed the
+ * user in via /auth/confirm. `requireRole('vendor')` is the minimum role, so
+ * every signed-in user passes; its role picks the dashboard to land on.
+ */
+export async function setPassword(data: SetPasswordInput): Promise<SetPasswordResponse> {
+  const parsed = setPasswordSchema.safeParse(data);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message || 'Invalid input',
+      data: null,
+    };
+  }
+
+  const auth = await requireRole('vendor');
+  if (!auth.success || !auth.data) {
+    return { success: false, error: auth.error, data: null };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+
+  if (error) {
+    return { success: false, error: error.message, data: null };
+  }
+
+  return {
+    success: true,
+    error: null,
+    data: {
+      redirectTo: hasMinimumRole(auth.data.role, 'organizer') ? '/dashboard' : '/vendor-dashboard',
+    },
   };
 }
