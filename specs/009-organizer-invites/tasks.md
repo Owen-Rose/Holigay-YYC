@@ -92,7 +92,7 @@
 
 **Independent Test**: quickstart.md row D6 — on the dev preview, invite a throwaway address, open the mail, click the link, set a password, land on `/dashboard`; Team page shows Organizer with no Pending badge; no database step anywhere.
 
-- [ ] T005 [P] [US1] `GET /auth/confirm` Route Handler, its unit tests, the Login page `reason` notices and the middleware pass-through cases — in `src/app/auth/confirm/route.ts` (files, interfaces and steps below)
+- [X] T005 [P] [US1] `GET /auth/confirm` Route Handler, its unit tests, the Login page `reason` notices and the middleware pass-through cases — in `src/app/auth/confirm/route.ts` (files, interfaces and steps below)
 
 **Files:**
 - Create: `src/app/auth/confirm/route.ts`, `src/test/auth-confirm-route.test.ts`
