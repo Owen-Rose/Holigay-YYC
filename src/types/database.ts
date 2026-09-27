@@ -437,6 +437,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           id: string | null
+          invite_pending: boolean | null
           role: Database["public"]["Enums"]["user_role"] | null
           role_updated_at: string | null
         }

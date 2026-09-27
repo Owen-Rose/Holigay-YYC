@@ -18,6 +18,7 @@ Active migrations live directly in `supabase/migrations/` and apply in alphabeti
 | `010_ensure_event_questionnaire.sql` | `ensure_event_questionnaire(uuid)` — race-safe get-or-create of the questionnaire row for events created before 009 ("legacy events"). |
 | `011_close_public_data_exposure.sql` | `submit_public_application(jsonb)` (the only public write path), drops the seven broad `anon` policies, revokes `anon` EXECUTE on the two organizer RPCs, and codifies the `attachments` storage bucket + policies. See `specs/006-close-public-data-exposure/`. |
 | `012_atomic_questionnaire_save.sql` | `save_event_questionnaire(uuid, jsonb, uuid)` — the single transactional write path for the questionnaire builder and template seed; makes `event_questions`' position UNIQUE constraint `DEFERRABLE INITIALLY IMMEDIATE`; adds an in-function role gate to `ensure_event_questionnaire` and `create_event_with_default_questionnaire`. See `specs/005-dynamic-questionnaires/` Phase 11. |
+| `013_users_with_roles_invite_pending.sql` | Appends `invite_pending` to `users_with_roles` (research R5, spec 009) and revokes the default-privilege grants that let `anon` read the view (every account's email) — `authenticated` keeps only SELECT (research R20). |
 
 ## Superseded files (`_superseded/`)
 
