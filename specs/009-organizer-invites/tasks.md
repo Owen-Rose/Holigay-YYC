@@ -122,7 +122,7 @@
 - [ ] **Step 5: Local check** — `npm run dev`, sign in as any local user, open `/set-password` → renders; sign out, open it → `/login` with "Please sign in first." (T005's notice; if T005 is not merged yet, the redirect target is still asserted by Step 1).
 - [ ] **Step 6: Gate and commit** — `npm run lint && npm test && npm run build`; `git commit -m "feat(auth): add the set-password page, form and action [009-T006]"`. PR to `dev`.
 
-- [ ] T007 [US1] Rewrite `inviteOrganizer` over the admin client with `inviteSchema`, unit tests, the real-stack `invite-flow` suite and the sent/re-sent toast — in `src/lib/actions/team.ts` (files, interfaces and steps below). Needs T002, T003.
+- [X] T007 [US1] Rewrite `inviteOrganizer` over the admin client with `inviteSchema`, unit tests, the real-stack `invite-flow` suite and the sent/re-sent toast — in `src/lib/actions/team.ts` (files, interfaces and steps below). Needs T002, T003.
 
 **Files:**
 - Create: `src/lib/validations/team.ts` (`inviteSchema`, `InviteInput` — `data-model.md`), `src/test/team-actions.test.ts`
