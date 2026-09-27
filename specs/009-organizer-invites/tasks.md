@@ -65,7 +65,7 @@
 - [ ] **Step 5: Docs in the same PR** — `.env.example`, the 007 env-contract row, the `CLAUDE.md` line 174 comment (constitution: new env vars documented in the PR that introduces them).
 - [ ] **Step 6: Gate and commit** — `npm run lint && npm test && npm run build`; `git commit -m "feat(env): parse SUPABASE_SERVICE_ROLE_KEY and add the contained admin client [009-T002]"`. PR to `dev`.
 
-- [ ] T003 [P] Migration `013_users_with_roles_invite_pending.sql`, regenerated types and `invitePending` on `getUsers` — in `supabase/migrations/013_users_with_roles_invite_pending.sql`, `src/lib/actions/admin.ts` (files, interfaces and steps below)
+- [X] T003 [P] Migration `013_users_with_roles_invite_pending.sql`, regenerated types and `invitePending` on `getUsers` — in `supabase/migrations/013_users_with_roles_invite_pending.sql`, `src/lib/actions/admin.ts` (files, interfaces and steps below)
 
 **Files:**
 - Create: `supabase/migrations/013_users_with_roles_invite_pending.sql` (the SQL in `data-model.md`, verbatim), `src/test/security/invite-flow.test.ts` (view-level cases only; T007 extends it)
