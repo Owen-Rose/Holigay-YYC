@@ -197,7 +197,7 @@
 - [ ] **Step 3: Local check** — with the local admin and the T007 Step 5 invitee: row shows Pending + Resend; Resend → mailpit mail + "re-sent" toast; the tiles unchanged.
 - [ ] **Step 4: Gate and commit** — `npm run lint && npm test && npm run build`; `git commit -m "feat(team): show pending invitations with a Resend button [009-T013]"`. PR to `dev`.
 
-- [ ] T014 [manual] [US3] Story 3 walkthrough on the dev preview and the throwaway cleanup. Needs T013 merged. (1) **D8**: invite `+009-b@…`, do not click → row shows Pending badge + Resend → Resend → second mail arrives, toast "Invitation re-sent to …" → submit `+009-b` in the invite form → same mail + toast → role still Organizer → click the link → `/set-password` → Team page: badge and Resend gone; summary tiles unchanged throughout. (2) **D12**: Supabase dev → Authentication → Users → delete `+009-a`, `+009-b`, `+009-c` and any `+009-nobody` account. evidence: quickstart.md rows **D8**, **D12** — US3 scenarios 1–6
+- [X] T014 [manual] [US3] Story 3 walkthrough on the dev preview and the throwaway cleanup. Needs T013 merged. (1) **D8**: invite `+009-b@…`, do not click → row shows Pending badge + Resend → Resend → second mail arrives, toast "Invitation re-sent to …" → submit `+009-b` in the invite form → same mail + toast → role still Organizer → click the link → `/set-password` → Team page: badge and Resend gone; summary tiles unchanged throughout. (2) **D12**: Supabase dev → Authentication → Users → delete `+009-a`, `+009-b`, `+009-c` and any `+009-nobody` account. evidence: quickstart.md rows **D8**, **D12** — US3 scenarios 1–6
 
 **Checkpoint**: Stories 1–3 clicked through once on the dev preview; the dev project holds no throwaways.
 
