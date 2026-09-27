@@ -50,3 +50,14 @@ describe('LoginPage reason notices', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });
+
+describe('LoginPage links', () => {
+  it('links to /forgot-password', () => {
+    render(<LoginPage />);
+
+    expect(screen.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute(
+      'href',
+      '/forgot-password'
+    );
+  });
+});

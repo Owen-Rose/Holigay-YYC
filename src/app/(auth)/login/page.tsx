@@ -73,11 +73,21 @@ function LoginContent() {
       <LoginForm onSubmit={handleSubmit} />
 
       {/* Links */}
-      <div className="text-center text-sm">
-        <span className="text-muted">Don&apos;t have an account? </span>
-        <Link href="/signup" className="text-primary hover:text-primary-hover font-medium">
-          Sign up
-        </Link>
+      <div className="space-y-2 text-center text-sm">
+        <div>
+          <Link
+            href="/forgot-password"
+            className="text-primary hover:text-primary-hover font-medium"
+          >
+            Forgot password?
+          </Link>
+        </div>
+        <div>
+          <span className="text-muted">Don&apos;t have an account? </span>
+          <Link href="/signup" className="text-primary hover:text-primary-hover font-medium">
+            Sign up
+          </Link>
+        </div>
       </div>
     </div>
   );

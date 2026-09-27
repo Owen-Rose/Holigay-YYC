@@ -29,7 +29,13 @@ export const setPasswordSchema = z
     path: ['confirmPassword'],
   });
 
+// Forgot-password schema - the transform gives the trimmed, lower-cased address
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email('Please enter a valid email address')),
+});
+
 // TypeScript types inferred from schemas
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type SetPasswordInput = z.infer<typeof setPasswordSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

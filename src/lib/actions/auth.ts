@@ -1,8 +1,18 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { loginSchema, setPasswordSchema, signupSchema } from '@/lib/validations/auth';
-import type { LoginInput, SetPasswordInput, SignupInput } from '@/lib/validations/auth';
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  setPasswordSchema,
+  signupSchema,
+} from '@/lib/validations/auth';
+import type {
+  ForgotPasswordInput,
+  LoginInput,
+  SetPasswordInput,
+  SignupInput,
+} from '@/lib/validations/auth';
 import { hasMinimumRole, type Role } from '@/lib/constants/roles';
 import { requireRole } from '@/lib/auth/roles';
 
@@ -16,6 +26,8 @@ export type AuthResponse = {
 export type SignInResponse = AuthResponse & {
   redirectTo: string | null;
 };
+
+export type RequestPasswordResetResponse = { success: boolean; error: string | null; data: null };
 
 export type SetPasswordResponse = {
   success: boolean;
@@ -183,4 +195,30 @@ export async function setPassword(data: SetPasswordInput): Promise<SetPasswordRe
       redirectTo: hasMinimumRole(auth.data.role, 'organizer') ? '/dashboard' : '/vendor-dashboard',
     },
   };
+}
+
+/**
+ * Email a password-reset link.
+ *
+ * Unauthenticated: it serves a caller who cannot sign in. The response is the
+ * same whether or not the address has an account (FR-021), so provider errors
+ * are logged by code and never surfaced. The Reset-password email template owns
+ * the link, so no redirectTo is passed.
+ */
+export async function requestPasswordReset(
+  data: ForgotPasswordInput
+): Promise<RequestPasswordResetResponse> {
+  const parsed = forgotPasswordSchema.safeParse(data);
+  if (!parsed.success) {
+    return { success: false, error: 'Please enter a valid email address', data: null };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email);
+
+  if (error) {
+    console.error('[requestPasswordReset] provider error', error.code ?? error.name);
+  }
+
+  return { success: true, error: null, data: null };
 }
