@@ -87,7 +87,9 @@ export function InviteForm({ onInvited }: InviteFormProps) {
         return;
       }
 
-      toast.success(`Invitation sent to ${trimmed}`);
+      toast.success(
+        result.data?.resent ? `Invitation re-sent to ${trimmed}` : `Invitation sent to ${trimmed}`
+      );
       setEmail('');
       onInvited?.();
     } catch (err) {

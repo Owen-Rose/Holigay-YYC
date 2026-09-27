@@ -1,43 +1,44 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { requireRole } from '@/lib/auth/roles';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { inviteSchema } from '@/lib/validations/team';
+import { inviteOrganizerCore, type InviteResponse } from '@/lib/team/invite-organizer-core';
 
-// =============================================================================
-// Types
-// =============================================================================
-
-export type InviteResponse = {
-  success: boolean;
-  error: string | null;
-};
+export type { InviteResponse };
 
 // =============================================================================
 // Server Actions
 // =============================================================================
 
 /**
- * Invite a new organizer by email.
- * Requires admin role. Validates email format server-side.
- *
- * TODO (Task 4.2.2): Wire up Supabase Admin API to actually send invites.
+ * Invite a new organizer by email, or re-send a pending invitation.
+ * Requires admin role. The Invite email template owns the link, so no
+ * redirectTo is passed (contracts/email-templates.md §1).
  */
 export async function inviteOrganizer(email: string): Promise<InviteResponse> {
-  // Require admin role
   const auth = await requireRole('admin');
   if (!auth.success) {
-    return { success: false, error: auth.error };
+    return { success: false, error: auth.error, data: null };
   }
 
-  // Server-side email validation
-  const trimmed = email.trim().toLowerCase();
-  if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-    return { success: false, error: 'Please enter a valid email address' };
+  const parsed = inviteSchema.safeParse({ email });
+  if (!parsed.success) {
+    return { success: false, error: 'Please enter a valid email address', data: null };
   }
 
-  // Placeholder until Supabase Admin client is set up (Task 4.2.1/4.2.2)
-  return {
-    success: false,
-    error:
-      'Email service is not configured yet. This feature requires the Supabase service role key.',
-  };
+  const admin = createAdminClient();
+  if (!admin) {
+    return { success: false, error: 'Invites are not configured on this deployment', data: null };
+  }
+
+  const result = await inviteOrganizerCore(admin, parsed.data.email);
+
+  if (result.success) {
+    revalidatePath('/dashboard/team');
+    revalidatePath('/dashboard/admin');
+  }
+
+  return result;
 }
