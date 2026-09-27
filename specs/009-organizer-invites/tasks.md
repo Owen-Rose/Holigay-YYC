@@ -209,7 +209,7 @@
 
 **Independent Test**: quickstart.md row P8 — on production, sign up a throwaway vendor, click the link, land on `/vendor-dashboard` signed in.
 
-- [ ] T015 [P] [US4] Signup success copy — in `src/app/(auth)/signup/page.tsx` (files, interfaces and steps below)
+- [X] T015 [P] [US4] Signup success copy — in `src/app/(auth)/signup/page.tsx` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `src/app/(auth)/signup/page.tsx` lines 51–57 → "Account created! Check your email for a confirmation link — clicking it will sign you in." with no link (research R15)
