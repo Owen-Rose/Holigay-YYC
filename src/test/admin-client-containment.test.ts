@@ -13,6 +13,8 @@ const PERMITTED = new Set([
   ADMIN_MODULE,
   'src/lib/actions/team.ts',
   'src/test/admin-client-containment.test.ts',
+  // Mocks the module (vi.mock needs the literal specifier); never imports the real client.
+  'src/test/team-actions.test.ts',
 ]);
 
 function filesMentioningAdminClient(): string[] {
