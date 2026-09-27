@@ -152,7 +152,7 @@
 
 **Independent Test**: quickstart.md row D9 — request a reset for an existing vendor, click the link, set a new password, land on `/vendor-dashboard`, sign out and back in with it; request for a nonexistent address shows the identical response.
 
-- [ ] T010 [US2] `/forgot-password` page, form, `requestPasswordReset` action and the Login "Forgot password?" link — in `src/app/(auth)/forgot-password/page.tsx`, `src/lib/actions/auth.ts` (files, interfaces and steps below). Needs T005, T006.
+- [X] T010 [US2] `/forgot-password` page, form, `requestPasswordReset` action and the Login "Forgot password?" link — in `src/app/(auth)/forgot-password/page.tsx`, `src/lib/actions/auth.ts` (files, interfaces and steps below). Needs T005, T006.
 
 **Files:**
 - Create: `src/app/(auth)/forgot-password/page.tsx` (RSC shell: heading "Reset your password", the form), `src/components/auth/forgot-password-form.tsx` (`'use client'`), `src/test/forgot-password-form.test.tsx`
