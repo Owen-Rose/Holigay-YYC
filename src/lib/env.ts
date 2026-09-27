@@ -49,6 +49,7 @@ const serverEnvSchema = z
     EMAIL_FROM_ADDRESS: optionalEnv,
     CRON_SECRET: optionalEnv,
     KEEPALIVE_SUPABASE_TARGETS: optionalEnv,
+    SUPABASE_SERVICE_ROLE_KEY: optionalEnv,
   })
   .superRefine((env, ctx) => {
     if (env.VERCEL_ENV !== 'production') return;
@@ -78,6 +79,14 @@ const serverEnvSchema = z
         code: 'custom',
         path: ['EMAIL_FROM_ADDRESS'],
         message: 'must be "Name <local@domain>" or a bare local@domain address',
+      });
+    }
+
+    if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SUPABASE_SERVICE_ROLE_KEY'],
+        message: 'required when VERCEL_ENV=production',
       });
     }
   });
@@ -140,6 +149,13 @@ export const resendApiKey: string | undefined = env.RESEND_API_KEY;
  * test sender when this is missing.
  */
 export const emailFromAddress: string | undefined = env.EMAIL_FROM_ADDRESS;
+
+/**
+ * Undefined when unset. Required only on a Vercel Production deploy; anywhere
+ * else organizer invites answer "not configured". Read only by the contained
+ * service-role client — see specs/009-organizer-invites/contracts/admin-client-and-env.md.
+ */
+export const supabaseServiceRoleKey: string | undefined = env.SUPABASE_SERVICE_ROLE_KEY;
 
 /** Null unless a secret of at least 16 characters is configured. */
 export const cronSecret: string | null =

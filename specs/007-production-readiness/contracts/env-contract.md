@@ -26,7 +26,7 @@ keying on it would break every preview.
 | `CRON_SECRET` | `env` → `/api/keepalive` | unset | unset | required for keep-alive | non-empty, ≥ 16 characters |
 | `KEEPALIVE_SUPABASE_TARGETS` | `env` → `/api/keepalive` | unset | unset | required for keep-alive | comma-separated `url\|anonKey` pairs; each `url` a valid URL, each key non-empty; at least one pair |
 | `VERCEL_ENV` | `env` | unset | `preview` (set by Vercel) | `production` (set by Vercel) | one of `development`, `preview`, `production`, or unset |
-| `SUPABASE_SERVICE_ROLE_KEY` | nothing yet (Epic 4 placeholder) | — | — | — | not parsed by the env module; documented in `.env.example` only |
+| `SUPABASE_SERVICE_ROLE_KEY` | `env` → `src/lib/supabase/admin.ts` → `src/lib/actions/team.ts` only | optional — invites answer "not configured" | optional; **set to the dev project's key** so the preview can send invites | **required** | non-empty |
 | `NODE_ENV` | `src/app/api/test-email/route.ts`, `src/app/api/preview-email/route.ts` (404 gate) | — | — | — | unchanged; not part of the module |
 | `SMOKE_APP_URL` | `scripts/smoke-check.mjs` | shell only | never on Vercel | never on Vercel | valid URL |
 | `SMOKE_SUPABASE_URL` | `scripts/smoke-check.mjs` | shell only | never | never | valid URL |
@@ -35,7 +35,7 @@ keying on it would break every preview.
 "Required for keep-alive" means the route answers `401` (no `CRON_SECRET`) or `500`
 `misconfigured` (no targets) rather than failing the build — the app must still deploy if
 the keep-alive is not configured yet. The build-time hard requirements in production are
-exactly two: `RESEND_API_KEY` and `EMAIL_FROM_ADDRESS`.
+`RESEND_API_KEY` and `EMAIL_FROM_ADDRESS`, plus `SUPABASE_SERVICE_ROLE_KEY` since spec 009.
 
 ## Failure behaviour
 
