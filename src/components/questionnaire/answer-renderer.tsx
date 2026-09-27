@@ -1,5 +1,6 @@
 import type { QuestionType } from '@/components/questionnaire/question-types';
 import { coerceJsonbToAnswer } from '@/lib/questionnaire/answer-coercion';
+import { FileAnswerLink } from '@/components/questionnaire/file-answer-link';
 import type { Json } from '@/types/database';
 
 type AnswerRendererProps = {
@@ -61,16 +62,7 @@ export function AnswerRenderer({ question, rawValue }: AnswerRendererProps) {
       </span>
     );
   } else if (answer.kind === 'file') {
-    valueNode = (
-      <a
-        href={answer.path}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary hover:text-primary-hover"
-      >
-        {answer.name}
-      </a>
-    );
+    valueNode = <FileAnswerLink path={answer.path} name={answer.name} />;
   } else {
     // SC-007: unknown kind — plain text fallback
     valueNode = <p>—</p>;
