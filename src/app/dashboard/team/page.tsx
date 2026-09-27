@@ -1,8 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { getUsers, type UserWithRole } from '@/lib/actions/admin';
+import { inviteOrganizer } from '@/lib/actions/team';
 import { InviteForm } from '@/components/team/invite-form';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import type { Role } from '@/lib/constants/roles';
 
 // =============================================================================
@@ -156,6 +160,7 @@ export default function TeamPage() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [resendingEmail, setResendingEmail] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
@@ -181,6 +186,30 @@ export default function TeamPage() {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  // Resend behaves exactly like the invite form for that address (FR-024)
+  async function handleResend(email: string) {
+    setResendingEmail(email);
+
+    try {
+      const result = await inviteOrganizer(email);
+
+      if (!result.success) {
+        toast.error(result.error || 'Failed to send invite');
+        return;
+      }
+
+      toast.success(
+        result.data?.resent ? `Invitation re-sent to ${email}` : `Invitation sent to ${email}`
+      );
+      await fetchUsers();
+    } catch (err) {
+      toast.error('An unexpected error occurred');
+      console.error('Resend invite error:', err);
+    } finally {
+      setResendingEmail(null);
+    }
+  }
 
   // Filter to organizers and admins only
   const teamMembers = users.filter((u) => u.role === 'organizer' || u.role === 'admin');
@@ -232,25 +261,47 @@ export default function TeamPage() {
           {/* Table Header */}
           <div className="border-border-subtle bg-surface-bright border-b px-6 py-3">
             <div className="text-muted grid grid-cols-12 gap-4 text-xs font-medium tracking-wider uppercase">
-              <div className="col-span-6">Email</div>
+              <div className="col-span-5">Email</div>
               <div className="col-span-3">Role</div>
-              <div className="col-span-3">Joined</div>
+              <div className="col-span-2">Joined</div>
+              <div className="col-span-2">
+                <span className="sr-only">Actions</span>
+              </div>
             </div>
           </div>
 
           {/* Table Body */}
           <div className="divide-border-subtle divide-y">
             {teamMembers.map((member) => (
-              <div key={member.id} className="hover:bg-surface-bright px-6 py-4">
+              <div
+                key={member.id}
+                data-testid="team-member-row"
+                className="hover:bg-surface-bright px-6 py-4"
+              >
                 <div className="grid grid-cols-12 items-center gap-4">
-                  <div className="col-span-6">
+                  <div className="col-span-5">
                     <p className="text-foreground truncate text-sm font-medium">{member.email}</p>
                   </div>
-                  <div className="col-span-3">
+                  <div className="col-span-3 flex flex-wrap items-center gap-2">
                     <RoleBadge role={member.role} />
+                    {member.invitePending && <Badge variant="warning">Pending</Badge>}
                   </div>
-                  <div className="col-span-3">
+                  <div className="col-span-2">
                     <p className="text-muted text-sm">{formatDate(member.createdAt)}</p>
+                  </div>
+                  <div className="col-span-2 flex justify-end">
+                    {member.invitePending && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        isLoading={resendingEmail === member.email}
+                        disabled={resendingEmail !== null}
+                        onClick={() => handleResend(member.email)}
+                        aria-label={`Resend invitation to ${member.email}`}
+                      >
+                        Resend
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
