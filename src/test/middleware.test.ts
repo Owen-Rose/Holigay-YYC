@@ -118,3 +118,35 @@ describe('middleware role-lookup error handling', () => {
     expect(res.headers.get('location')).toBeNull();
   });
 });
+
+// =============================================================================
+// Spec 009 link-consumption pages pass through (research R13, FR-013, FR-019):
+// none of them is protected, and none is an auth route that bounces a signed-in user.
+// =============================================================================
+
+describe('middleware — /auth/confirm, /set-password, /forgot-password pass through', () => {
+  const PATHS = ['/auth/confirm?token_hash=x&type=invite', '/set-password', '/forgot-password'];
+
+  it.each(PATHS)('signed out: %s passes through', async (path) => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
+
+    const res = await middleware(makeRequest(path));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('location')).toBeNull();
+  });
+
+  const SIGNED_IN = PATHS.flatMap((path) =>
+    (['vendor', 'organizer', 'admin'] as const).map((role) => [role, path] as const)
+  );
+
+  it.each(SIGNED_IN)('signed in as %s: %s passes through', async (role, path) => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null });
+    mockSingle.mockResolvedValue({ data: { role }, error: null });
+
+    const res = await middleware(makeRequest(path));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('location')).toBeNull();
+  });
+});

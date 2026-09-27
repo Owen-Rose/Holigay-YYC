@@ -7,10 +7,22 @@ import { LoginForm } from '@/components/auth/login-form';
 import { signIn } from '@/lib/actions/auth';
 import type { LoginInput } from '@/lib/validations/auth';
 
+// Notices for `?reason=` — set by /auth/confirm (link-invalid) and /set-password
+// (session-required). Unknown values render nothing.
+const REASON_NOTICES = new Map<string, string>([
+  [
+    'link-invalid',
+    'That link has expired or was already used. Ask an admin to send a new invitation, or use Forgot password.',
+  ],
+  ['session-required', 'Please sign in first.'],
+]);
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const reason = searchParams.get('reason');
+  const notice = reason ? REASON_NOTICES.get(reason) : undefined;
 
   async function handleSubmit(data: LoginInput) {
     setError(null);
@@ -42,6 +54,13 @@ function LoginContent() {
         <h1 className="text-foreground text-2xl font-bold">Welcome back</h1>
         <p className="text-muted mt-2 text-sm">Sign in to access your organizer dashboard</p>
       </div>
+
+      {/* Link / session notice */}
+      {notice && (
+        <div role="status" className="bg-primary/10 rounded-md p-4">
+          <p className="text-foreground text-sm">{notice}</p>
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
