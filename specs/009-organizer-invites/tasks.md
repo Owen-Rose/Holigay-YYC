@@ -106,7 +106,7 @@
 - [ ] **Step 3: Login notices + middleware cases** — edit `login/page.tsx` (research R12 strings) and add the pass-through describe to `middleware.test.ts`; run `npx vitest run src/test/middleware.test.ts` → PASS with no change to `src/middleware.ts` (matcher and `authRoutes` untouched — FR-013, FR-019).
 - [ ] **Step 4: Gate and commit** — `npm run lint && npm test && npm run build`; `git commit -m "feat(auth): consume emailed links server-side at /auth/confirm [009-T005]"`. PR to `dev`.
 
-- [ ] T006 [P] [US1] `/set-password` page, form and `setPassword` action — in `src/app/(auth)/set-password/page.tsx`, `src/lib/actions/auth.ts` (files, interfaces and steps below)
+- [X] T006 [P] [US1] `/set-password` page, form and `setPassword` action — in `src/app/(auth)/set-password/page.tsx`, `src/lib/actions/auth.ts` (files, interfaces and steps below)
 
 **Files:**
 - Create: `src/app/(auth)/set-password/page.tsx` (RSC: `getUser()` or `redirect('/login?reason=session-required')`), `src/app/(auth)/set-password/loading.tsx` (`Spinner`), `src/components/auth/set-password-form.tsx` (`'use client'`), `src/test/auth-password-actions.test.ts`, `src/test/set-password-form.test.tsx`
