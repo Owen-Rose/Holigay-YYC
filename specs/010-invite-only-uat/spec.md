@@ -71,6 +71,18 @@ Decided in the brainstorm and recorded as settled. The plan does not relitigate 
   unset. The UAT findings items about self sign-up (items 2, 3 and 9) can no longer be tested on
   the training deployment and move to a production-only checklist.
 
+Settled during planning (2026-09-27), where the design record was found to be wrong or silent:
+
+- Q: The Team page lists organizers and admins only, so where does an invited vendor show up? →
+  A: Not on the Team page; the filter stays. The toast confirms the send and the Admin page
+  lists the account with the Vendor role. A pending vendor is re-sent by submitting the address
+  again in the invite form (there is no Resend button for them). Story 2 was amended to match.
+- Q: The public form keeps the email's case while invitations and the authentication service
+  lower-case it, so a tester who applied as `Jane@…` and is invited as `jane@…` is not linked.
+  What does this spec do? → A: Records it, does not fix it. FR-012's automated test uses a
+  lower-case address and a second case documents the mixed-case outcome; the gap is a new item
+  in the UAT findings handoff for its own change. Production behaviour is not touched here.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A stranger who finds the training address cannot get an account (Priority: P1)
@@ -117,8 +129,8 @@ With self sign-up off, the only way a tester gets a vendor account is an admin i
 On the Team page the admin enters the tester's email, picks **Vendor** from the role picker
 (Organizer is the default) and sends. The tester's emailed link lands them signed in on the
 set-password page, then on the vendor dashboard. If they had already applied through the public
-form with that address, their application is waiting for them. The Team page shows the new
-member with a Vendor badge and Pending until they sign in.
+form with that address, their application is waiting for them. The Team page keeps listing
+organizers and admins; the new vendor account is listed on the Admin page with the Vendor role.
 
 **Why this priority**: Without it, story 1 makes the vendor side of the app unreachable on the
 training deployment, and the training exercise the environment exists for (apply, then review)
@@ -126,23 +138,23 @@ cannot be run end to end.
 
 **Independent Test**: On the training deployment, submit the public form with a throwaway
 address, then as an admin invite that address as a vendor, open the email, click the link, set a
-password, and confirm the vendor dashboard lists the earlier application. Confirm the Team page
-row shows Vendor and, before the click, Pending.
+password, and confirm the vendor dashboard lists the earlier application. Confirm the Admin page
+lists the address as Vendor.
 
 **Acceptance Scenarios**:
 
 1. **Given** an admin on the Team page, **When** the invite form renders, **Then** it offers a
    role choice of Organizer and Vendor with Organizer selected by default, and nothing else.
 2. **Given** an address with no account, **When** the admin sends an invitation with Vendor
-   chosen, **Then** the toast says the invitation was sent, the address appears in the member
-   list at once with a Pending badge and the Vendor role, and an email with a link arrives.
+   chosen, **Then** the toast says the invitation was sent, the Admin page lists the address
+   with the Vendor role, and an email with a link arrives.
 3. **Given** the invitee clicks that link, **When** they set a password, **Then** they are on
    the vendor dashboard as a vendor, with no manual step by anyone.
 4. **Given** the invitee had already submitted the public form with that exact address,
    **When** they first reach the vendor dashboard, **Then** that application is listed there.
-5. **Given** a Pending vendor invitee, **When** the admin clicks Resend or submits the address
-   again with any role selected, **Then** a fresh email goes out, the toast says "re-sent", and
-   the member's role is still Vendor.
+5. **Given** a Pending vendor invitee, **When** the admin submits the address again with any
+   role selected, **Then** a fresh email goes out, the toast says "re-sent", and the member's
+   role is still Vendor.
 6. **Given** an address whose account has ever signed in, **When** the admin invites it with
    either role, **Then** the action is refused with spec 009's existing message and nothing
    changes. On the training deployment this can only be a genuine duplicate, since no

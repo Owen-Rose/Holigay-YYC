@@ -15,6 +15,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 007 | Production readiness (M3) | 🚧 In progress | [#9](https://github.com/Owen-Rose/Holigay-YYC/pull/9) | — |
 | 008 | Self-hosted infrastructure | 🚧 In progress — design, plan and tasks T001–T027 written 2026-09-19 | [#23](https://github.com/Owen-Rose/Holigay-YYC/pull/23) | — |
 | 009 | Organizer invites, link consumption and password reset | 🚧 In progress — spec, plan and tasks T001–T019 written 2026-09-26 | [#27](https://github.com/Owen-Rose/Holigay-YYC/pull/27) | — |
+| 010 | Invite-only UAT environment | 🚧 In progress — spec, plan and tasks T001–T014 written 2026-09-27 | [#38](https://github.com/Owen-Rose/Holigay-YYC/pull/38) | — |
 
 ### Post-merge detail
 
