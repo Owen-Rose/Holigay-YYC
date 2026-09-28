@@ -116,7 +116,10 @@ Item 1 (three stale dev events) is still open as of 2026-09-27.
 - Event **UAT Market 2026** (`34dd5881-1a60-4df3-9068-0da57db8d663`), active, locked
   questionnaire (4 questions, one show-if, one required file upload).
 - Application `2b703c47-1a4f-451e-8d60-742537445195` from **UAT Candle Co** /
-  `owenconnorrose+uat@gmail.com`, **Approved**, with note, and `uat-product.png` in the bucket.
+  `owenconnorrose+uat@gmail.com`, **Approved**, with note. Its `uat-product.png`
+  (`uploads/1790547229133-j5uak4-uat-product.png`) was deleted from the bucket 2026-09-28
+  during spec 010's T013 cleanup, so its file link now fails — re-upload a file at that
+  path, or submit a fresh sample application.
 - Auth user `owenconnorrose+uat@gmail.com` (vendor). It was created while Confirm email
   was off, so it's already confirmed.
 
