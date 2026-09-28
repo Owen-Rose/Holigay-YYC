@@ -19,6 +19,9 @@ vi.mock('@/lib/auth/roles', () => ({
   requireRole: (...args: unknown[]) => mockRequireRole(...args),
 }));
 
+// auth.ts reads inviteOnly (spec 010), and env-public validates at import.
+vi.mock('@/lib/env-public', () => ({ inviteOnly: false }));
+
 import { requestPasswordReset, setPassword } from '@/lib/actions/auth';
 
 const VALID = { password: 'secret123', confirmPassword: 'secret123' };

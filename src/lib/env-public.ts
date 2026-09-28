@@ -16,6 +16,7 @@ const publicEnvSchema = z.object({
     .string({ error: 'required' })
     .trim()
     .min(1, { error: 'required' }),
+  NEXT_PUBLIC_INVITE_ONLY: z.string().trim().optional(),
 });
 
 // These MUST stay literal `process.env.X` member expressions: Next.js replaces
@@ -25,6 +26,7 @@ const publicEnvSchema = z.object({
 const parsed = publicEnvSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_INVITE_ONLY: process.env.NEXT_PUBLIC_INVITE_ONLY,
 });
 
 if (!parsed.success) {
@@ -37,3 +39,12 @@ if (!parsed.success) {
 
 export const supabaseUrl: string = parsed.data.NEXT_PUBLIC_SUPABASE_URL;
 export const supabaseAnonKey: string = parsed.data.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+/**
+ * Invite-only mode (spec 010): hides the Login page's sign-up link, answers 404 on
+ * /signup and makes signUp refuse. True only when NEXT_PUBLIC_INVITE_ONLY is
+ * exactly 'true' (trimmed). Never derived from VERCEL_ENV. Inlined at build, so a
+ * changed value needs a redeploy. The enforcement is the Supabase project's
+ * sign-up setting; this flag only keeps the app from offering a dead door.
+ */
+export const inviteOnly: boolean = parsed.data.NEXT_PUBLIC_INVITE_ONLY === 'true';

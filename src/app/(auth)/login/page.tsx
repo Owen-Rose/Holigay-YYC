@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/login-form';
 import { signIn } from '@/lib/actions/auth';
+import { inviteOnly } from '@/lib/env-public';
 import type { LoginInput } from '@/lib/validations/auth';
 
 // Notices for `?reason=` — set by /auth/confirm (link-invalid) and /set-password
@@ -82,12 +83,14 @@ function LoginContent() {
             Forgot password?
           </Link>
         </div>
-        <div>
-          <span className="text-muted">Don&apos;t have an account? </span>
-          <Link href="/signup" className="text-primary hover:text-primary-hover font-medium">
-            Sign up
-          </Link>
-        </div>
+        {!inviteOnly && (
+          <div>
+            <span className="text-muted">Don&apos;t have an account? </span>
+            <Link href="/signup" className="text-primary hover:text-primary-hover font-medium">
+              Sign up
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

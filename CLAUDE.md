@@ -155,7 +155,7 @@ Variables are parsed and validated at first import by two Zod modules — a miss
 or malformed value fails with one error naming every problem, not eight scattered
 `undefined`s. Full contract: `specs/007-production-readiness/contracts/env-contract.md`.
 
-- `src/lib/env-public.ts` — the `NEXT_PUBLIC_*` pair. Safe to import from client
+- `src/lib/env-public.ts` — the `NEXT_PUBLIC_*` values (the Supabase pair and `inviteOnly`). Safe to import from client
   components, server code and the edge middleware. Reads `process.env.NEXT_PUBLIC_X`
   as **literal property accesses** so Next.js inlines them into the browser bundle;
   a dynamic lookup would be `undefined` there.
@@ -173,6 +173,7 @@ Optional:
 RESEND_API_KEY=re_...              # Email sending (logged to console if unset)
 SUPABASE_SERVICE_ROLE_KEY=eyJ...   # Server-only; required on Production; Preview holds the dev project's key — spec 009
 EMAIL_FROM_ADDRESS=Holigay Vendor Market <noreply@yourdomain.com>  # Custom sender
+NEXT_PUBLIC_INVITE_ONLY=true       # Vercel Preview only (spec 010): hide/404/refuse sign-up; on iff exactly `true`
 ```
 
 Vercel Production only, never in `.env.local` (set in the shell to try the route

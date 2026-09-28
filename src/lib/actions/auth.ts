@@ -15,6 +15,7 @@ import type {
 } from '@/lib/validations/auth';
 import { hasMinimumRole, type Role } from '@/lib/constants/roles';
 import { requireRole } from '@/lib/auth/roles';
+import { inviteOnly } from '@/lib/env-public';
 
 // Response type for auth actions
 export type AuthResponse = {
@@ -102,8 +103,9 @@ export async function signIn(data: LoginInput): Promise<SignInResponse> {
 /**
  * Sign up a new user with email and password
  *
- * After successful signup, automatically assigns the 'vendor' role to the new user.
- * Role assignment failures are logged but don't block the signup process.
+ * The handle_new_user trigger gives the new account the 'vendor' role. On an
+ * invite-only deployment (spec 010) it refuses after validation and before
+ * contacting Supabase; the Supabase project's sign-up setting is the enforcement.
  */
 export async function signUp(data: SignupInput): Promise<AuthResponse> {
   // Validate input
@@ -113,6 +115,10 @@ export async function signUp(data: SignupInput): Promise<AuthResponse> {
       error: parsed.error.issues[0]?.message || 'Invalid input',
       success: false,
     };
+  }
+
+  if (inviteOnly) {
+    return { error: 'Sign-up is by invitation on this site.', success: false };
   }
 
   const supabase = await createClient();
