@@ -1,5 +1,6 @@
 import type { AuthError, SupabaseClient, User } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
+import type { InviteRole } from '@/lib/validations/team';
 
 // =============================================================================
 // The Next-free core of inviteOrganizer (contracts/server-actions.md, steps a–f).
@@ -26,9 +27,14 @@ export const EXISTING_ACCOUNT_MESSAGE =
   'That email already has an account. Change their role on the Admin page instead.';
 const SEND_FAILED_MESSAGE = 'Failed to send invitation';
 
+/**
+ * Invite `email` with `role` (spec 010), or re-send a pending invitation. On a
+ * re-send the role argument is ignored: the invitee keeps their stored role.
+ */
 export async function inviteOrganizerCore(
   admin: SupabaseClient<Database>,
   email: string,
+  role: InviteRole,
   deps: InviteDeps = {}
 ): Promise<InviteResponse> {
   const sendInvite =
@@ -67,10 +73,10 @@ export async function inviteOrganizerCore(
     return { success: true, error: null, data: { resent: true } };
   }
 
-  // e. New user: handle_new_user created them as a vendor; promote to organizer
+  // e. New user: handle_new_user created them as a vendor; set the chosen role
   const userId = sent.user?.id;
   const { error: roleError } = userId
-    ? await admin.from('user_profiles').update({ role: 'organizer' }).eq('id', userId)
+    ? await admin.from('user_profiles').update({ role }).eq('id', userId)
     : { error: { code: 'no_user', message: 'invite returned no user' } };
 
   if (roleError) {
