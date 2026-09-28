@@ -26,7 +26,7 @@ beforeEach(() => {
 
 async function submit(email: string) {
   const user = userEvent.setup();
-  await user.type(screen.getByPlaceholderText('organizer@example.com'), email);
+  await user.type(screen.getByPlaceholderText('name@example.com'), email);
   await user.click(screen.getByRole('button', { name: 'Send Invite' }));
 }
 
@@ -42,7 +42,7 @@ describe('InviteForm', () => {
     await submit('new@example.com');
 
     await waitFor(() => expect(mockToastSuccess).toHaveBeenCalledWith(message));
-    expect(mockInviteOrganizer).toHaveBeenCalledWith('new@example.com');
+    expect(mockInviteOrganizer).toHaveBeenCalledWith('new@example.com', 'organizer');
     expect(onInvited).toHaveBeenCalled();
   });
 
@@ -54,5 +54,56 @@ describe('InviteForm', () => {
     await submit('taken@example.com');
 
     await waitFor(() => expect(mockToastError).toHaveBeenCalledWith(error));
+  });
+});
+
+describe('InviteForm role picker (spec 010)', () => {
+  it('offers exactly Organizer and Vendor, Organizer selected', () => {
+    render(<InviteForm />);
+
+    const select = screen.getByLabelText('Role') as HTMLSelectElement;
+    expect(Array.from(select.options).map((o) => [o.value, o.text])).toEqual([
+      ['organizer', 'Organizer'],
+      ['vendor', 'Vendor'],
+    ]);
+    expect(select.value).toBe('organizer');
+  });
+
+  it('invites as a vendor and resets to Organizer after success', async () => {
+    mockInviteOrganizer.mockResolvedValue({ success: true, error: null, data: { resent: false } });
+    const user = userEvent.setup();
+    render(<InviteForm />);
+
+    await user.selectOptions(screen.getByLabelText('Role'), 'vendor');
+    await submit('new@example.com');
+
+    await waitFor(() =>
+      expect(mockToastSuccess).toHaveBeenCalledWith('Invitation sent to new@example.com')
+    );
+    expect(mockInviteOrganizer).toHaveBeenCalledWith('new@example.com', 'vendor');
+    expect((screen.getByLabelText('Role') as HTMLSelectElement).value).toBe('organizer');
+    expect((screen.getByPlaceholderText('name@example.com') as HTMLInputElement).value).toBe('');
+  });
+
+  it('invites as an organizer when the select is untouched', async () => {
+    mockInviteOrganizer.mockResolvedValue({ success: true, error: null, data: { resent: false } });
+    render(<InviteForm />);
+
+    await submit('new@example.com');
+
+    await waitFor(() =>
+      expect(mockInviteOrganizer).toHaveBeenCalledWith('new@example.com', 'organizer')
+    );
+  });
+
+  it('uses the team-member heading and copy', () => {
+    render(<InviteForm />);
+
+    expect(screen.getByRole('heading', { name: 'Invite team member' })).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Send an invitation email. Organizers review applications; vendors get a vendor dashboard.'
+      )
+    ).toBeInTheDocument();
   });
 });

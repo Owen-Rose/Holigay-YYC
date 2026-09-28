@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { inviteOrganizer } from '@/lib/actions/team';
+import { Select } from '@/components/ui/select';
+import type { InviteRole } from '@/lib/validations/team';
 
 // =============================================================================
 // Types
@@ -12,6 +14,11 @@ interface InviteFormProps {
   /** Called after a successful invite so the parent can refresh the team list */
   onInvited?: () => void;
 }
+
+const ROLE_OPTIONS: { value: InviteRole; label: string }[] = [
+  { value: 'organizer', label: 'Organizer' },
+  { value: 'vendor', label: 'Vendor' },
+];
 
 // =============================================================================
 // Icons
@@ -59,6 +66,7 @@ function ExclamationIcon({ className }: { className?: string }) {
 
 export function InviteForm({ onInvited }: InviteFormProps) {
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState<InviteRole>('organizer');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +88,7 @@ export function InviteForm({ onInvited }: InviteFormProps) {
     setIsSubmitting(true);
 
     try {
-      const result = await inviteOrganizer(trimmed);
+      const result = await inviteOrganizer(trimmed, role);
 
       if (!result.success) {
         toast.error(result.error || 'Failed to send invite');
@@ -91,6 +99,7 @@ export function InviteForm({ onInvited }: InviteFormProps) {
         result.data?.resent ? `Invitation re-sent to ${trimmed}` : `Invitation sent to ${trimmed}`
       );
       setEmail('');
+      setRole('organizer');
       onInvited?.();
     } catch (err) {
       toast.error('An unexpected error occurred');
@@ -104,13 +113,13 @@ export function InviteForm({ onInvited }: InviteFormProps) {
     <div className="border-border-subtle bg-surface rounded-lg border p-6">
       <div className="flex items-center gap-2">
         <EnvelopeIcon className="text-muted-foreground h-5 w-5" />
-        <h2 className="text-foreground text-lg font-semibold">Invite Organizer</h2>
+        <h2 className="text-foreground text-lg font-semibold">Invite team member</h2>
       </div>
       <p className="text-muted mt-1 text-sm">
-        Send an invitation email to add a new organizer to your team.
+        Send an invitation email. Organizers review applications; vendors get a vendor dashboard.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-4 flex gap-3">
+      <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
         <input
           type="email"
           value={email}
@@ -119,11 +128,20 @@ export function InviteForm({ onInvited }: InviteFormProps) {
             // Clear error when user starts typing
             if (error) setError(null);
           }}
-          placeholder="organizer@example.com"
+          placeholder="name@example.com"
           required
           disabled={isSubmitting}
           className="border-border bg-surface text-foreground placeholder-muted-foreground focus:border-primary focus:ring-primary/50 disabled:bg-surface-bright min-h-[44px] flex-1 rounded-md border px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
         />
+        <div className="sm:w-40">
+          <Select
+            label="Role"
+            value={role}
+            onChange={(e) => setRole(e.target.value as InviteRole)}
+            options={ROLE_OPTIONS}
+            disabled={isSubmitting}
+          />
+        </div>
         <button
           type="submit"
           disabled={isSubmitting}

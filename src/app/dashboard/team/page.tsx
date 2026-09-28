@@ -219,7 +219,7 @@ export default function TeamPage() {
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-foreground text-2xl font-bold">Team Management</h1>
-        <p className="text-muted mt-1 text-sm">View your team and invite new organizers.</p>
+        <p className="text-muted mt-1 text-sm">View your team and invite new team members.</p>
       </div>
 
       {/* Invite Organizer Form */}

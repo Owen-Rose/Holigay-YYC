@@ -132,3 +132,27 @@ describe('TeamPage pending invitations', () => {
     expect(tile('Admins')).toBe('1');
   });
 });
+
+describe('TeamPage — invited vendors (spec 010, research R6)', () => {
+  it('does not list a pending vendor; the list stays organizers and admins', async () => {
+    mockGetUsers.mockResolvedValue({
+      success: true,
+      error: null,
+      data: [
+        ...USERS,
+        {
+          id: 'u-pending-vendor',
+          email: 'pending-vendor@example.com',
+          role: 'vendor',
+          createdAt: '2026-09-27T00:00:00Z',
+          roleUpdatedAt: null,
+          invitePending: true,
+        },
+      ],
+    });
+    render(<TeamPage />);
+    await screen.findByText('pending@example.com');
+
+    expect(screen.queryByText('pending-vendor@example.com')).not.toBeInTheDocument();
+  });
+});
