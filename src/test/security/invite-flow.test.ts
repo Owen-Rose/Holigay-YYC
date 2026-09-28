@@ -12,6 +12,9 @@
 // T007 adds the invite path itself (research R8): inviteOrganizerCore runs with
 // a generateLink-based sender — CI's stack has no mail service — and an anon
 // client then consumes the hashed token exactly as /auth/confirm would.
+//
+// Spec 010 T007 adds vendor invitations: the chosen role is stored, a re-send
+// keeps it, and handle_new_user links an existing vendors row by email (FR-012).
 // =============================================================================
 
 import { randomUUID } from 'node:crypto';
@@ -96,7 +99,7 @@ describe.runIf(stackUp)('inviteOrganizerCore against the real stack', () => {
   });
 
   it('creates a pending organizer for a new address', async () => {
-    const result = await inviteOrganizerCore(service, accepted, { sendInvite });
+    const result = await inviteOrganizerCore(service, accepted, 'organizer', { sendInvite });
 
     expect(result).toEqual({ success: true, error: null, data: { resent: false } });
     const created = await row(accepted);
@@ -124,16 +127,16 @@ describe.runIf(stackUp)('inviteOrganizerCore against the real stack', () => {
   });
 
   it('refuses to re-invite an accepted invitee', async () => {
-    const result = await inviteOrganizerCore(service, accepted, { sendInvite });
+    const result = await inviteOrganizerCore(service, accepted, 'organizer', { sendInvite });
 
     expect(result).toEqual({ success: false, error: EXISTING_ACCOUNT_MESSAGE, data: null });
   });
 
   it('re-sends to a pending invitee and keeps the role', async () => {
-    const first = await inviteOrganizerCore(service, pending, { sendInvite });
+    const first = await inviteOrganizerCore(service, pending, 'organizer', { sendInvite });
     const firstId = (await row(pending)).id;
 
-    const second = await inviteOrganizerCore(service, pending, { sendInvite });
+    const second = await inviteOrganizerCore(service, pending, 'organizer', { sendInvite });
 
     expect(first.data).toEqual({ resent: false });
     expect(second).toEqual({ success: true, error: null, data: { resent: true } });
@@ -144,9 +147,98 @@ describe.runIf(stackUp)('inviteOrganizerCore against the real stack', () => {
   });
 
   it('refuses an existing confirmed account', async () => {
-    const result = await inviteOrganizerCore(service, vendor.email, { sendInvite });
+    const result = await inviteOrganizerCore(service, vendor.email, 'organizer', { sendInvite });
 
     expect(result).toEqual({ success: false, error: EXISTING_ACCOUNT_MESSAGE, data: null });
     expect((await row(vendor.email)).role).toBe('vendor');
+  });
+});
+
+describe.runIf(stackUp)('vendor invitations against the real stack (spec 010)', () => {
+  const service = serviceClient();
+  const tag = randomUUID().slice(0, 8);
+  const applicant = `invite-${tag}-v+010@example.com`;
+  const mixedCaseStored = `Mixed.Case-${tag}+010@Example.com`;
+  const createdUserIds: string[] = [];
+  const createdVendorIds: string[] = [];
+
+  const sendInvite: NonNullable<InviteDeps['sendInvite']> = async (email) => {
+    const { data, error } = await service.auth.admin.generateLink({ type: 'invite', email });
+    if (error) return { data: { user: null }, error };
+    if (!createdUserIds.includes(data.user.id)) createdUserIds.push(data.user.id);
+    return { data: { user: data.user }, error: null };
+  };
+
+  async function insertVendor(email: string) {
+    const { data, error } = await service
+      .from('vendors')
+      .insert({ business_name: `Biz ${tag}`, contact_name: `Contact ${tag}`, email })
+      .select('id')
+      .single();
+    expect(error).toBeNull();
+    createdVendorIds.push(data!.id);
+    return data!.id;
+  }
+
+  async function account(email: string) {
+    const { data, error } = await service
+      .from('users_with_roles')
+      .select('id, role, invite_pending')
+      .eq('email', email)
+      .single();
+    expect(error).toBeNull();
+    return data!;
+  }
+
+  async function links(userId: string, vendorId: string) {
+    const profile = await service
+      .from('user_profiles')
+      .select('vendor_id')
+      .eq('id', userId)
+      .single();
+    const vendorRow = await service.from('vendors').select('user_id').eq('id', vendorId).single();
+    expect(profile.error).toBeNull();
+    expect(vendorRow.error).toBeNull();
+    return { vendorId: profile.data!.vendor_id, userId: vendorRow.data!.user_id };
+  }
+
+  afterAll(async () => {
+    for (const id of createdUserIds) await service.auth.admin.deleteUser(id);
+    if (createdVendorIds.length) await service.from('vendors').delete().in('id', createdVendorIds);
+  });
+
+  it('invites an applicant as a vendor and links their vendor row (FR-012)', async () => {
+    const vendorId = await insertVendor(applicant);
+
+    const result = await inviteOrganizerCore(service, applicant, 'vendor', { sendInvite });
+
+    expect(result).toEqual({ success: true, error: null, data: { resent: false } });
+    const created = await account(applicant);
+    expect(created.role).toBe('vendor');
+    expect(created.invite_pending).toBe(true);
+    expect(await links(created.id!, vendorId)).toEqual({ vendorId, userId: created.id });
+  });
+
+  it('re-sends keep the stored vendor role whatever role is requested (FR-010)', async () => {
+    const asVendor = await inviteOrganizerCore(service, applicant, 'vendor', { sendInvite });
+    const asOrganizer = await inviteOrganizerCore(service, applicant, 'organizer', { sendInvite });
+
+    expect(asVendor).toEqual({ success: true, error: null, data: { resent: true } });
+    expect(asOrganizer).toEqual({ success: true, error: null, data: { resent: true } });
+    expect((await account(applicant)).role).toBe('vendor');
+  });
+
+  it('documents the casing gap: a mixed-case vendor row is not linked (research R8)', async () => {
+    // Recorded, not fixed — docs/handoffs/2026-09-27-uat-findings.md item 11.
+    // handle_new_user matches vendors.email exactly; GoTrue stores the address
+    // lower-cased, so an applicant who typed capitals is never linked.
+    const vendorId = await insertVendor(mixedCaseStored);
+    const lowered = mixedCaseStored.toLowerCase();
+
+    const result = await inviteOrganizerCore(service, lowered, 'vendor', { sendInvite });
+
+    expect(result.success).toBe(true);
+    const created = await account(lowered);
+    expect(await links(created.id!, vendorId)).toEqual({ vendorId: null, userId: null });
   });
 });

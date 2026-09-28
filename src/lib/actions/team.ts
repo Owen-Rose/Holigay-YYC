@@ -13,19 +13,23 @@ export type { InviteResponse };
 // =============================================================================
 
 /**
- * Invite a new organizer by email, or re-send a pending invitation.
- * Requires admin role. The Invite email template owns the link, so no
+ * Invite a team member as an organizer or a vendor (default organizer), or
+ * re-send a pending invitation, which keeps the stored role. Requires admin role. The Invite email template owns the link, so no
  * redirectTo is passed (contracts/email-templates.md §1).
  */
-export async function inviteOrganizer(email: string): Promise<InviteResponse> {
+export async function inviteOrganizer(email: string, role?: string): Promise<InviteResponse> {
   const auth = await requireRole('admin');
   if (!auth.success) {
     return { success: false, error: auth.error, data: null };
   }
 
-  const parsed = inviteSchema.safeParse({ email });
+  const parsed = inviteSchema.safeParse({ email, role });
   if (!parsed.success) {
-    return { success: false, error: 'Please enter a valid email address', data: null };
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? 'Please enter a valid email address',
+      data: null,
+    };
   }
 
   const admin = createAdminClient();
@@ -33,7 +37,7 @@ export async function inviteOrganizer(email: string): Promise<InviteResponse> {
     return { success: false, error: 'Invites are not configured on this deployment', data: null };
   }
 
-  const result = await inviteOrganizerCore(admin, parsed.data.email);
+  const result = await inviteOrganizerCore(admin, parsed.data.email, parsed.data.role);
 
   if (result.success) {
     revalidatePath('/dashboard/team');

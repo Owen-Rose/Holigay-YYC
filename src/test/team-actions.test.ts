@@ -233,3 +233,49 @@ describe('inviteOrganizer', () => {
     expect(mockRevalidatePath).not.toHaveBeenCalled();
   });
 });
+
+describe('inviteOrganizer — invitation role (spec 010)', () => {
+  it('invites a new address as a vendor', async () => {
+    const fake = fakeAdmin({ row: null });
+    mockCreateAdminClient.mockReturnValue(fake.client);
+
+    const result = await inviteOrganizer('new@example.com', 'vendor');
+
+    expect(fake.update).toHaveBeenCalledWith({ role: 'vendor' });
+    expect(fake.updateEq).toHaveBeenCalledWith('id', 'new-user-id');
+    expect(result).toEqual({ success: true, error: null, data: { resent: false } });
+  });
+
+  it('defaults to organizer when no role is given', async () => {
+    const fake = fakeAdmin({ row: null });
+    mockCreateAdminClient.mockReturnValue(fake.client);
+
+    await inviteOrganizer('new@example.com');
+
+    expect(fake.update).toHaveBeenCalledWith({ role: 'organizer' });
+  });
+
+  it.each(['admin', 'Vendor', ''])(
+    'refuses role %j before creating the admin client',
+    async (role) => {
+      const result = await inviteOrganizer('new@example.com', role);
+
+      expect(result).toEqual({
+        success: false,
+        error: 'Please choose Organizer or Vendor',
+        data: null,
+      });
+      expect(mockCreateAdminClient).not.toHaveBeenCalled();
+    }
+  );
+
+  it('re-sends to a pending invitee and ignores the requested role', async () => {
+    const fake = fakeAdmin({ row: { id: 'u1', invite_pending: true } });
+    mockCreateAdminClient.mockReturnValue(fake.client);
+
+    const result = await inviteOrganizer('pending@example.com', 'vendor');
+
+    expect(result).toEqual({ success: true, error: null, data: { resent: true } });
+    expect(fake.update).not.toHaveBeenCalled();
+  });
+});
