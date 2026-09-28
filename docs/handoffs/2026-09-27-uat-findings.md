@@ -27,25 +27,13 @@ TEST, Beep boop and Test event are still on dev. All have 0 applications, so eac
 **Delete** → **Yes, delete** on `/dashboard/events` works. Claude's bulk delete was
 blocked by auto mode.
 
-### 2. Re-test sign-up now that Confirm email is on — _should-do before the invite_
+### 2. Re-test sign-up now that Confirm email is on — _moved_
 
-No real sign-up has run since the setting changed. Sign up with a fresh `+uat2` address,
-check that the mail arrives from `noreply@holigayeventsyyc.ca`, and that the link lands
-signed in on `/vendor-dashboard`.
+Moved to the production-only checklist below: dev no longer allows sign-up (spec 010).
 
-- Expect the link on the dev **Site URL** host (`holigay-yyc-git-dev-owen-roses-projects.vercel.app`),
-  not `uat-holigay-yyc.vercel.app`. Same `dev` build, different origin, so the vendor
-  ends up signed in on the git-dev host. Decide whether the Site URL should become the
-  `uat-` alias.
-- **Prod's Confirm email setting was not checked.** Read it before prod gets real vendors.
+### 3. Sign-up message ignores whether a session was returned — _moved_
 
-### 3. Sign-up message ignores whether a session was returned — _should-fix_
-
-`src/lib/actions/auth.ts` `signUp` (~line 120) discards `authData` (that's one of the two
-standing lint warnings). `src/app/(auth)/signup/page.tsx` always shows "Account created!
-Check your email for a confirmation link". With dev now confirming, the copy is right there (prod
-unverified — see item 2). It lies wherever confirmation is off: have
-`signUp` return whether `authData.session` exists, then redirect or show the right message.
+Moved to the production-only checklist below.
 
 ### 4. Times render in UTC — _should-fix_
 
@@ -84,10 +72,9 @@ Requirements" (shown only if Booth Preference = Outdoor) looks like it always ap
 On `/dashboard/events` at about 930px wide, the "Yes, delete / Cancel" pair spills over the
 Applications column.
 
-### 9. Sign-up subtitle is organizer-flavoured — _polish_
+### 9. Sign-up subtitle is organizer-flavoured — _moved_
 
-`src/app/(auth)/signup/page.tsx:38` says "Sign up to manage vendor applications". Sign-up
-creates **vendor** accounts (organizers are invited), so it should speak to vendors.
+Moved to the production-only checklist below.
 
 ### 10. Storage read policy is broader than needed — _note, pre-existing_
 
@@ -95,6 +82,34 @@ creates **vendor** accounts (organizers are invited), so it should speak to vend
 sign **any** object in the `attachments` bucket. That includes a vendor reading another
 vendor's uploads, if they learn the key. PR #37 relies on the policy but didn't widen it.
 It's a ROADMAP candidate: scope reads to organizers plus the owning vendor.
+
+### 11. Application email casing — _should-fix_
+
+`src/lib/validations/application.ts:120` keeps the case the applicant typed,
+`handle_new_user` matches `vendors.email` exactly, and GoTrue stores addresses
+lower-cased — so an applicant who typed capitals is never linked to their account (self
+sign-up or invite). Options: `.trim().toLowerCase()` on the public form email, or a
+migration `014` matching `lower(email)`. Proven by the documenting case in
+`src/test/security/invite-flow.test.ts` (spec 010 research R8).
+
+## Production-only checklist (spec 010)
+
+Since spec 010 the training deployment is invite-only (dev sign-up off), so self sign-up
+exists only on production. Items 2, 3 and 9 are checked there, during spec 010's T011/T012 —
+evidence rows P1–P3 in `specs/010-invite-only-uat/quickstart.md`, **owed** at the time of
+writing (prod was out of scope for the 2026-09-27 session).
+
+- **Item 2 — re-test sign-up.** Read prod's "Confirm email" (`mailer_autoconfirm`, P1), then
+  sign up a throwaway on `vendors.holigayeventsyyc.ca`: mail from
+  `noreply@holigayeventsyyc.ca`, link lands signed in on `/vendor-dashboard` (P3). The dev
+  half is moot: dev's Site URL is now the `uat-` host and dev refuses sign-up.
+- **Item 3 — sign-up message vs. session.** `signUp` still discards `authData`; record in P3
+  whether the "check your email" copy matched what happened given P1's setting. Fix in its
+  own PR.
+- **Item 9 — sign-up subtitle.** `src/app/(auth)/signup/page.tsx` still says "Sign up to
+  manage vendor applications"; record it in P3 and fix in its own PR.
+
+Item 1 (three stale dev events) is still open as of 2026-09-27.
 
 ## UAT data left on dev
 

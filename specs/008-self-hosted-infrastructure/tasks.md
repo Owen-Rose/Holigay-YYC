@@ -367,6 +367,8 @@ git commit -m "build: multi-stage Dockerfile for the standalone app image [008-T
 
 - [ ] T008 [US1] Environment contract: `APP_ENV` and SMTP replace `VERCEL_ENV` and `RESEND_API_KEY` — in `src/lib/env.ts` (files, interfaces and steps below)
 
+> Note (spec 010, research R14): `NEXT_PUBLIC_INVITE_ONLY` is platform-neutral — staging sets `true`, production leaves it unset; nothing in `APP_ENV` implies it.
+
 **Files:**
 - Modify: `src/lib/env.ts`, `src/test/env.test.ts`, `src/test/keepalive-route.test.ts` (stub list only), `.env.example`, `CLAUDE.md` ("Environment Variables" section), `specs/007-production-readiness/contracts/env-contract.md`, `docs/DEV-ENVIRONMENT-SETUP.md` (Part 8 table)
 
