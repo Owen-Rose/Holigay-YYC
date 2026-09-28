@@ -51,7 +51,7 @@
 
 - [X] T003 [P] [manual] Dev project: Site URL → `https://uat-holigay-yyc.vercel.app` (Authentication → URL Configuration; API `site_url`); Redirect URLs (`uri_allow_list`) must keep **both** `https://holigay-yyc-git-dev-owen-roses-projects.vercel.app` and `https://uat-holigay-yyc.vercel.app`. Read both values back and record them. This supersedes spec 009 quickstart row V3's value (research R11; T014 adds the note there). evidence: quickstart.md row **D2** — FR-014, US3
 
-- [ ] T004 [P] [manual] Vercel → Settings → Environment Variables → add `NEXT_PUBLIC_INVITE_ONLY` = `true`, **Preview** scope, no branch filter, **not** Production. Record that the variable is listed with Preview scope. The second half of the evidence comes with T005: once T005's PR preview has rebuilt, `/signup` on that preview is the standard 404 page and its `/login` has no "Sign up" link (research R10 — the flag is inlined at build). evidence: quickstart.md row **D3** — FR-015, spec edge case "other pull-request previews"
+- [X] T004 [P] [manual] Vercel → Settings → Environment Variables → add `NEXT_PUBLIC_INVITE_ONLY` = `true`, **Preview** scope, no branch filter, **not** Production. Record that the variable is listed with Preview scope. The second half of the evidence comes with T005: once T005's PR preview has rebuilt, `/signup` on that preview is the standard 404 page and its `/login` has no "Sign up" link (research R10 — the flag is inlined at build). evidence: quickstart.md row **D3** — FR-015, spec edge case "other pull-request previews"
 
 **Checkpoint**: D1–D3 filled. The dev project refuses sign-up at the service; the code can now land.
 
@@ -63,7 +63,7 @@
 
 **Independent Test**: on the `uat-` host, signed out: load `/`, submit `/apply` with a file, open `/login` (no "Sign up", "Forgot password?" present), request `/signup` (404 page), run the probe (`422`), check Authentication → Users (no new row). Locally: `npm test` covers both modes.
 
-- [ ] T005 [US1] Invite-only mode: the flag, the middleware 404, the Login link and the `signUp` refusal, with tests and env docs — in `src/lib/env-public.ts`, `src/middleware.ts`, `src/app/(auth)/login/page.tsx`, `src/lib/actions/auth.ts` (files, interfaces and steps below)
+- [X] T005 [US1] Invite-only mode: the flag, the middleware 404, the Login link and the `signUp` refusal, with tests and env docs — in `src/lib/env-public.ts`, `src/middleware.ts`, `src/app/(auth)/login/page.tsx`, `src/lib/actions/auth.ts` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `src/lib/env-public.ts`, `src/middleware.ts`, `src/app/(auth)/login/page.tsx`, `src/lib/actions/auth.ts`
@@ -95,7 +95,7 @@
 
 **Independent Test**: on the `uat-` host, submit `/apply` with a throwaway, invite that address as Vendor, open the mail, set a password, see the application on `/vendor-dashboard`; the Admin page lists the address as Vendor. Locally: `npm test` (action + form) and `npm run test:security` (the trigger link).
 
-- [ ] T007 [US2] Invitation role, server side: `inviteSchema.role`, `inviteOrganizerCore(admin, email, role)`, `inviteOrganizer(email, role?)`, unit tests and the real-stack suite — in `src/lib/validations/team.ts`, `src/lib/team/invite-organizer-core.ts`, `src/lib/actions/team.ts` (files, interfaces and steps below)
+- [X] T007 [US2] Invitation role, server side: `inviteSchema.role`, `inviteOrganizerCore(admin, email, role)`, `inviteOrganizer(email, role?)`, unit tests and the real-stack suite — in `src/lib/validations/team.ts`, `src/lib/team/invite-organizer-core.ts`, `src/lib/actions/team.ts` (files, interfaces and steps below)
 
 **Files:**
 - Modify: `src/lib/validations/team.ts`, `src/lib/team/invite-organizer-core.ts`, `src/lib/actions/team.ts`
