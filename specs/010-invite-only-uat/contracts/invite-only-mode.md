@@ -47,10 +47,14 @@ before `getUser()`:
 ```ts
 const { pathname } = request.nextUrl;
 if (inviteOnly && (pathname === '/signup' || pathname.startsWith('/signup/'))) {
-  // No route exists at /404, so the App Router renders src/app/not-found.tsx with status 404.
-  return NextResponse.rewrite(new URL('/404', request.url));
+  // No route exists at /404, so the App Router renders src/app/not-found.tsx.
+  return NextResponse.rewrite(new URL('/404', request.url), { status: 404 });
 }
 ```
+
+The explicit `status` is required (found 2026-09-27 on the T005 PR preview): `next start`
+answers the bare rewrite with 404, but Vercel served the rewritten not-found page with
+**200**. With `{ status: 404 }` the preview answers 404 for `/signup` and `/signup/x`.
 
 | Mode | Request | Outcome |
 |---|---|---|
