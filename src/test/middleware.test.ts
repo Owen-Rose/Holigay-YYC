@@ -167,6 +167,7 @@ describe('middleware — invite-only mode', () => {
     const res = await middleware(makeRequest('/signup'));
 
     expect(res.headers.get('x-middleware-rewrite')).toMatch(/\/404$/);
+    expect(res.status).toBe(404);
     expect(mockGetUser).not.toHaveBeenCalled();
   });
 

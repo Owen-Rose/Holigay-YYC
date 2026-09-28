@@ -15,9 +15,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Invite-only deployments (spec 010) have no sign-up page. No route exists at
-  // /404, so the App Router renders src/app/not-found.tsx with status 404.
+  // /404, so the App Router renders src/app/not-found.tsx. The explicit status
+  // matters on Vercel, which otherwise serves the rewritten not-found page as 200.
   if (inviteOnly && (pathname === '/signup' || pathname.startsWith('/signup/'))) {
-    return NextResponse.rewrite(new URL('/404', request.url));
+    return NextResponse.rewrite(new URL('/404', request.url), { status: 404 });
   }
 
   let supabaseResponse = NextResponse.next({
