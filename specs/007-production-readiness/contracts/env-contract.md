@@ -21,6 +21,7 @@ keying on it would break every preview.
 |---|---|---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | `env-public` → `src/middleware.ts`, `src/lib/supabase/{client,server}.ts` | required | required | required | valid URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same | required | required | required | non-empty |
+| `NEXT_PUBLIC_INVITE_ONLY` | `env-public` → `src/middleware.ts`, `src/app/(auth)/login/page.tsx`, `signUp` in `src/lib/actions/auth.ts` (spec 010) | unset | `true` | unset | optional; mode on iff exactly `true` (trimmed); never an error |
 | `RESEND_API_KEY` | `env` → `src/lib/email/client.ts` | optional — emails are logged, not sent | optional | **required** | non-empty |
 | `EMAIL_FROM_ADDRESS` | `env` → `src/lib/email/client.ts` | optional — falls back to the test sender | optional | **required** | `Name <local@domain>` or bare address; **must not contain `resend.dev`** |
 | `CRON_SECRET` | `env` → `/api/keepalive` | unset | unset | required for keep-alive | non-empty, ≥ 16 characters |
@@ -64,6 +65,7 @@ the account owner's mailbox.
 | Variable | Vercel Preview | Vercel Production | Local `.env.local` |
 |---|---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` / `_ANON_KEY` | dev project | prod project | local stack or dev project |
+| `NEXT_PUBLIC_INVITE_ONLY` | `true` (all branches) | not set | not set |
 | `RESEND_API_KEY` | set (same key) | set | optional |
 | `EMAIL_FROM_ADDRESS` | set once the domain is verified | set once the domain is verified — **before the next `dev → main` promotion** | optional |
 | `CRON_SECRET` | not set (crons run on production only) | set | not set |

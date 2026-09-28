@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
-import { supabaseAnonKey, supabaseUrl } from '@/lib/env-public';
+import { inviteOnly, supabaseAnonKey, supabaseUrl } from '@/lib/env-public';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/types/database';
 
@@ -12,6 +12,14 @@ const protectedRoutes = ['/dashboard', '/vendor-dashboard'];
 const authRoutes = ['/login', '/signup'];
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Invite-only deployments (spec 010) have no sign-up page. No route exists at
+  // /404, so the App Router renders src/app/not-found.tsx with status 404.
+  if (inviteOnly && (pathname === '/signup' || pathname.startsWith('/signup/'))) {
+    return NextResponse.rewrite(new URL('/404', request.url));
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -37,8 +45,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   // Check if the current path is a protected route
   const isProtectedRoute = protectedRoutes.some(

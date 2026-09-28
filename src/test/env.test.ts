@@ -12,6 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const ENV_VARS = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  'NEXT_PUBLIC_INVITE_ONLY',
   'VERCEL_ENV',
   'RESEND_API_KEY',
   'EMAIL_FROM_ADDRESS',
@@ -84,6 +85,43 @@ describe('@/lib/env-public', () => {
     });
 
     await expect(import('@/lib/env-public')).rejects.toThrow('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  });
+});
+
+describe('@/lib/env-public inviteOnly', () => {
+  const PAIR = {
+    NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-key',
+  };
+
+  it.each([['true'], [' true ']])('is true for %j', async (value) => {
+    stubEnv({ ...PAIR, NEXT_PUBLIC_INVITE_ONLY: value });
+
+    const env = await import('@/lib/env-public');
+
+    expect(env.inviteOnly).toBe(true);
+  });
+
+  it.each([[undefined], [''], ['false'], ['TRUE'], ['1']])(
+    'is false for %j and the Supabase pair is still exported',
+    async (value) => {
+      stubEnv({ ...PAIR, NEXT_PUBLIC_INVITE_ONLY: value });
+
+      const env = await import('@/lib/env-public');
+
+      expect(env.inviteOnly).toBe(false);
+      expect(env.supabaseUrl).toBe('https://example.supabase.co');
+      expect(env.supabaseAnonKey).toBe('anon-key');
+    }
+  );
+
+  it('is independent of VERCEL_ENV', async () => {
+    stubEnv({ ...PAIR, VERCEL_ENV: 'preview' });
+    expect((await import('@/lib/env-public')).inviteOnly).toBe(false);
+
+    vi.resetModules();
+    stubEnv({ ...PAIR, VERCEL_ENV: 'production', NEXT_PUBLIC_INVITE_ONLY: 'true' });
+    expect((await import('@/lib/env-public')).inviteOnly).toBe(true);
   });
 });
 

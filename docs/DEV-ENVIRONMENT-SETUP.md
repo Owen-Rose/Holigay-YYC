@@ -156,6 +156,7 @@ git checkout main
 |----------|-------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Dev Supabase URL | Preview |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Dev anon key | Preview |
+| `NEXT_PUBLIC_INVITE_ONLY` | `true` (invite-only training deployment, spec 010; never Production) | Preview |
 | `RESEND_API_KEY` | Same or test key | Preview |
 | `RESEND_API_KEY` | Live key | **Production (required)** |
 | `EMAIL_FROM_ADDRESS` | `Name <noreply@verified-domain>` | Preview |

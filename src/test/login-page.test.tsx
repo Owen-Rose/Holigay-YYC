@@ -14,6 +14,13 @@ vi.mock('@/lib/actions/auth', () => ({
   signIn: vi.fn(),
 }));
 
+let mockInviteOnly = false;
+vi.mock('@/lib/env-public', () => ({
+  get inviteOnly() {
+    return mockInviteOnly;
+  },
+}));
+
 import LoginPage from '@/app/(auth)/login/page';
 
 const LINK_INVALID_COPY =
@@ -22,6 +29,7 @@ const SESSION_REQUIRED_COPY = 'Please sign in first.';
 
 beforeEach(() => {
   searchParams = new URLSearchParams();
+  mockInviteOnly = false;
 });
 
 describe('LoginPage reason notices', () => {
@@ -59,5 +67,24 @@ describe('LoginPage links', () => {
       'href',
       '/forgot-password'
     );
+  });
+});
+
+describe('LoginPage sign-up link — invite-only mode (spec 010)', () => {
+  it('flag off: shows the Sign up link and Forgot password?', () => {
+    render(<LoginPage />);
+
+    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/signup');
+    expect(screen.getByRole('link', { name: 'Forgot password?' })).toBeInTheDocument();
+  });
+
+  it('flag on: hides the Sign up link and keeps Forgot password?', () => {
+    mockInviteOnly = true;
+
+    render(<LoginPage />);
+
+    expect(screen.queryByRole('link', { name: 'Sign up' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/have an account/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Forgot password?' })).toBeInTheDocument();
   });
 });
