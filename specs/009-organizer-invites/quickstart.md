@@ -56,7 +56,7 @@ Task IDs are filled in by `/speckit-tasks`; the rows are fixed now so `tasks.md`
 |---|---|---|---|---|---|
 | V1 | Minimum password length read (research R17); expected 6 | Supabase dev → Authentication → Sign In / Providers → Email | 2026-09-27 | 6 — read by the maintainer; matches `min(6)`, no schema change | ☑ |
 | V2 | Same | Supabase prod | 2026-09-27 | 6 — read by the maintainer; matches `min(6)`, no schema change | ☑ |
-| V3 | Site URL re-read = `dev`-branch preview origin alone (research R18) | Supabase dev → Authentication → URL Configuration | 2026-09-27 | `site_url` = `https://holigay-yyc-git-dev-owen-roses-projects.vercel.app` alone; Redirect URLs unchanged (that origin + `uat-holigay-yyc`). Read via the Management API (`GET`/`PATCH /v1/projects/kcokcufmzyckbodelqpb/config/auth`, CLI login token) from the maintainer-approved implementation session; sender `noreply@holigayeventsyyc.ca` / "Holigay Events YYC", `password_min_length` 6 | ☑ |
+| V3 | Site URL re-read = `dev`-branch preview origin alone (research R18) | Supabase dev → Authentication → URL Configuration | 2026-09-27 | `site_url` = `https://holigay-yyc-git-dev-owen-roses-projects.vercel.app` alone; Redirect URLs unchanged (that origin + `uat-holigay-yyc`). Read via the Management API (`GET`/`PATCH /v1/projects/kcokcufmzyckbodelqpb/config/auth`, CLI login token) from the maintainer-approved implementation session; sender `noreply@holigayeventsyyc.ca` / "Holigay Events YYC", `password_min_length` 6 — superseded 2026-09-27: Site URL is now the `uat-` host (spec 010 D2) | ☑ |
 | V4 | Site URL = `https://vendors.holigayeventsyyc.ca` | Supabase prod | | | ☐ |
 
 ### Dev project and preview

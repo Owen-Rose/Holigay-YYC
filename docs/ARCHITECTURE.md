@@ -215,7 +215,7 @@ hack: the `users_with_roles` view is queried as `.from('users_with_roles' as 'us
 because generated types don't include views cleanly.
 
 **Env vars:** parsed once at first import by two Zod modules that throw one aggregated
-error naming every problem. `src/lib/env-public.ts` owns the `NEXT_PUBLIC_*` pair (literal
+error naming every problem. `src/lib/env-public.ts` owns the `NEXT_PUBLIC_*` values (the Supabase pair and the invite-only flag) (literal
 `process.env.X` reads so Next inlines them; importable anywhere). `src/lib/env.ts` is
 server-only and owns the rest; its production-only rules key on `VERCEL_ENV`, never
 `NODE_ENV`. Contract: `specs/007-production-readiness/contracts/env-contract.md`. The two

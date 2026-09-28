@@ -318,8 +318,10 @@ operational readiness, not implementation.
 - [ ] Env validation module in place; `.env` contract in CLAUDE.md current.
 - [ ] Seed the real organizer accounts (manual SQL is fine — Epic 4 backend is not
       launch-blocking with ~2 organizers).
-- [ ] Preview-deployment access decided for UAT (Vercel preview URLs are
-      public-by-link).
+- [x] Preview-deployment access decided for UAT (Vercel preview URLs are
+      public-by-link). Decided 2026-09-27 (spec 010): previews stay public by link and
+      accounts are invite-only — dev sign-up off, `NEXT_PUBLIC_INVITE_ONLY=true` on
+      Preview, the Team page invites vendors as well as organizers; `/apply` stays open.
 - [ ] A smoke-test script for event week: submit test application, check email arrives,
       check review flow.
 
