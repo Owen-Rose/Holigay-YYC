@@ -87,7 +87,7 @@ note) ends "the remaining UAT-findings items (6, 4, 5) as their own PRs → firs
 Item 11 is added because it silently breaks vendor-to-account linking, which organizers
 will exercise.
 
-- [ ] **UAT-6** — Status buttons swap under the cursor with no confirmation.
+- [x] **UAT-6** (PR #46 merged 2026-10-06) — Status buttons swap under the cursor with no confirmation.
       `src/app/dashboard/applications/[id]/status-buttons.tsx`: after **Approve**, a
       **Pending** button appears in the same spot, so a double-click approves (email
       sent) then un-approves. `src/app/dashboard/events/event-status-actions.tsx`:
