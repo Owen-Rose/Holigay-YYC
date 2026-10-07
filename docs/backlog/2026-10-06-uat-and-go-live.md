@@ -236,7 +236,7 @@ that account.
       `src/app/dashboard/events/[id]/questionnaire-builder.tsx` lists type and required
       but not the show-if rule, so a conditional question looks unconditional.
       Owner: agent · Shape: PR · Do if organizers notice or time allows.
-- [ ] **UAT-8** `[P]` — Polish: on `/dashboard/events` at about 930 px the "Yes, delete /
+- [x] **UAT-8** `[P]` (PR #54 merged 2026-10-06; evidence: 930 px and 1024 px checks on the PR preview, recorded on the PR) — Polish: on `/dashboard/events` at about 930 px the "Yes, delete /
       Cancel" pair overlaps the Applications column.
       Owner: agent · Shape: PR · Do if organizers notice or time allows.
 - [ ] **BL-07** — Reset dev again with BL-04 after the organizers are done, so the
