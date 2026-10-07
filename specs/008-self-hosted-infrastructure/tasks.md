@@ -67,7 +67,7 @@
 
 **Independent Test**: `docker build` produces an image that serves the app against `supabase start`; `npm test` passes the new cases; after promotion, Vercel production builds with `APP_ENV=production` and a 5 MB attachment uploads through `/apply`.
 
-- [ ] T005 [US1] `next.config.ts` — standalone output and the server-action body limit — in `next.config.ts` (files, interfaces and steps below)
+- [ ] T005 [US1] `next.config.ts` — standalone output and the server-action body limit — in `next.config.ts` (files, interfaces and steps below) — **Note (2026-10-06):** the body-limit half (`experimental.serverActions.bodySizeLimit: '11mb'` plus `src/test/next-config.test.ts`) landed early as backlog item BL-11, PR [#50](https://github.com/Owen-Rose/Holigay-YYC/pull/50); `output: 'standalone'` and the rest of this task are still owed.
 
 **Files:**
 - Modify: `next.config.ts`
