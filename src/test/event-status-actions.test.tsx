@@ -61,14 +61,78 @@ describe('EventStatusActions — status transitions', () => {
     expect(mockRouterRefresh).toHaveBeenCalled();
   });
 
-  it('offers Close for an active event', async () => {
+  it('publishes exactly once on a double-click while the first call is in flight', async () => {
+    let resolvePublish: (value: { success: boolean; error: null }) => void = () => {};
+    mockUpdateEventStatus.mockReturnValue(
+      new Promise((resolve) => {
+        resolvePublish = resolve;
+      })
+    );
+    const user = userEvent.setup();
+    renderActions({ status: 'draft' });
+
+    await user.dblClick(screen.getByRole('button', { name: 'Publish' }));
+
+    expect(mockUpdateEventStatus).toHaveBeenCalledTimes(1);
+    expect(mockUpdateEventStatus).toHaveBeenCalledWith('event-1', 'active');
+
+    resolvePublish({ success: true, error: null });
+    await waitFor(() => expect(mockToastSuccess).toHaveBeenCalledWith('Event published'));
+  });
+
+  it('asks for confirmation instead of closing on the first click', async () => {
     const user = userEvent.setup();
     renderActions({ status: 'active' });
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
 
+    expect(mockUpdateEventStatus).not.toHaveBeenCalled();
+    expect(screen.getByText('Close event?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Yes, close' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+  });
+
+  it('returns to idle on Cancel without closing', async () => {
+    const user = userEvent.setup();
+    renderActions({ status: 'active' });
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(mockUpdateEventStatus).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    expect(screen.queryByText('Close event?')).not.toBeInTheDocument();
+  });
+
+  it('closes the event once confirmed', async () => {
+    const user = userEvent.setup();
+    renderActions({ status: 'active' });
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(screen.getByRole('button', { name: 'Yes, close' }));
+
     await waitFor(() => expect(mockUpdateEventStatus).toHaveBeenCalledWith('event-1', 'closed'));
+    expect(mockUpdateEventStatus).toHaveBeenCalledTimes(1);
     expect(mockToastSuccess).toHaveBeenCalledWith('Event closed');
+    expect(mockRouterRefresh).toHaveBeenCalled();
+  });
+
+  it('surfaces the action error and stays on the row when the close fails', async () => {
+    mockUpdateEventStatus.mockResolvedValue({
+      success: false,
+      error: 'Cannot change status from "active" to "closed"',
+    });
+    const user = userEvent.setup();
+    renderActions({ status: 'active' });
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(screen.getByRole('button', { name: 'Yes, close' }));
+
+    await waitFor(() =>
+      expect(mockToastError).toHaveBeenCalledWith('Cannot change status from "active" to "closed"')
+    );
+    expect(mockRouterRefresh).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
   });
 
   it('offers no transition for a closed event', () => {
@@ -204,6 +268,24 @@ describe('EventStatusActions — row link containment', () => {
     expect(onRowClick).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole('button', { name: 'Publish' }));
+    expect(onRowClick).not.toHaveBeenCalled();
+  });
+
+  it('does not let the close confirmation bubble a click to the row link', async () => {
+    const user = userEvent.setup();
+    const onRowClick = vi.fn();
+
+    render(
+      <div onClick={onRowClick}>
+        <EventStatusActions eventId="event-1" status="active" applicationCount={2} />
+      </div>
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    await user.click(screen.getByRole('button', { name: 'Yes, close' }));
+
     expect(onRowClick).not.toHaveBeenCalled();
   });
 });
