@@ -146,6 +146,32 @@ describe('QuestionnaireBuilder', () => {
       expect(screen.getByText(/questionnaire locked/i)).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /add question/i })).not.toBeInTheDocument();
     });
+
+    it('lists the show-if rule under a conditional question in the locked view', () => {
+      const withRule: EventQuestion[] = [
+        makeQuestion({
+          id: 'q-1',
+          label: 'Booth Preference',
+          type: 'single_select',
+          position: 0,
+          options: [
+            { key: 'indoor', label: 'Indoor' },
+            { key: 'outdoor', label: 'Outdoor' },
+          ] as unknown as null,
+        }),
+        makeQuestion({
+          id: 'q-2',
+          label: 'Special Requirements',
+          type: 'long_text',
+          position: 1,
+          show_if: { questionId: 'q-1', operator: 'equals', value: 'outdoor' } as unknown as null,
+        }),
+      ];
+      renderBuilder(withRule, true);
+
+      expect(screen.getByText('Shown if Booth Preference = Outdoor')).toBeInTheDocument();
+      expect(screen.getAllByText(/shown if/i)).toHaveLength(1);
+    });
   });
 
   describe('adding a question', () => {
