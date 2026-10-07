@@ -232,7 +232,7 @@ that account.
       constitution. A finding that needs a schema, RLS or auth change opens a spec
       instead (next free number is 011). Exit condition: zero open blocker findings.
       Owner: agent · Shape: PR each · Blocked by: 007-T017.
-- [ ] **UAT-7** `[P]` — Polish: the locked questionnaire view in
+- [x] **UAT-7** `[P]` (PR #53 merged 2026-10-06) — Polish: the locked questionnaire view in
       `src/app/dashboard/events/[id]/questionnaire-builder.tsx` lists type and required
       but not the show-if rule, so a conditional question looks unconditional.
       Owner: agent · Shape: PR · Do if organizers notice or time allows.
