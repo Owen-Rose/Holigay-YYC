@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { deleteEvent, updateEventStatus } from '@/lib/actions/events';
@@ -18,16 +18,24 @@ interface EventStatusActionsProps {
 const BUTTON_BASE =
   'focus:ring-offset-background inline-flex items-center rounded px-2.5 py-1 text-xs font-medium shadow-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50';
 
+const CANCEL_STYLE = `${BUTTON_BASE} border-border text-foreground hover:bg-surface-bright focus:ring-primary/50 border bg-transparent shadow-none`;
+
 /** Each row is wrapped in a Link, so no control may bubble a click to it. */
-function containClick(handler: () => void) {
-  return (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handler();
-  };
+function contain(e: React.MouseEvent, handler: () => void) {
+  e.preventDefault();
+  e.stopPropagation();
+  handler();
 }
 
-const transitionConfig: Record<string, { label: string; target: string; style: string }> = {
+interface TransitionConfig {
+  label: string;
+  target: string;
+  style: string;
+  /** Present when the transition must be confirmed first (UAT-6). */
+  confirm?: { prompt: string; yes: string };
+}
+
+const transitionConfig: Record<string, TransitionConfig> = {
   draft: {
     label: 'Publish',
     target: 'active',
@@ -37,37 +45,52 @@ const transitionConfig: Record<string, { label: string; target: string; style: s
     label: 'Close',
     target: 'closed',
     style: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 text-white',
+    // Closing is forward-only (VALID_TRANSITIONS) and ends applications.
+    confirm: { prompt: 'Close event?', yes: 'Yes, close' },
   },
 };
 
+type Confirming = 'delete' | 'close' | null;
+
 /**
  * Row actions for an event: the status transition (draft → active → closed)
- * and, for events nothing is linked to yet, a two-step delete.
+ * and, for events nothing is linked to yet, a two-step delete. Close and
+ * Delete both ask first; Publish is one click but can only fire once.
  */
 export function EventStatusActions({ eventId, status, applicationCount }: EventStatusActionsProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirming, setConfirming] = useState<Confirming>(null);
+  // Guards against a second click landing before React has re-rendered the
+  // disabled state (a double-click fires both clicks synchronously).
+  const inFlight = useRef(false);
 
   const transition = transitionConfig[status];
   const canDelete = applicationCount === 0;
 
   async function handleTransition(newStatus: string) {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setLoading(true);
 
     const result = await updateEventStatus(eventId, newStatus);
 
     if (result.success) {
       toast.success(newStatus === 'active' ? 'Event published' : 'Event closed');
+      setConfirming(null);
       router.refresh();
     } else {
       toast.error(result.error || 'Failed to update event status');
+      setConfirming(null);
     }
 
     setLoading(false);
+    inFlight.current = false;
   }
 
   async function handleDelete() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setLoading(true);
 
     const result = await deleteEvent(eventId);
@@ -77,23 +100,33 @@ export function EventStatusActions({ eventId, status, applicationCount }: EventS
       router.refresh();
     } else {
       toast.error(result.error || 'Failed to delete event');
-      setConfirmingDelete(false);
+      setConfirming(null);
     }
 
     setLoading(false);
+    inFlight.current = false;
+  }
+
+  function startTransition() {
+    if (!transition) return;
+    if (transition.confirm) {
+      setConfirming('close');
+    } else {
+      void handleTransition(transition.target);
+    }
   }
 
   // Nothing to offer: a closed event that already has applications.
   if (!transition && !canDelete) return null;
 
-  if (confirmingDelete) {
+  if (confirming === 'delete') {
     return (
       <div className="flex items-center justify-end gap-2">
         <span className="text-muted text-xs">Delete?</span>
         <button
           type="button"
           disabled={loading}
-          onClick={containClick(handleDelete)}
+          onClick={(e) => contain(e, handleDelete)}
           className={`${BUTTON_BASE} bg-red-600 text-white hover:bg-red-700 focus:ring-red-500`}
         >
           {loading ? 'Deleting...' : 'Yes, delete'}
@@ -101,8 +134,32 @@ export function EventStatusActions({ eventId, status, applicationCount }: EventS
         <button
           type="button"
           disabled={loading}
-          onClick={containClick(() => setConfirmingDelete(false))}
-          className={`${BUTTON_BASE} border-border text-foreground hover:bg-surface-bright focus:ring-primary/50 border bg-transparent shadow-none`}
+          onClick={(e) => contain(e, () => setConfirming(null))}
+          className={CANCEL_STYLE}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  if (confirming === 'close' && transition?.confirm) {
+    return (
+      <div className="flex items-center justify-end gap-2">
+        <span className="text-muted text-xs">{transition.confirm.prompt}</span>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={(e) => contain(e, () => handleTransition(transition.target))}
+          className={`${BUTTON_BASE} ${transition.style}`}
+        >
+          {loading ? 'Updating...' : transition.confirm.yes}
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={(e) => contain(e, () => setConfirming(null))}
+          className={CANCEL_STYLE}
         >
           Cancel
         </button>
@@ -116,7 +173,7 @@ export function EventStatusActions({ eventId, status, applicationCount }: EventS
         <button
           type="button"
           disabled={loading}
-          onClick={containClick(() => handleTransition(transition.target))}
+          onClick={(e) => contain(e, startTransition)}
           className={`${BUTTON_BASE} ${transition.style}`}
         >
           {loading ? 'Updating...' : transition.label}
@@ -126,7 +183,7 @@ export function EventStatusActions({ eventId, status, applicationCount }: EventS
         <button
           type="button"
           disabled={loading}
-          onClick={containClick(() => setConfirmingDelete(true))}
+          onClick={(e) => contain(e, () => setConfirming('delete'))}
           className={`${BUTTON_BASE} border-border text-muted border bg-transparent shadow-none hover:border-red-500/40 hover:text-red-400 focus:ring-red-500/50`}
         >
           Delete
