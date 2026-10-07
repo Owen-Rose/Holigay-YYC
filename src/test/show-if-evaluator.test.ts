@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evaluateShowIf, validateShowIfRules } from '@/lib/questionnaire/show-if';
+import { describeShowIf, evaluateShowIf, validateShowIfRules } from '@/lib/questionnaire/show-if';
 
 // ============================================================
 // evaluateShowIf
@@ -239,5 +239,57 @@ describe('validateShowIfRules', () => {
     const result = validateShowIfRules(questions);
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.questionId === 'q2')).toBe(true);
+  });
+});
+
+// ============================================================
+// describeShowIf
+// ============================================================
+
+describe('describeShowIf', () => {
+  const questions = [
+    { id: 'q1', type: 'yes_no' as const, label: 'Need power?', options: null },
+    {
+      id: 'q2',
+      type: 'single_select' as const,
+      label: 'Booth Preference',
+      options: [
+        { key: 'indoor', label: 'Indoor' },
+        { key: 'outdoor', label: 'Outdoor' },
+      ],
+    },
+    { id: 'q3', type: 'short_text' as const, label: 'Special Requirements', options: null },
+  ];
+
+  it('returns null without a rule', () => {
+    expect(describeShowIf(null, questions)).toBeNull();
+    expect(describeShowIf(undefined, questions)).toBeNull();
+  });
+
+  it('renders Yes / No for a yes_no trigger', () => {
+    expect(describeShowIf({ questionId: 'q1', operator: 'equals', value: 'true' }, questions)).toBe(
+      'Shown if Need power? = Yes'
+    );
+    expect(
+      describeShowIf({ questionId: 'q1', operator: 'equals', value: 'false' }, questions)
+    ).toBe('Shown if Need power? = No');
+  });
+
+  it('renders the option label for a single_select trigger', () => {
+    expect(
+      describeShowIf({ questionId: 'q2', operator: 'equals', value: 'outdoor' }, questions)
+    ).toBe('Shown if Booth Preference = Outdoor');
+  });
+
+  it('falls back to the raw key when the option no longer exists', () => {
+    expect(describeShowIf({ questionId: 'q2', operator: 'equals', value: 'tent' }, questions)).toBe(
+      'Shown if Booth Preference = tent'
+    );
+  });
+
+  it('falls back to "an earlier question" when the trigger is missing', () => {
+    expect(
+      describeShowIf({ questionId: 'gone', operator: 'equals', value: 'true' }, questions)
+    ).toBe('Shown if an earlier question = true');
   });
 });

@@ -126,3 +126,27 @@ export function validateShowIfRules(questions: QuestionForValidation[]): {
 
   return { ok: errors.length === 0, errors };
 }
+
+type DescribableQuestion = {
+  id?: string;
+  type: QuestionType;
+  label: string;
+  options?: { key: string; label: string }[] | null;
+};
+
+/** Human-readable form of a show-if rule for read-only views: "Shown if <question> = <value>". */
+export function describeShowIf(
+  rule: ShowIfRule | null | undefined,
+  questions: DescribableQuestion[]
+): string | null {
+  if (rule == null) return null;
+  const trigger = questions.find((q) => q.id === rule.questionId);
+  const triggerLabel = trigger?.label || 'an earlier question';
+  let valueLabel = rule.value;
+  if (trigger?.type === 'yes_no') {
+    valueLabel = rule.value === 'true' ? 'Yes' : rule.value === 'false' ? 'No' : rule.value;
+  } else if (trigger?.type === 'single_select') {
+    valueLabel = trigger.options?.find((o) => o.key === rule.value)?.label ?? rule.value;
+  }
+  return `Shown if ${triggerLabel} = ${valueLabel}`;
+}

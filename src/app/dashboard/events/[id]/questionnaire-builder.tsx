@@ -10,7 +10,7 @@ import {
   type QuestionDraft,
   type QuestionOption,
 } from '@/components/forms/question-editor';
-import type { ShowIfRule } from '@/lib/questionnaire/show-if';
+import { describeShowIf, type ShowIfRule } from '@/lib/questionnaire/show-if';
 import { saveEventQuestionnaire } from '@/lib/actions/questionnaires';
 import { seedEventQuestionnaireFromTemplate } from '@/lib/actions/templates';
 import type { Database } from '@/types/database';
@@ -94,6 +94,9 @@ export function QuestionnaireBuilder({
                   {i + 1}. {q.label}
                 </p>
                 {q.help_text && <p className="text-muted mt-1 text-xs">{q.help_text}</p>}
+                {q.show_if && (
+                  <p className="text-muted mt-1 text-xs">{describeShowIf(q.show_if, questions)}</p>
+                )}
               </div>
               <span className="text-muted shrink-0 text-xs tracking-wide uppercase">
                 {q.type.replace(/_/g, ' ')}
