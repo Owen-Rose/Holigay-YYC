@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { getApplications, type ApplicationFilters } from '@/lib/actions/applications';
+import { getEvents } from '@/lib/actions/events';
 import { ApplicationsTable } from '@/components/dashboard/applications-table';
 import { ApplicationsFilter } from '@/components/dashboard/applications-filter';
 import { ExportButton } from '@/components/dashboard/export-button';
@@ -12,6 +13,7 @@ interface ApplicationsPageProps {
   searchParams: Promise<{
     status?: string;
     search?: string;
+    event?: string;
     page?: string;
   }>;
 }
@@ -50,6 +52,10 @@ function FilterSkeleton() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
         <div className="flex-1">
           <div className="bg-surface-bright mb-1 h-5 w-16 rounded" />
+          <div className="bg-surface-bright h-10 w-full rounded-md" />
+        </div>
+        <div className="w-full sm:w-64">
+          <div className="bg-surface-bright mb-1 h-5 w-12 rounded" />
           <div className="bg-surface-bright h-10 w-full rounded-md" />
         </div>
         <div className="w-full sm:w-48">
@@ -219,14 +225,22 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
   const filters: ApplicationFilters = {
     status: params.status || null,
     search: params.search || null,
+    eventId: params.event || null,
   };
 
   // Parse pagination
   const page = parseInt(params.page || '1', 10);
   const pageSize = 10;
 
-  // Fetch applications server-side
-  const result = await getApplications(filters, { page, pageSize });
+  // Fetch applications and the event list (for the Event filter, F-006) server-side
+  const [result, eventsResult] = await Promise.all([
+    getApplications(filters, { page, pageSize }),
+    getEvents(),
+  ]);
+  const filterEvents = (eventsResult.data ?? []).map((event) => ({
+    id: event.id,
+    name: event.name,
+  }));
 
   // Handle error state
   if (!result.success || !result.data) {
@@ -248,6 +262,7 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
   const searchParamsStr = new URLSearchParams();
   if (filters.status) searchParamsStr.set('status', filters.status);
   if (filters.search) searchParamsStr.set('search', filters.search);
+  if (filters.eventId) searchParamsStr.set('event', filters.eventId);
   const baseUrl = `/dashboard/applications${searchParamsStr.toString() ? `?${searchParamsStr.toString()}` : ''}`;
 
   return (
@@ -256,7 +271,7 @@ export default async function ApplicationsPage({ searchParams }: ApplicationsPag
 
       {/* Search and Filter Controls */}
       <Suspense fallback={<FilterSkeleton />}>
-        <ApplicationsFilter />
+        <ApplicationsFilter events={filterEvents} />
       </Suspense>
 
       {/* Applications Table */}
