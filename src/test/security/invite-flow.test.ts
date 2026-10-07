@@ -25,6 +25,7 @@ import {
   EXISTING_ACCOUNT_MESSAGE,
   type InviteDeps,
 } from '@/lib/team/invite-organizer-core';
+import { vendorInfoSchema } from '@/lib/validations/application';
 
 describe.runIf(stackUp)('users_with_roles.invite_pending', () => {
   const service = serviceClient();
@@ -158,7 +159,7 @@ describe.runIf(stackUp)('vendor invitations against the real stack (spec 010)', 
   const service = serviceClient();
   const tag = randomUUID().slice(0, 8);
   const applicant = `invite-${tag}-v+010@example.com`;
-  const mixedCaseStored = `Mixed.Case-${tag}+010@Example.com`;
+  const mixedCaseTyped = `Mixed.Case-${tag}+010@Example.com`;
   const createdUserIds: string[] = [];
   const createdVendorIds: string[] = [];
 
@@ -228,17 +229,23 @@ describe.runIf(stackUp)('vendor invitations against the real stack (spec 010)', 
     expect((await account(applicant)).role).toBe('vendor');
   });
 
-  it('documents the casing gap: a mixed-case vendor row is not linked (research R8)', async () => {
-    // Recorded, not fixed — docs/handoffs/2026-09-27-uat-findings.md item 11.
-    // handle_new_user matches vendors.email exactly; GoTrue stores the address
-    // lower-cased, so an applicant who typed capitals is never linked.
-    const vendorId = await insertVendor(mixedCaseStored);
-    const lowered = mixedCaseStored.toLowerCase();
+  it('links a vendor row for a mixed-case applicant after form normalization (UAT-11)', async () => {
+    // handle_new_user matches vendors.email exactly and GoTrue stores the
+    // address lower-cased, so the public form normalizes the typed address
+    // before it reaches submit_public_application (research R8; UAT findings
+    // item 11). The stored row here is whatever the form schema produces.
+    const { email: stored } = vendorInfoSchema.parse({
+      businessName: `Biz ${tag}`,
+      contactName: `Contact ${tag}`,
+      email: mixedCaseTyped,
+    });
+    const vendorId = await insertVendor(stored);
 
-    const result = await inviteOrganizerCore(service, lowered, 'vendor', { sendInvite });
+    const result = await inviteOrganizerCore(service, mixedCaseTyped, 'vendor', { sendInvite });
 
     expect(result.success).toBe(true);
-    const created = await account(lowered);
-    expect(await links(created.id!, vendorId)).toEqual({ vendorId: null, userId: null });
+    const created = await account(mixedCaseTyped.toLowerCase());
+    expect(created.role).toBe('vendor');
+    expect(await links(created.id!, vendorId)).toEqual({ vendorId, userId: created.id });
   });
 });
