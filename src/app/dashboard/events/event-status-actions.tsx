@@ -48,8 +48,12 @@ const transitionConfig: Record<string, TransitionConfig> = {
     label: 'Close',
     target: 'closed',
     style: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 text-white',
-    // Closing is forward-only (VALID_TRANSITIONS) and ends applications.
-    confirm: { prompt: 'Close event?', yes: 'Yes, close' },
+    // Closing is forward-only (VALID_TRANSITIONS) and ends applications, so the
+    // prompt says so (F-003 interim decision, 2026-10-07 organizer UAT).
+    confirm: {
+      prompt: 'Close event? Applications stop and it cannot be reopened.',
+      yes: 'Yes, close',
+    },
   },
 };
 

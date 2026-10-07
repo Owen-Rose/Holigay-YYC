@@ -33,6 +33,9 @@ vi.mock('sonner', () => ({
 // Helpers
 // =============================================================================
 
+/** The close prompt must say the step is permanent (F-003 interim decision, 2026-10-07). */
+const CLOSE_PROMPT = 'Close event? Applications stop and it cannot be reopened.';
+
 function renderActions(override: Partial<React.ComponentProps<typeof EventStatusActions>> = {}) {
   return render(
     <EventStatusActions eventId="event-1" status="draft" applicationCount={0} {...override} />
@@ -87,7 +90,7 @@ describe('EventStatusActions — status transitions', () => {
     await user.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(mockUpdateEventStatus).not.toHaveBeenCalled();
-    expect(screen.getByText('Close event?')).toBeInTheDocument();
+    expect(screen.getByText(CLOSE_PROMPT)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Yes, close' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
@@ -101,7 +104,7 @@ describe('EventStatusActions — status transitions', () => {
 
     expect(mockUpdateEventStatus).not.toHaveBeenCalled();
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
-    expect(screen.queryByText('Close event?')).not.toBeInTheDocument();
+    expect(screen.queryByText(CLOSE_PROMPT)).not.toBeInTheDocument();
   });
 
   it('closes the event once confirmed', async () => {
@@ -313,6 +316,6 @@ describe('EventStatusActions — narrow cells', () => {
     expect(screen.getByRole('button', { name: 'Close' }).parentElement).toHaveClass('flex-wrap');
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    expect(screen.getByText('Close event?').parentElement).toHaveClass('flex-wrap');
+    expect(screen.getByText(CLOSE_PROMPT).parentElement).toHaveClass('flex-wrap');
   });
 });
