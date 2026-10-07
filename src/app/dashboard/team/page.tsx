@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { DATE_SHORT, formatDateTime } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { getUsers, type UserWithRole } from '@/lib/actions/admin';
 import { inviteOrganizer } from '@/lib/actions/team';
@@ -34,14 +35,6 @@ function RoleBadge({ role }: { role: Role }) {
 // =============================================================================
 // Helpers
 // =============================================================================
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
 
 // =============================================================================
 // Loading Skeleton
@@ -287,7 +280,9 @@ export default function TeamPage() {
                     {member.invitePending && <Badge variant="warning">Pending</Badge>}
                   </div>
                   <div className="col-span-2">
-                    <p className="text-muted text-sm">{formatDate(member.createdAt)}</p>
+                    <p className="text-muted text-sm">
+                      {formatDateTime(member.createdAt, DATE_SHORT)}
+                    </p>
                   </div>
                   <div className="col-span-2 flex justify-end">
                     {member.invitePending && (

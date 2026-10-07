@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DATE_WEEKDAY, formatDateOnly, formatDateTime } from '@/lib/format-date';
 import { notFound } from 'next/navigation';
 import { getApplicationById, type ApplicationDetail } from '@/lib/actions/applications';
 import { StatusUpdateButtons } from './status-buttons';
@@ -19,27 +20,6 @@ interface ApplicationDetailPageProps {
 // =============================================================================
 // Helper Functions
 // =============================================================================
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-function formatDateTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
 
 // =============================================================================
 // Info Section Component
@@ -112,11 +92,15 @@ function EventInfo({ event }: { event: ApplicationDetail['event'] }) {
     <InfoSection title="Event Details">
       <dl className="divide-border-subtle divide-y">
         <InfoRow label="Event Name" value={event.name} />
-        <InfoRow label="Date" value={formatDate(event.event_date)} />
+        <InfoRow label="Date" value={formatDateOnly(event.event_date, DATE_WEEKDAY)} />
         <InfoRow label="Location" value={event.location} />
         <InfoRow
           label="Application Deadline"
-          value={event.application_deadline ? formatDate(event.application_deadline) : null}
+          value={
+            event.application_deadline
+              ? formatDateOnly(event.application_deadline, DATE_WEEKDAY)
+              : null
+          }
         />
         <InfoRow label="Max Vendors" value={event.max_vendors?.toString() || 'Unlimited'} />
       </dl>

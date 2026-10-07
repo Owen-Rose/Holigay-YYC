@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DATE_SHORT, formatDateTime } from '@/lib/format-date';
 import {
   getApplicationCounts,
   getApplications,
@@ -58,15 +59,6 @@ function StatCard({ title, value, icon, href, trend }: StatCardProps) {
 // Recent Applications Component
 // =============================================================================
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 function RecentApplications({ applications }: { applications: ApplicationWithVendor[] }) {
   if (applications.length === 0) {
     return (
@@ -125,7 +117,7 @@ function RecentApplications({ applications }: { applications: ApplicationWithVen
                 <div className="ml-4 flex flex-shrink-0 items-center gap-3">
                   <StatusBadge status={application.status} />
                   <span className="text-muted-foreground text-xs">
-                    {formatDate(application.submitted_at)}
+                    {formatDateTime(application.submitted_at, DATE_SHORT)}
                   </span>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { formatDateOnly } from '@/lib/format-date';
 import { getEvents, type EventWithCount } from '@/lib/actions/events';
 import { Badge } from '@/components/ui/badge';
 import { EventStatusActions } from './event-status-actions';
@@ -30,14 +31,6 @@ function EventStatusBadge({ status }: { status: string }) {
 // =============================================================================
 // Helpers
 // =============================================================================
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
 
 // =============================================================================
 // Icons
@@ -148,14 +141,14 @@ function EventRow({ event }: { event: EventWithCount }) {
 
         {/* Event date */}
         <div className="col-span-4 sm:col-span-2">
-          <p className="text-foreground text-sm">{formatDate(event.event_date)}</p>
+          <p className="text-foreground text-sm">{formatDateOnly(event.event_date)}</p>
         </div>
 
         {/* Deadline */}
         <div className="col-span-4 sm:col-span-2">
           {event.application_deadline ? (
             <p className={`text-sm ${isPastDeadline ? 'text-red-400' : 'text-muted'}`}>
-              {formatDate(event.application_deadline)}
+              {formatDateOnly(event.application_deadline)}
             </p>
           ) : (
             <p className="text-muted-foreground text-sm">No deadline</p>

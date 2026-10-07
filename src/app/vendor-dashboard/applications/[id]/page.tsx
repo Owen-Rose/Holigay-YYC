@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DATE_WEEKDAY, formatDateOnly, formatDateTime } from '@/lib/format-date';
 import { notFound } from 'next/navigation';
 import {
   getVendorApplicationDetail,
@@ -20,25 +21,6 @@ interface VendorApplicationDetailPageProps {
 // =============================================================================
 // Helper Functions
 // =============================================================================
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
-function formatDateTime(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
 
 // =============================================================================
 // Info Section Components
@@ -71,12 +53,16 @@ function EventInfo({ event }: { event: VendorApplicationDetail['event'] }) {
     <InfoSection title="Event Details">
       <dl className="divide-border-subtle divide-y">
         <InfoRow label="Event Name" value={event.name} />
-        <InfoRow label="Date" value={formatDate(event.event_date)} />
+        <InfoRow label="Date" value={formatDateOnly(event.event_date, DATE_WEEKDAY)} />
         <InfoRow label="Location" value={event.location} />
         {event.description && <InfoRow label="Description" value={event.description} />}
         <InfoRow
           label="Application Deadline"
-          value={event.application_deadline ? formatDate(event.application_deadline) : null}
+          value={
+            event.application_deadline
+              ? formatDateOnly(event.application_deadline, DATE_WEEKDAY)
+              : null
+          }
         />
         <InfoRow label="Max Vendors" value={event.max_vendors?.toString() || 'Unlimited'} />
       </dl>

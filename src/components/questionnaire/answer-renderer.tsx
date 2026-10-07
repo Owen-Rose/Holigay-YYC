@@ -1,4 +1,5 @@
 import type { QuestionType } from '@/components/questionnaire/question-types';
+import { formatDateOnly } from '@/lib/format-date';
 import { coerceJsonbToAnswer } from '@/lib/questionnaire/answer-coercion';
 import { FileAnswerLink } from '@/components/questionnaire/file-answer-link';
 import type { Json } from '@/types/database';
@@ -33,11 +34,7 @@ export function AnswerRenderer({ question, rawValue }: AnswerRendererProps) {
   } else if (answer.kind === 'number') {
     valueNode = <p>{answer.value}</p>;
   } else if (answer.kind === 'date') {
-    const formatted = new Date(answer.value + 'T00:00:00').toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    const formatted = formatDateOnly(answer.value);
     valueNode = <p>{formatted}</p>;
   } else if (answer.kind === 'choice') {
     const opt = question.options?.find((o) => o.key === answer.value);

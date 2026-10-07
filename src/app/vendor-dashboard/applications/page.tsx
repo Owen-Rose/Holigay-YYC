@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DATE_SHORT, formatDateOnly, formatDateTime } from '@/lib/format-date';
 import { getVendorApplicationsList, type VendorApplication } from '@/lib/actions/vendor-dashboard';
 import { StatusBadge } from '@/components/ui/badge';
 
@@ -52,14 +53,6 @@ function StatusFilterTabs({ activeStatus }: { activeStatus: string }) {
 // Applications List
 // =============================================================================
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 function ApplicationsList({ applications }: { applications: VendorApplication[] }) {
   return (
     <div className="border-border-subtle bg-surface rounded-lg border">
@@ -76,13 +69,14 @@ function ApplicationsList({ applications }: { applications: VendorApplication[] 
                     {application.event.name}
                   </p>
                   <p className="text-muted mt-1 truncate text-sm">
-                    {formatDate(application.event.event_date)} &middot; {application.event.location}
+                    {formatDateOnly(application.event.event_date)} &middot;{' '}
+                    {application.event.location}
                   </p>
                 </div>
                 <div className="ml-4 flex flex-shrink-0 items-center gap-3">
                   <StatusBadge status={application.status} />
                   <span className="text-muted-foreground hidden text-xs sm:inline">
-                    Submitted {formatDate(application.submitted_at)}
+                    Submitted {formatDateTime(application.submitted_at, DATE_SHORT)}
                   </span>
                 </div>
               </div>

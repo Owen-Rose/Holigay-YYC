@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { DATE_SHORT, formatDateTime } from '@/lib/format-date';
 import { createClient } from '@/lib/supabase/client';
 
 // =============================================================================
@@ -132,7 +133,7 @@ function AttachmentItem({ attachment }: { attachment: Attachment }) {
         <p className="text-foreground truncate text-sm font-medium">{attachment.file_name}</p>
         <p className="text-muted text-xs">
           {formatFileSize(attachment.file_size)} &middot;{' '}
-          {new Date(attachment.uploaded_at).toLocaleDateString()}
+          {formatDateTime(attachment.uploaded_at, DATE_SHORT)}
         </p>
         {error && (
           <p className="mt-1 text-xs text-red-400" role="alert">

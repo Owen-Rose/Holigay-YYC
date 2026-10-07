@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { DATE_SHORT, formatDateTime, todayDateOnly } from '@/lib/format-date';
 import { requireRole } from '@/lib/auth/roles';
 import type { ApplicationFilters } from './applications';
 
@@ -56,22 +57,6 @@ function escapeCSVValue(value: string | null | undefined): string {
  */
 function toCSVRow(values: (string | null | undefined)[]): string {
   return values.map(escapeCSVValue).join(',');
-}
-
-/**
- * Formats a date string to a readable format
- */
-function formatDate(dateString: string | null): string {
-  if (!dateString) return '';
-  try {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return dateString;
-  }
 }
 
 /**
@@ -196,7 +181,7 @@ export async function exportApplicationsCSV(
         error: null,
         data: {
           csv: toCSVRow(headers),
-          filename: `applications-export-${new Date().toISOString().split('T')[0]}.csv`,
+          filename: `applications-export-${todayDateOnly()}.csv`,
           count: 0,
         },
       };
@@ -262,7 +247,7 @@ export async function exportApplicationsCSV(
       vendor.phone,
       vendor.website,
       app.status,
-      formatDate(app.submitted_at),
+      formatDateTime(app.submitted_at, DATE_SHORT),
       event?.name || '',
       app.booth_preference,
       formatCategories(app.product_categories),
@@ -275,7 +260,7 @@ export async function exportApplicationsCSV(
   }
 
   // Generate filename with current date
-  const filename = `applications-export-${new Date().toISOString().split('T')[0]}.csv`;
+  const filename = `applications-export-${todayDateOnly()}.csv`;
 
   return {
     success: true,

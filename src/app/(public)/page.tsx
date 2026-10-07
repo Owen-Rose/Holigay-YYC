@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import { getActiveEvents } from '@/lib/actions/applications';
 
 export const metadata = {
@@ -237,33 +238,22 @@ type Event = {
 
 function EventCard({ event }: { event: Event }) {
   // Format the event date
-  const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const eventDate = formatDateOnly(event.event_date, DATE_LONG);
 
   // Format the application deadline if present
-  const deadline = event.application_deadline
-    ? new Date(event.application_deadline).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null;
+  const deadline = event.application_deadline ? formatDateOnly(event.application_deadline) : null;
 
   return (
     <div className="border-border-subtle bg-surface flex flex-col overflow-hidden rounded-lg border sm:flex-row">
       {/* Date badge - visible on left for desktop, top for mobile */}
       <div className="bg-primary text-primary-foreground flex shrink-0 flex-col items-center justify-center p-4 sm:w-32">
         <span className="text-sm font-medium uppercase">
-          {new Date(event.event_date).toLocaleDateString('en-US', {
-            month: 'short',
-          })}
+          {formatDateOnly(event.event_date, { month: 'short' })}
         </span>
-        <span className="text-3xl font-bold">{new Date(event.event_date).getDate()}</span>
-        <span className="text-sm">{new Date(event.event_date).getFullYear()}</span>
+        <span className="text-3xl font-bold">
+          {formatDateOnly(event.event_date, { day: 'numeric' })}
+        </span>
+        <span className="text-sm">{formatDateOnly(event.event_date, { year: 'numeric' })}</span>
       </div>
 
       {/* Event details */}
