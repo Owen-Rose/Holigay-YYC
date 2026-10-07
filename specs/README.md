@@ -41,7 +41,7 @@ merged as one unit.
 
 ## Queued work (no spec yet)
 
-See `docs/ROADMAP.md` Tier 3 (foundation hardening) and Tier 4. `docs/cleanup-roadmap.md` is historical — all five of its workstreams are complete and its leftover items were folded into Tier 3.
+The ordered list of what remains for the organizer UAT and go-live — the open 007/009/010 tasks, the UAT findings and the clean-slate work — is `docs/backlog/2026-10-06-uat-and-go-live.md`. Beyond that, see `docs/ROADMAP.md` Tier 3 (foundation hardening) and Tier 4. `docs/cleanup-roadmap.md` is historical — all five of its workstreams are complete and its leftover items were folded into Tier 3.
 
 ## Conventions
 
