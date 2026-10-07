@@ -304,6 +304,7 @@ has not read the code:
 |---|---|
 | `event-week-smoke.md` | Before event week and after every promotion to `main` — `npm run smoke`, a ten-minute click-through, and the SQL that cleans up after it |
 | `backup-restore.md` | The three-part backup (schema, data, `attachments` bucket) and the restore drill |
+| `reset-hosted-project.md` | Returning a hosted project (dev or prod) to admin-plus-organizers only: inventory → keep-list → bucket objects through Storage → SQL in FK order → verify. Destructive; needs Owen's go per run |
 
 ### Task Workflow
 
