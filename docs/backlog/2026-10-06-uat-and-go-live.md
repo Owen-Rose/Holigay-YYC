@@ -177,16 +177,44 @@ will exercise.
       pull it forward as its own small PR with a test.
       Owner: Owen (decision), agent (PR) · Shape: PR · Blocked by: — · Done when: a 5 MB
       upload succeeds on the PR preview.
-- [ ] **BL-06** — Invite the organizers from `/dashboard/team` on the uat host
+      Owen's check 2026-10-06, uat host (dev project): a generated 1400×1000 PNG of
+      4,202,343 bytes (4.0 MB) on the required file-upload question of "Holigay Winter
+      Market 2026", submitted twice — once signed in as admin (by mistake; the public path
+      was meant), once signed out as anon. Both: success screen, upload server action 200,
+      no 413, no console errors; the signed URL served the full file to the admin and to
+      the rehearsal organizer. **Pass.** Observation, not a blocker: after every server
+      action that succeeds on this deployment the network log shows one extra POST to the
+      same path answering 503 (apply ×2, team invite ×1) and once a 503 on an RSC prefetch
+      of `/apply`; the duplicate-vendor refusal (early return) showed none. No user-visible
+      effect. Worth a look in the Vercel function logs around 22:05–22:15 MDT.
+- [x] **BL-06** (rehearsal 2026-10-06; real invites → BL-12) — Invite the organizers from `/dashboard/team` on the uat host
       (role picker → Organizer). Record who (role only, no addresses) and when in
       `specs/010-invite-only-uat/quickstart.md`, and tell them what to test (the
       lifecycle in `docs/M3-PLAN.md` "UAT dry-run shape" is the script).
       Owner: Owen · Shape: UI · Blocked by: UAT-6, UAT-4, UAT-5, UAT-11, BL-05 ·
       Done when: organizers have signed in and land on `/dashboard`.
+      Rehearsal invite only, 2026-10-06: organizer role to my +uat-org address, landed on
+      /dashboard; real organizer invites deferred to new item BL-12. Team page showed the
+      invite Pending; the mail link went to `/auth/confirm` → `/set-password` already
+      signed in; after the password the account landed on `/dashboard` with the organizer
+      nav (no Team, no User Management); a fresh sign-in as that organizer saw the sample
+      event "Holigay Winter Market 2026" and the BL-11 application, and its file link
+      opened. Sample event left published with no applications.
+      Tidy 2026-10-06 (runbook §3 + §4 scoped to the two BL-11 applications, Management
+      API path, keep both users): Owen removed the three BL-11 objects in the dashboard;
+      one write request deleted 12 answers, 0 attachment rows, 2 applications, 2 vendors.
+      Verify: events 1, event_questionnaires 1, event_questions 7, vendors 0,
+      applications 0, application_answers 0, attachments 0, questionnaire_templates 1,
+      template_questions 1, user_profiles 2, auth.users 2 (admin + `+uat-org` organizer),
+      storage.objects 1 (`uploads/.emptyFolderPlaceholder`).
 
 ---
 
 ## Phase 2 — During and after the organizer UAT
+
+Until BL-12, the organizer session is run by Owen playing organizer on the `+uat-org`
+account (the BL-06 rehearsal invite, 2026-10-06). "Organizers" in the items below means
+that account.
 
 - [ ] **007-T017** (reframed) — The organizer session on the uat host _is_ the lifecycle
       run. Log it against the T016 template in
@@ -312,6 +340,12 @@ so the order below is strict.
       M3 exit criteria in `docs/M3-PLAN.md`; archive this backlog's completed phases
       with a closing note.
       Owner: agent · Shape: PR · Blocked by: 007-T022.
+- [ ] **BL-12** — Invite the real organizers from `/dashboard/team` (role picker →
+      Organizer). Until then the organizer seat is Owen on the `+uat-org` account (BL-06).
+      Record who (role only, no addresses) and when in
+      `specs/010-invite-only-uat/quickstart.md`, and tell them what to test.
+      Owner: Owen · Shape: UI · Blocked by: BL-10 · Done when: the organizers have signed
+      in and land on `/dashboard`.
 
 ---
 
