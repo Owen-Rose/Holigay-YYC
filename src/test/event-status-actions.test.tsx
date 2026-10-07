@@ -289,3 +289,30 @@ describe('EventStatusActions — row link containment', () => {
     expect(onRowClick).not.toHaveBeenCalled();
   });
 });
+
+// =============================================================================
+// Narrow cells (UAT-8)
+// =============================================================================
+
+describe('EventStatusActions — narrow cells', () => {
+  it('lets the delete confirmation wrap so it stays inside its grid cell', async () => {
+    const user = userEvent.setup();
+    renderActions();
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    const row = screen.getByText('Delete?').parentElement;
+    expect(row).toHaveClass('flex-wrap');
+    expect(row).toHaveClass('justify-end');
+  });
+
+  it('lets the close confirmation and the idle pair wrap too', async () => {
+    const user = userEvent.setup();
+    renderActions({ status: 'active' });
+
+    expect(screen.getByRole('button', { name: 'Close' }).parentElement).toHaveClass('flex-wrap');
+
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.getByText('Close event?').parentElement).toHaveClass('flex-wrap');
+  });
+});
