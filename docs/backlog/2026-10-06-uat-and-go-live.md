@@ -121,7 +121,7 @@ will exercise.
       Owner: agent (PR), Owen (Vercel var) · Shape: PR + dashboard · Blocked by: Owen
       naming the reply-to mailbox · Done when: merged and a status email on the uat host
       shows the reply-to header.
-- [ ] **UAT-11** `[P]` — Application email casing. `src/lib/validations/application.ts:120`
+- [x] **UAT-11** `[P]` (PR #48 merged 2026-10-06) — Application email casing. `src/lib/validations/application.ts:120`
       keeps the case the applicant typed; `handle_new_user` matches `vendors.email`
       exactly; GoTrue stores addresses lower-cased. An applicant who typed capitals is
       never linked to their account, by self sign-up or invite. Recommended fix:
