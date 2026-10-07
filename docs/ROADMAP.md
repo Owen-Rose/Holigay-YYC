@@ -298,6 +298,11 @@ operational readiness, not implementation.
 | **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them. **Sequenced in [M3-PLAN.md](./M3-PLAN.md)** (2026-09-13): three tracks, dashboard-vs-repo split, UAT script, exit criteria | month 2 |
 | **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |
 
+**Live order of work for M3 → M4** (organizer UAT, production rollout, clean slate):
+[backlog/2026-10-06-uat-and-go-live.md](./backlog/2026-10-06-uat-and-go-live.md).
+It consolidates the open spec tasks, the UAT findings and the checklist below; tick
+items there and here together.
+
 **Production-readiness checklist (M3):** (order, owners and the UAT script: [M3-PLAN.md](./M3-PLAN.md))
 
 - [ ] **Verify a sending domain in Resend** and set `EMAIL_FROM_ADDRESS`. The current
