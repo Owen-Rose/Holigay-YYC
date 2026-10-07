@@ -20,6 +20,9 @@ const BUTTON_BASE =
 
 const CANCEL_STYLE = `${BUTTON_BASE} border-border text-foreground hover:bg-surface-bright focus:ring-primary/50 border bg-transparent shadow-none`;
 
+/** The cell is two of twelve grid columns; wrapping keeps the pair inside it at tablet widths (UAT-8). */
+const ROW_STYLE = 'flex flex-wrap items-center justify-end gap-2';
+
 /** Each row is wrapped in a Link, so no control may bubble a click to it. */
 function contain(e: React.MouseEvent, handler: () => void) {
   e.preventDefault();
@@ -121,7 +124,7 @@ export function EventStatusActions({ eventId, status, applicationCount }: EventS
 
   if (confirming === 'delete') {
     return (
-      <div className="flex items-center justify-end gap-2">
+      <div className={ROW_STYLE}>
         <span className="text-muted text-xs">Delete?</span>
         <button
           type="button"
@@ -145,7 +148,7 @@ export function EventStatusActions({ eventId, status, applicationCount }: EventS
 
   if (confirming === 'close' && transition?.confirm) {
     return (
-      <div className="flex items-center justify-end gap-2">
+      <div className={ROW_STYLE}>
         <span className="text-muted text-xs">{transition.confirm.prompt}</span>
         <button
           type="button"
@@ -168,7 +171,7 @@ export function EventStatusActions({ eventId, status, applicationCount }: EventS
   }
 
   return (
-    <div className="flex items-center justify-end gap-2">
+    <div className={ROW_STYLE}>
       {transition && (
         <button
           type="button"
