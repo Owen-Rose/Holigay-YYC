@@ -117,7 +117,9 @@ export const vendorInfoSchema = z.object({
     .string()
     .min(2, 'Contact name must be at least 2 characters')
     .max(100, 'Contact name must be less than 100 characters'),
-  email: z.string().email('Please enter a valid email address'),
+  // Trimmed and lower-cased so the stored vendor row matches the GoTrue
+  // account (which is always lower-cased) and handle_new_user can link them.
+  email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
   phone: z
     .string()
     .regex(phoneRegex, 'Please enter a valid phone number')
