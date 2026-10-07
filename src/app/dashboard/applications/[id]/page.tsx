@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getApplicationById, type ApplicationDetail } from '@/lib/actions/applications';
 import { StatusUpdateButtons } from './status-buttons';
 import { OrganizerNotes } from './organizer-notes';
+import { NotesDraftProvider } from './notes-draft-context';
 import { AttachmentsList } from './attachments-list';
 import { DynamicAnswers } from './dynamic-answers';
 import { Card, CardTitle } from '@/components/ui/card';
@@ -191,39 +192,41 @@ export default async function ApplicationDetailPage({ params }: ApplicationDetai
         <StatusBadge status={application.status} />
       </div>
 
-      {/* Status Update Buttons */}
-      <div className="mb-8">
-        <StatusUpdateButtons applicationId={application.id} currentStatus={application.status} />
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <VendorInfo vendor={application.vendor} />
-        <EventInfo event={application.event} />
-      </div>
-
-      <div className="mt-6">
-        {application.dynamicAnswers !== null ? (
-          <DynamicAnswers answers={application.dynamicAnswers} />
-        ) : (
-          <ApplicationDetails application={application} />
-        )}
-      </div>
-
-      {/* Attachments Section */}
-      {application.attachments.length > 0 && (
-        <div className="mt-6">
-          <AttachmentsList attachments={application.attachments} />
+      {/* Status Update Buttons — share the notes draft with the editor below (F-002) */}
+      <NotesDraftProvider
+        applicationId={application.id}
+        initialNotes={application.organizer_notes || ''}
+      >
+        <div className="mb-8">
+          <StatusUpdateButtons applicationId={application.id} currentStatus={application.status} />
         </div>
-      )}
 
-      {/* Organizer Notes Section */}
-      <div className="mt-6">
-        <OrganizerNotes
-          applicationId={application.id}
-          initialNotes={application.organizer_notes || ''}
-        />
-      </div>
+        {/* Main Content Grid */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <VendorInfo vendor={application.vendor} />
+          <EventInfo event={application.event} />
+        </div>
+
+        <div className="mt-6">
+          {application.dynamicAnswers !== null ? (
+            <DynamicAnswers answers={application.dynamicAnswers} />
+          ) : (
+            <ApplicationDetails application={application} />
+          )}
+        </div>
+
+        {/* Attachments Section */}
+        {application.attachments.length > 0 && (
+          <div className="mt-6">
+            <AttachmentsList attachments={application.attachments} />
+          </div>
+        )}
+
+        {/* Organizer Notes Section */}
+        <div className="mt-6">
+          <OrganizerNotes />
+        </div>
+      </NotesDraftProvider>
     </div>
   );
 }

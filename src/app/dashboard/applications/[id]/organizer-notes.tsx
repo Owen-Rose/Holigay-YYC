@@ -1,45 +1,23 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { updateApplicationNotes } from '@/lib/actions/applications';
-
-// =============================================================================
-// Types
-// =============================================================================
-
-interface OrganizerNotesProps {
-  applicationId: string;
-  initialNotes: string;
-}
+import { useRequiredNotesDraft } from './notes-draft-context';
 
 // =============================================================================
 // Component
 // =============================================================================
 
-export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [notes, setNotes] = useState(initialNotes);
-  const [savedNotes, setSavedNotes] = useState(initialNotes);
-
-  const hasChanges = notes !== savedNotes;
-
-  async function handleSave() {
-    startTransition(async () => {
-      const result = await updateApplicationNotes(applicationId, notes);
-
-      if (!result.success) {
-        toast.error(result.error || 'Failed to save notes');
-        return;
-      }
-
-      setSavedNotes(notes);
-      toast.success('Notes saved');
-      router.refresh();
-    });
-  }
+/**
+ * The organizer-notes editor. Its draft lives in `NotesDraftProvider` so the
+ * status controls can save it before an emailing transition (F-002).
+ */
+export function OrganizerNotes() {
+  const {
+    notes,
+    setNotes,
+    isDirty: hasChanges,
+    isSaving: isPending,
+    save,
+  } = useRequiredNotesDraft();
 
   return (
     <div className="border-border-subtle bg-surface rounded-lg border p-6">
@@ -63,7 +41,7 @@ export function OrganizerNotes({ applicationId, initialNotes }: OrganizerNotesPr
 
       <div className="mt-4 flex justify-end">
         <button
-          onClick={handleSave}
+          onClick={() => void save()}
           disabled={isPending || !hasChanges}
           className="bg-primary text-primary-foreground hover:bg-primary-hover focus:ring-primary/50 focus:ring-offset-background disabled:bg-surface-bright disabled:text-muted-foreground rounded-md px-4 py-2 text-sm font-medium shadow-sm transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed"
         >
