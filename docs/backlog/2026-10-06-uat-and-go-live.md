@@ -135,7 +135,7 @@ will exercise.
       0 applications each) via `/dashboard/events` → Delete → Yes, delete. Folded into
       BL-05 if that runs first.
       Owner: Owen · Shape: UI · Blocked by: — · Done when: not listed on dev.
-- [ ] **BL-04** — Write `docs/runbooks/reset-hosted-project.md`: a reusable recipe to
+- [x] **BL-04** (PR #51 merged 2026-10-06) — Write `docs/runbooks/reset-hosted-project.md`: a reusable recipe to
       return a hosted Supabase project to admin-plus-organizers-only. Contents: an
       inventory query first (counts per table, `auth.users` list, bucket object list);
       SQL in FK order, as in the smoke runbook's cleanup section
@@ -158,7 +158,7 @@ will exercise.
       (recommended: yes, created by Owen, no applications).
       Owner: Owen's go, agent executes via Management API · Shape: SQL + storage ·
       Blocked by: BL-04 · Done when: verify query shows only kept rows; recorded under this item.
-- [ ] **BL-11** — Decide whether to raise the server-action body limit before UAT.
+- [x] **BL-11** (decision 2026-10-06: yes; PR #50 merged 2026-10-06; the 5 MB preview upload is Owen's check) — Decide whether to raise the server-action body limit before UAT.
       `next.config.ts` has no `experimental.serverActions.bodySizeLimit`, so any upload
       over Next's 1 MB default fails with 413 on Vercel today (found during the spec 008
       review; the fix is spec 008 T005's one-line `'11mb'`, matching the 10 MB form
