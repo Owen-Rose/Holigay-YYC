@@ -110,7 +110,7 @@ will exercise.
       date, deadline) must not shift a day.
       Owner: agent · Shape: PR · Blocked by: — · Done when: merged; a unit test pins the
       Edmonton rendering of a fixed UTC timestamp.
-- [ ] **UAT-5** `[P]` — Emails say "reply to this email" but are sent from `noreply@`.
+- [x] **UAT-5** `[P]` (PR #49 merged 2026-10-06; decision: copy only, no reply-to mailbox or env var) — Emails say "reply to this email" but are sent from `noreply@`.
       `src/lib/email/templates/status-update.ts` lines 81, 252, 290, 330 (and the
       received-template equivalents) invite replies; `sendEmail` in
       `src/lib/email/client.ts` accepts `replyTo` but no caller passes it. Recommended
