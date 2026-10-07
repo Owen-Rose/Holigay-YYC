@@ -8,8 +8,15 @@ import { cn } from '@/lib/utils';
 // Types
 // =============================================================================
 
+/** The events offered in the Event select (F-006). Omit to hide the select. */
+export interface FilterEventOption {
+  id: string;
+  name: string;
+}
+
 interface ApplicationsFilterProps {
   className?: string;
+  events?: FilterEventOption[];
 }
 
 // Status options for the filter dropdown
@@ -20,6 +27,14 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: 'Rejected' },
   { value: 'waitlisted', label: 'Waitlisted' },
 ] as const;
+
+// Shared look for the two filter selects (custom arrow in a muted colour for the dark bg)
+const SELECT_CLASS = cn(
+  'border-border bg-surface text-foreground block w-full appearance-none rounded-md border py-2 pr-10 pl-3',
+  'focus:border-primary focus:ring-primary/50 focus:ring-1 focus:outline-none',
+  'bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23A89BB2%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E")]',
+  'bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat'
+);
 
 // =============================================================================
 // Search Icon Component
@@ -67,7 +82,7 @@ function ClearIcon({ className }: { className?: string }) {
 // Main Component
 // =============================================================================
 
-export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
+export function ApplicationsFilter({ className, events }: ApplicationsFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -76,12 +91,14 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
   // Get current filter values from URL
   const currentSearch = searchParams.get('search') || '';
   const currentStatus = searchParams.get('status') || '';
+  const currentEvent = searchParams.get('event') || '';
+  const currentEventName = events?.find((e) => e.id === currentEvent)?.name;
 
   // Local state for the search input (for debouncing)
   const [searchValue, setSearchValue] = useState(currentSearch);
 
   // Check if any filters are active
-  const hasActiveFilters = currentSearch || currentStatus;
+  const hasActiveFilters = currentSearch || currentStatus || currentEvent;
 
   // ---------------------------------------------------------------------------
   // URL Update Helper
@@ -143,9 +160,13 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
     updateUrl({ status: e.target.value });
   };
 
+  const handleEventChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    updateUrl({ event: e.target.value });
+  };
+
   const handleClearFilters = () => {
     setSearchValue('');
-    updateUrl({ search: null, status: null });
+    updateUrl({ search: null, status: null, event: null });
   };
 
   const handleClearSearch = () => {
@@ -196,6 +217,29 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
           </div>
         </div>
 
+        {/* Event Filter (F-006) */}
+        {events && (
+          <div className="w-full sm:w-64">
+            <label htmlFor="event" className="text-foreground mb-1 block text-sm font-medium">
+              Event
+            </label>
+            <select
+              id="event"
+              name="event"
+              value={currentEvent}
+              onChange={handleEventChange}
+              className={cn(SELECT_CLASS, isPending && 'opacity-70')}
+            >
+              <option value="">All Events</option>
+              {events.map((event) => (
+                <option key={event.id} value={event.id}>
+                  {event.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Status Filter */}
         <div className="w-full sm:w-48">
           <label htmlFor="status" className="text-foreground mb-1 block text-sm font-medium">
@@ -206,14 +250,7 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
             name="status"
             value={currentStatus}
             onChange={handleStatusChange}
-            className={cn(
-              'border-border bg-surface text-foreground block w-full appearance-none rounded-md border py-2 pr-10 pl-3',
-              'focus:border-primary focus:ring-primary/50 focus:ring-1 focus:outline-none',
-              // Custom dropdown arrow (muted color for dark bg)
-              'bg-[url("data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23A89BB2%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E")]',
-              'bg-[length:1.25rem_1.25rem] bg-[right_0.5rem_center] bg-no-repeat',
-              isPending && 'opacity-70'
-            )}
+            className={cn(SELECT_CLASS, isPending && 'opacity-70')}
           >
             {STATUS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -254,6 +291,19 @@ export function ApplicationsFilter({ className }: ApplicationsFilterProps) {
                 onClick={handleClearSearch}
                 className="hover:bg-primary/25 ml-0.5 rounded-full p-0.5"
                 aria-label="Remove search filter"
+              >
+                <ClearIcon className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+          {currentEvent && (
+            <span className="bg-primary/15 text-primary inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium">
+              Event: {currentEventName ?? currentEvent}
+              <button
+                type="button"
+                onClick={() => updateUrl({ event: null })}
+                className="hover:bg-primary/25 ml-0.5 rounded-full p-0.5"
+                aria-label="Remove event filter"
               >
                 <ClearIcon className="h-3 w-3" />
               </button>
