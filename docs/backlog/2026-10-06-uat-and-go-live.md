@@ -186,7 +186,11 @@ will exercise.
       action that succeeds on this deployment the network log shows one extra POST to the
       same path answering 503 (apply ×2, team invite ×1) and once a 503 on an RSC prefetch
       of `/apply`; the duplicate-vendor refusal (early return) showed none. No user-visible
-      effect. Worth a look in the Vercel function logs around 22:05–22:15 MDT.
+      effect. Resolved the same night against the Vercel logs (past hour, preview, branch
+      `dev`): no 503 was logged at all — every POST was 200, the six `/apply` action calls
+      and the invite included; the only non-200 rows were 18 `OPTIONS /` → 400 from Chrome
+      itself, spread across the hour. The 503s were an artefact of the Chrome extension's
+      network tracker, not the app or the platform. Nothing to fix.
 - [x] **BL-06** (rehearsal 2026-10-06; real invites → BL-12) — Invite the organizers from `/dashboard/team` on the uat host
       (role picker → Organizer). Record who (role only, no addresses) and when in
       `specs/010-invite-only-uat/quickstart.md`, and tell them what to test (the
