@@ -78,7 +78,7 @@ const STATUS_CONFIG: Record<ApplicationStatus, StatusConfig> = {
           Prepare your products and display materials.
         </li>
         <li style="margin-bottom: 8px;">
-          If you have any questions, reply to this email.
+          If you have any questions, contact the Holigay Events YYC organizers directly.
         </li>
       </ol>
     `,
@@ -249,7 +249,8 @@ export function statusUpdateEmail(data: StatusUpdateEmailData): EmailContent {
     }
 
     <p style="color: #71717a; font-size: 14px;">
-      If you have any questions, please don't hesitate to reply to this email.
+      If you have any questions, please contact the Holigay Events YYC organizers directly.
+      This mailbox is not monitored.
     </p>
 
     <p style="margin-bottom: 0;">
@@ -287,7 +288,7 @@ NEXT STEPS
 1. Mark your calendar for the event date.
 2. Watch for a follow-up email with booth assignment and setup instructions.
 3. Prepare your products and display materials.
-4. If you have any questions, reply to this email.
+4. If you have any questions, contact the Holigay Events YYC organizers directly.
 `;
   } else if (status === 'waitlisted') {
     additionalText = `
@@ -327,7 +328,7 @@ Event: ${eventName}
 Event Date: ${eventDate}
 Status: ${config.statusLabel}
 ${additionalText}${notesSection}
-If you have any questions, please don't hesitate to reply to this email.
+If you have any questions, please contact the Holigay Events YYC organizers directly. This mailbox is not monitored.
 
 Best regards,
 The Holigay Vendor Market Team

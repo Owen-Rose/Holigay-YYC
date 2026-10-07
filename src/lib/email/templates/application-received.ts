@@ -143,8 +143,8 @@ export function applicationReceivedEmail(data: ApplicationReceivedEmailData): Em
     </ol>
 
     <p style="color: #71717a; font-size: 14px;">
-      If you have any questions in the meantime, please don't hesitate to reach out
-      by replying to this email.
+      If you have any questions in the meantime, please contact the Holigay Events YYC
+      organizers directly. This mailbox is not monitored.
     </p>
 
     <p style="margin-bottom: 0;">
@@ -177,7 +177,7 @@ WHAT HAPPENS NEXT?
 2. You'll receive an email notification when your application status is updated.
 3. If approved, we'll send you additional details about booth setup and event logistics.
 
-If you have any questions in the meantime, please don't hesitate to reach out by replying to this email.
+If you have any questions in the meantime, please contact the Holigay Events YYC organizers directly. This mailbox is not monitored.
 
 Best regards,
 The Holigay Vendor Market Team
