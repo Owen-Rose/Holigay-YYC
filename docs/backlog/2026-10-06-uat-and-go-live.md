@@ -96,7 +96,7 @@ will exercise.
       Tests on both components.
       Owner: agent · Shape: PR · Blocked by: — · Done when: merged; double-click on the
       PR preview cannot produce two transitions.
-- [ ] **UAT-4** `[P]` — Dates and times render in UTC. Every server-rendered formatter
+- [x] **UAT-4** `[P]` (PR #47 merged 2026-10-06) — Dates and times render in UTC. Every server-rendered formatter
       calls `toLocaleDateString('en-US', …)` with no `timeZone`, so Vercel formats in
       UTC (a 4:13 PM Calgary submission showed as 10:13 PM). Occurrences: the two
       `formatDateTime` helpers in `src/app/vendor-dashboard/applications/[id]/page.tsx`
