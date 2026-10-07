@@ -323,4 +323,10 @@ the intended shape: inventory read → his go → the one write request → veri
 
 ## Rehearsals
 
-- _(none yet — BL-05 is the first run of this runbook; record it here and under BL-05)_
+- **2026-10-06, dev (BL-05).** First run, Management API path. The project was free-tier
+  paused (`status: INACTIVE`; every `database/query` timed out) until Owen restored it — check
+  `GET /v1/projects/<ref>` first next time. Keyring snippet in §7 worked as written. Inventory →
+  Owen's go → one write request (`[]`) → verify: every public table 0, templates untouched,
+  `auth.users` = keep-list of one, bucket holds only the placeholder. Owen removed a stray
+  1-byte `__probe-011/x.txt` (spec 006 probe) in the dashboard. Full record under BL-05 in
+  `docs/backlog/2026-10-06-uat-and-go-live.md`.

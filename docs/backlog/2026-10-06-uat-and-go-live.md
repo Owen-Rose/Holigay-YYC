@@ -131,7 +131,7 @@ will exercise.
       assertion.
       Owner: agent · Shape: PR · Blocked by: — · Done when: merged; the security test
       asserts the link succeeds for a mixed-case applicant.
-- [ ] **UAT-1** `[P]` — Delete the three stale dev events (TEST, Beep boop, Test event;
+- [x] **UAT-1** `[P]` (already gone at the 2026-10-06 BL-05 inventory; folded into BL-05) — Delete the three stale dev events (TEST, Beep boop, Test event;
       0 applications each) via `/dashboard/events` → Delete → Yes, delete. Folded into
       BL-05 if that runs first.
       Owner: Owen · Shape: UI · Blocked by: — · Done when: not listed on dev.
@@ -149,7 +149,7 @@ will exercise.
       requires Owen's go per run.
       Owner: agent · Shape: PR, docs only · Blocked by: — · Done when: merged; BL-05 can
       be executed by following it without reading code.
-- [ ] **BL-05** — Reset dev using BL-04. Remove: the UAT seed event **UAT Market 2026**
+- [x] **BL-05** (run 2026-10-06, Owen's go in chat, no sample event by decision) — Reset dev using BL-04. Remove: the UAT seed event **UAT Market 2026**
       (`34dd5881-1a60-4df3-9068-0da57db8d663`, cascades), application
       `2b703c47-1a4f-451e-8d60-742537445195` and its vendor **UAT Candle Co**, auth user
       `owenconnorrose+uat@gmail.com`, `organizer@test.com` (007 T014 / 010 D5), any
@@ -158,6 +158,17 @@ will exercise.
       (recommended: yes, created by Owen, no applications).
       Owner: Owen's go, agent executes via Management API · Shape: SQL + storage ·
       Blocked by: BL-04 · Done when: verify query shows only kept rows; recorded under this item.
+      **Record (2026-10-06).** Dev project had been free-tier paused; Owen restored it. Inventory
+      before: events 1 (UAT Market 2026, `34dd5881…`, 1 application), vendors 1 (UAT Candle Co),
+      applications 1 (`2b703c47…`), application_answers 4, event_questionnaires 1, event_questions
+      4, attachments 0, templates 1/1, auth.users 3 (admin, `organizer@test.com`,
+      `owenconnorrose+uat@gmail.com`), bucket objects 2 (`__probe-011/x.txt` + placeholder); the
+      three UAT-1 events were already gone. Owen deleted `__probe-011/x.txt` in the dashboard.
+      Write: runbook §4 as one Management API transaction, keep-list = `owenconnorrose@gmail.com`.
+      Verify: events 0, event_questionnaires 0, event_questions 0, vendors 0, applications 0,
+      application_answers 0, attachments 0, questionnaire_templates 1, template_questions 1,
+      user_profiles 1, auth.users 1 (`owenconnorrose@gmail.com`, admin), storage.objects 1
+      (`uploads/.emptyFolderPlaceholder`, 0 bytes).
 - [x] **BL-11** (decision 2026-10-06: yes; PR #50 merged 2026-10-06; the 5 MB preview upload is Owen's check) — Decide whether to raise the server-action body limit before UAT.
       `next.config.ts` has no `experimental.serverActions.bodySizeLimit`, so any upload
       over Next's 1 MB default fails with 413 on Vercel today (found during the spec 008
