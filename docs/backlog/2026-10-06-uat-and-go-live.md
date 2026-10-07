@@ -45,16 +45,16 @@ Items marked `[P]` can run in parallel with their neighbours.
 
 Mechanical, so the tree tells the truth before anyone starts real work.
 
-- [ ] **007-T016** — Resolve PR #26 (`007-T016-rehearsal-template`, 59 commits behind
+- [x] **007-T016** (PR #26 merged 2026-10-06) — Resolve PR #26 (`007-T016-rehearsal-template`, 59 commits behind
       `dev`). It adds `specs/007-production-readiness/rehearsal/2026-09-23-solo-lifecycle.md`
       (90 lines) and 5 lines in the 007 quickstart. Rebase onto `dev`, merge, tick T016
       in the same PR.
       Owner: agent · Shape: PR (existing) · Blocked by: — · Done when: #26 merged, T016 `[X]`.
-- [ ] **BL-01** `[P]` — Open a docs PR for branch `008-review-2026-09-19` (one commit,
+- [x] **BL-01** `[P]` (PR #44 merged 2026-10-06) — Open a docs PR for branch `008-review-2026-09-19` (one commit,
       `specs/008-self-hosted-infrastructure/review-2026-09-19.md`, 125 lines, no PR). It
       records eight findings spec 008 must fix before it starts, so keep it.
       Owner: agent · Shape: PR · Blocked by: — · Done when: merged to `dev`.
-- [ ] **BL-02** — Delete the merged branches, drop the stale stash, fast-forward local
+- [x] **BL-02** (run 2026-10-06 after Owen's approval; also removed `docs/uat-go-live-backlog`, merged as #43) — Delete the merged branches, drop the stale stash, fast-forward local
       `main`. Owen reviews the list before the agent runs it. - Fully merged into `dev` (delete local and `origin/`):
       `005-atomic-builder-save`, `009-organizer-invites`, `009-T002-admin-client`,
       `009-T003-invite-pending`, `009-T005-auth-confirm`, `009-T006-set-password`,
@@ -71,7 +71,7 @@ Mechanical, so the tree tells the truth before anyone starts real work.
       `git fetch && git checkout main && git merge --ff-only origin/main`.
       Owner: agent, after Owen's go · Shape: git commands, no PR · Blocked by: 007-T016, BL-01 ·
       Done when: `git branch -a` shows only `dev`, `main` and live work branches.
-- [ ] **BL-03** `[P]` — Bookkeeping tick for shipped specs: spec 004's 33 task boxes
+- [x] **BL-03** `[P]` (PR #45 merged 2026-10-06) — Bookkeeping tick for shipped specs: spec 004's 33 task boxes
       (work shipped in PR #4 on 2026-04-25; migrations `007` and `008` exist) and spec
       002's four manual smoke boxes (T013, T014, T015, T017). One docs commit, each box
       annotated "shipped; ticked retroactively 2026-10".
