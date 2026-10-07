@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DATE_SHORT, formatDateOnly, formatDateTime } from '@/lib/format-date';
 import { getVendorDashboardData, type VendorApplication } from '@/lib/actions/vendor-dashboard';
 import { Card } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';
@@ -44,14 +45,6 @@ function StatCard({ title, value, icon, href }: StatCardProps) {
 // Recent Applications
 // =============================================================================
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
-
 function RecentApplications({ applications }: { applications: VendorApplication[] }) {
   if (applications.length === 0) {
     return (
@@ -95,13 +88,14 @@ function RecentApplications({ applications }: { applications: VendorApplication[
                     {application.event.name}
                   </p>
                   <p className="text-muted mt-1 truncate text-sm">
-                    {formatDate(application.event.event_date)} &middot; {application.event.location}
+                    {formatDateOnly(application.event.event_date)} &middot;{' '}
+                    {application.event.location}
                   </p>
                 </div>
                 <div className="ml-4 flex flex-shrink-0 items-center gap-3">
                   <StatusBadge status={application.status} />
                   <span className="text-muted-foreground hidden text-xs sm:inline">
-                    {formatDate(application.submitted_at)}
+                    {formatDateTime(application.submitted_at, DATE_SHORT)}
                   </span>
                 </div>
               </div>

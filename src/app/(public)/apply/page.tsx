@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import { getActiveEvents } from '@/lib/actions/applications';
 import { getEventQuestionnaire } from '@/lib/actions/questionnaires';
 import { ApplicationPageClient } from './client';
@@ -120,14 +121,7 @@ export default async function ApplyPage({
             >
               <div>
                 <h2 className="text-foreground font-semibold">{event.name}</h2>
-                <p className="text-muted mt-0.5 text-sm">
-                  {new Date(event.date).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
+                <p className="text-muted mt-0.5 text-sm">{formatDateOnly(event.date, DATE_LONG)}</p>
               </div>
               <Link
                 href={`/apply?event_id=${event.id}`}

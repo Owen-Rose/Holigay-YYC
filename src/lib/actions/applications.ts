@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import type { Json } from '@/types/database';
 import {
   applicationSubmitSchema,
@@ -202,12 +203,7 @@ export async function submitApplication(
 
   try {
     // Format the event date for display
-    const eventDate = new Date(submission.event_date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    const eventDate = formatDateOnly(submission.event_date, DATE_LONG);
 
     // Generate the email content
     const emailContent = applicationReceivedEmail({
@@ -841,12 +837,7 @@ export async function updateApplicationStatus(
       };
 
       // Format the event date for display
-      const eventDate = new Date(event.event_date).toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+      const eventDate = formatDateOnly(event.event_date, DATE_LONG);
 
       // Generate the email content
       const emailContent = statusUpdateEmail({

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { formatDateOnly } from '@/lib/format-date';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -75,7 +76,7 @@ export function VendorApplicationForm({ events, onSubmit }: VendorApplicationFor
 
   const eventOptions: SelectOption[] = events.map((event) => ({
     value: event.id,
-    label: `${event.name} - ${new Date(event.date).toLocaleDateString()}`,
+    label: `${event.name} - ${formatDateOnly(event.date)}`,
   }));
 
   const handleFormSubmit = async (data: ApplicationFormInput) => {

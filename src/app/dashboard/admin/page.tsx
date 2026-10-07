@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { DATE_SHORT, formatDateTime } from '@/lib/format-date';
 import { toast } from 'sonner';
 import { getUsers, type UserWithRole } from '@/lib/actions/admin';
 import { UserRoleSelect } from '@/components/admin/user-role-select';
@@ -42,14 +43,6 @@ function RoleBadge({ role }: { role: Role }) {
 // =============================================================================
 // Format Date Helper
 // =============================================================================
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
 
 // =============================================================================
 // Loading Skeleton
@@ -280,7 +273,9 @@ export default function AdminUsersPage() {
 
                   {/* Joined Date */}
                   <div className="col-span-2">
-                    <p className="text-muted text-sm">{formatDate(user.createdAt)}</p>
+                    <p className="text-muted text-sm">
+                      {formatDateTime(user.createdAt, DATE_SHORT)}
+                    </p>
                   </div>
 
                   {/* Role Selector */}

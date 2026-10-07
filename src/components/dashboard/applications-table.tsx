@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { DATE_SHORT, formatDateTime } from '@/lib/format-date';
 import type { Tables } from '@/types/database';
 import { StatusBadge } from '@/components/ui/badge';
 
@@ -12,15 +13,6 @@ export type ApplicationWithVendor = Tables<'applications'> & {
 interface ApplicationsTableProps {
   applications: ApplicationWithVendor[];
   isLoading?: boolean;
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
 }
 
 // Loading skeleton for the table
@@ -161,7 +153,7 @@ function DesktopTable({ applications }: { applications: ApplicationWithVendor[] 
                 <StatusBadge status={application.status} />
               </td>
               <td className="text-muted px-6 py-4 text-sm whitespace-nowrap">
-                {formatDate(application.submitted_at)}
+                {formatDateTime(application.submitted_at, DATE_SHORT)}
               </td>
               <td className="px-6 py-4 text-right text-sm whitespace-nowrap">
                 <Link
@@ -197,7 +189,7 @@ function MobileCards({ applications }: { applications: ApplicationWithVendor[] }
 
           <div className="text-muted mt-3 space-y-1 text-xs">
             <p>{application.vendor.email}</p>
-            <p>Submitted {formatDate(application.submitted_at)}</p>
+            <p>Submitted {formatDateTime(application.submitted_at, DATE_SHORT)}</p>
           </div>
 
           <div className="mt-4">

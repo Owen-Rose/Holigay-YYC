@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { vendorInfoSchema } from '@/lib/validations/application';
@@ -230,12 +231,7 @@ export async function submitDynamicApplication(
   let warning: string | undefined;
 
   try {
-    const eventDate = new Date(submission.event_date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    const eventDate = formatDateOnly(submission.event_date, DATE_LONG);
     const emailContent = applicationReceivedEmail({
       vendorName: contactName,
       businessName,
