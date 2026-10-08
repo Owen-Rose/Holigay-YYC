@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StatusUpdateButtons } from '@/app/dashboard/applications/[id]/status-buttons';
+import { OrganizerNotes } from '@/app/dashboard/applications/[id]/organizer-notes';
+import { NotesDraftProvider } from '@/app/dashboard/applications/[id]/notes-draft-context';
 
 // =============================================================================
 // Mocks
@@ -13,8 +15,11 @@ const mockToastError = vi.fn();
 const mockToastWarning = vi.fn();
 const mockRouterRefresh = vi.fn();
 
+const mockUpdateApplicationNotes = vi.fn();
+
 vi.mock('@/lib/actions/applications', () => ({
   updateApplicationStatus: (...args: unknown[]) => mockUpdateApplicationStatus(...args),
+  updateApplicationNotes: (...args: unknown[]) => mockUpdateApplicationNotes(...args),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -43,9 +48,22 @@ function statusButtons() {
   return ALL_LABELS.map((name) => screen.getByRole('button', { name }));
 }
 
+/** Buttons and notes together under the draft provider, the way the detail page mounts them. */
+function renderWithNotes(currentStatus = 'pending') {
+  return render(
+    <NotesDraftProvider applicationId="app-1" initialNotes="">
+      <StatusUpdateButtons applicationId="app-1" currentStatus={currentStatus} />
+      <OrganizerNotes />
+    </NotesDraftProvider>
+  );
+}
+
+const UNSAVED_WARNING = 'Your unsaved notes will not be in the email.';
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockUpdateApplicationStatus.mockResolvedValue({ success: true, error: null });
+  mockUpdateApplicationNotes.mockResolvedValue({ success: true, error: null });
 });
 
 // =============================================================================
@@ -174,5 +192,102 @@ describe('StatusUpdateButtons — confirmation', () => {
 
     await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Application not found'));
     expect(mockRouterRefresh).not.toHaveBeenCalled();
+  });
+});
+
+// =============================================================================
+// Unsaved notes (F-002, organizer UAT 2026-10-06)
+// =============================================================================
+
+describe('StatusUpdateButtons — unsaved notes', () => {
+  it('warns and offers "Save notes and confirm" when notes are unsaved and the status emails', async () => {
+    const user = userEvent.setup();
+    renderWithNotes();
+
+    await user.type(screen.getByPlaceholderText(/add notes/i), 'Great booth photos');
+    await user.click(screen.getByRole('button', { name: 'Approve' }));
+
+    expect(screen.getByText(UNSAVED_WARNING)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save notes and confirm' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm without saving' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirm' })).not.toBeInTheDocument();
+  });
+
+  it('saves the notes first, then updates the status, on "Save notes and confirm"', async () => {
+    const order: string[] = [];
+    mockUpdateApplicationNotes.mockImplementation(async () => {
+      order.push('notes');
+      return { success: true, error: null };
+    });
+    mockUpdateApplicationStatus.mockImplementation(async () => {
+      order.push('status');
+      return { success: true, error: null };
+    });
+    const user = userEvent.setup();
+    renderWithNotes();
+
+    await user.type(screen.getByPlaceholderText(/add notes/i), 'Great booth photos');
+    await user.click(screen.getByRole('button', { name: 'Approve' }));
+    await user.click(screen.getByRole('button', { name: 'Save notes and confirm' }));
+
+    await waitFor(() =>
+      expect(mockUpdateApplicationStatus).toHaveBeenCalledWith('app-1', 'approved')
+    );
+    expect(mockUpdateApplicationNotes).toHaveBeenCalledWith('app-1', 'Great booth photos');
+    expect(order).toEqual(['notes', 'status']);
+    expect(screen.queryByText('Unsaved changes')).not.toBeInTheDocument();
+  });
+
+  it('does not change the status when the notes save fails', async () => {
+    mockUpdateApplicationNotes.mockResolvedValue({
+      success: false,
+      error: 'Failed to update notes',
+    });
+    const user = userEvent.setup();
+    renderWithNotes();
+
+    await user.type(screen.getByPlaceholderText(/add notes/i), 'Great booth photos');
+    await user.click(screen.getByRole('button', { name: 'Approve' }));
+    await user.click(screen.getByRole('button', { name: 'Save notes and confirm' }));
+
+    await waitFor(() => expect(mockToastError).toHaveBeenCalledWith('Failed to update notes'));
+    expect(mockUpdateApplicationStatus).not.toHaveBeenCalled();
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+  });
+
+  it('updates without saving on "Confirm without saving"', async () => {
+    const user = userEvent.setup();
+    renderWithNotes();
+
+    await user.type(screen.getByPlaceholderText(/add notes/i), 'Great booth photos');
+    await user.click(screen.getByRole('button', { name: 'Approve' }));
+    await user.click(screen.getByRole('button', { name: 'Confirm without saving' }));
+
+    await waitFor(() =>
+      expect(mockUpdateApplicationStatus).toHaveBeenCalledWith('app-1', 'approved')
+    );
+    expect(mockUpdateApplicationNotes).not.toHaveBeenCalled();
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+  });
+
+  it('shows the plain Confirm when the notes are saved or untouched', async () => {
+    const user = userEvent.setup();
+    renderWithNotes();
+
+    await user.click(screen.getByRole('button', { name: 'Approve' }));
+
+    expect(screen.queryByText(UNSAVED_WARNING)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm' })).toBeInTheDocument();
+  });
+
+  it('does not warn for a move back to pending, which sends no email', async () => {
+    const user = userEvent.setup();
+    renderWithNotes('approved');
+
+    await user.type(screen.getByPlaceholderText(/add notes/i), 'Great booth photos');
+    await user.click(screen.getByRole('button', { name: 'Pending' }));
+
+    expect(screen.queryByText(UNSAVED_WARNING)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Confirm' })).toBeInTheDocument();
   });
 });

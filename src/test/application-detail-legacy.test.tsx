@@ -41,6 +41,8 @@ vi.mock('next/navigation', () => ({
   notFound: vi.fn(() => {
     throw new Error('notFound called');
   }),
+  // NotesDraftProvider (rendered for real by the organizer page) calls useRouter.
+  useRouter: () => ({ refresh: vi.fn() }),
 }));
 
 vi.mock('next/link', () => ({
