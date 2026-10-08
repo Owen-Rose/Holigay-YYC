@@ -279,7 +279,7 @@ Phase 2 note (2026-10-07): no Phase 2 finding changes this order. The three T018
 (#55, #56, #57) ride the same `dev → main` promotion; F-001 and F-005 are backlog (see
 Deferred); F-003's reopen question waits on the organizers and is not a go-live gate.
 
-Everything here hangs on one `dev → main` promotion (`dev` is 90 commits ahead of
+Everything here hangs on one `dev → main` promotion (`dev` is 127 commits ahead of
 `origin/main`, which is `66fc1dd` from 2026-09-17: the rest of spec 007, migration 013
 and all of spec 009, UAT fixes #36/#37, all of spec 010). **The Production build will
 fail until `SUPABASE_SERVICE_ROLE_KEY` is set on Vercel Production** (009 T017 step 3),
