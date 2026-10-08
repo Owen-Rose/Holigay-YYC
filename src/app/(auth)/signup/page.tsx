@@ -35,7 +35,9 @@ export default function SignupPage() {
       {/* Page Header */}
       <div className="text-center">
         <h1 className="text-foreground text-2xl font-bold">Create an account</h1>
-        <p className="text-muted mt-2 text-sm">Sign up to manage vendor applications</p>
+        <p className="text-muted mt-2 text-sm">
+          Create a vendor account to apply to events and track your applications.
+        </p>
       </div>
 
       {/* Error Message */}
