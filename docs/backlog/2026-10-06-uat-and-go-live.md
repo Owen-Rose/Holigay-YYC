@@ -326,7 +326,7 @@ so the order below is strict.
       get their own small PRs.
       Owner: Owen · Shape: dashboard + browser · Blocked by: 007-T020 · Evidence: 010
       quickstart rows P2, P3.
-- [ ] **007-T021** — Prod smoke: `npm run smoke` with the prod values → exit 0; then
+- [x] **007-T021** (run 2026-10-08; smoke 5/5 twice, live dynamic submission, both mails, cleanup verified; 14:26 vs the 10-min target) — Prod smoke: `npm run smoke` with the prod values → exit 0; then
       the `docs/runbooks/event-week-smoke.md` click-through on production (one live
       submission per reachable form variant, both emails from the verified domain,
       signed-URL download, cleanup SQL, timed ≤ 10 min). Ticks the remaining "Still owed

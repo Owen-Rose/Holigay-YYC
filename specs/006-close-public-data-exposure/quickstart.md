@@ -149,8 +149,10 @@ What happened, so the next person doesn't re-derive it:
 
 - [x] The manual probe checklist above against the prod URL (SC-001). — 2026-09-18, spec 007
       T012, PR [#21](https://github.com/Owen-Rose/Holigay-YYC/pull/21); evidence in `specs/007-production-readiness/quickstart.md`.
-- [ ] One real submission per form variant against a test event; confirm email +
-      dashboard + signed-URL download; clean up test rows.
+- [x] One real submission per form variant against a test event; confirm email +
+      dashboard + signed-URL download; clean up test rows. — 2026-10-08, spec 007 T021
+      (backlog Phase 3); dynamic variant only (no legacy event exists on prod); evidence in
+      `specs/007-production-readiness/quickstart.md`.
 - [x] Dashboard → Storage → Policies visual confirmation that no old dashboard-named
       policies linger alongside the three migration-named ones. — 2026-09-18, spec 007 T012, PR [#21](https://github.com/Owen-Rose/Holigay-YYC/pull/21);
       exactly the three, names as in migration 011.
