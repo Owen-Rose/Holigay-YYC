@@ -21,6 +21,8 @@ import { inviteOnly } from '@/lib/env-public';
 export type AuthResponse = {
   error: string | null;
   success: boolean;
+  /** What happened, for the page to show. Set by signUp (UAT-findings item 3). */
+  message?: string;
 };
 
 // Extended response type for signIn that includes role-based redirect
@@ -138,9 +140,16 @@ export async function signUp(data: SignupInput): Promise<AuthResponse> {
   // Role assignment is handled by the handle_new_user database trigger,
   // which auto-creates a user_profiles row with role='vendor' on signup.
 
+  // With "Confirm email" on, Supabase returns no session and the vendor has to click the
+  // mail; with it off, a session comes back and there is no mail to wait for. Say which.
+  const message = authData.session
+    ? "Account created! You're signed in."
+    : 'Account created! Check your email for a confirmation link — clicking it will sign you in.';
+
   return {
     error: null,
     success: true,
+    message,
   };
 }
 

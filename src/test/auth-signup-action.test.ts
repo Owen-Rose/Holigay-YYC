@@ -55,6 +55,39 @@ describe('signUp — invite-only mode', () => {
     const res = await signUp(VALID);
 
     expect(mockSignUp).toHaveBeenCalledWith({ email: 'new@example.com', password: 'password123' });
-    expect(res).toEqual({ success: true, error: null });
+    expect(res).toEqual({
+      success: true,
+      error: null,
+      message:
+        'Account created! Check your email for a confirmation link — clicking it will sign you in.',
+    });
+  });
+});
+
+// UAT-findings item 3: the message must say what actually happened. With "Confirm email"
+// on, Supabase returns no session and the vendor has to click the mail; with it off, a
+// session comes back and there is no mail to wait for.
+describe('signUp — message follows the session', () => {
+  it('no session: tells the vendor to check their email', async () => {
+    mockSignUp.mockResolvedValue({ data: { user: { id: 'u1' }, session: null }, error: null });
+
+    const res = await signUp(VALID);
+
+    expect(res.success).toBe(true);
+    expect(res.message).toMatch(/check your email/i);
+    expect(res.message).not.toMatch(/signed in/i);
+  });
+
+  it('session returned: says the vendor is signed in, no email to wait for', async () => {
+    mockSignUp.mockResolvedValue({
+      data: { user: { id: 'u1' }, session: { access_token: 't' } },
+      error: null,
+    });
+
+    const res = await signUp(VALID);
+
+    expect(res.success).toBe(true);
+    expect(res.message).toMatch(/signed in/i);
+    expect(res.message).not.toMatch(/check your email/i);
   });
 });
