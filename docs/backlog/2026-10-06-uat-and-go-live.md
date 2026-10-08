@@ -290,7 +290,7 @@ so the order below is strict.
       "Confirm email" (`mailer_autoconfirm`). Change nothing.
       Owner: Owen, or agent in default mode · Shape: dashboard or Management API ·
       Evidence: 010 quickstart row P1.
-- [ ] **009-T017** — Production configuration. (0) **Roll the prod service-role
+- [x] **009-T017** (done 2026-10-07; secret rolled, old key 401; Production-only key; templates via Management API, read-back identical) — Production configuration. (0) **Roll the prod service-role
       secret first** — it was pasted into Vercel Preview by mistake on 2026-09-27 and
       replaced, but the old value was exposed. (1) Re-read prod Site URL
       `https://vendors.holigayeventsyyc.ca` (row V4). (2) Migration 013 is already on
