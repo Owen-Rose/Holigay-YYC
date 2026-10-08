@@ -220,7 +220,7 @@ Until BL-12, the organizer session is run by Owen playing organizer on the `+uat
 account (the BL-06 rehearsal invite, 2026-10-06). "Organizers" in the items below means
 that account.
 
-- [ ] **007-T017** (reframed) — The organizer session on the uat host _is_ the lifecycle
+- [x] **007-T017** (reframed; run 2026-10-06/07, log on `dev` 6dfc49a → 9887a82) — The organizer session on the uat host _is_ the lifecycle
       run. Log it against the T016 template in
       `specs/007-production-readiness/rehearsal/` (observed column, console errors,
       findings table with severities). The 2026-09-27 solo run already proved the steps
@@ -228,10 +228,23 @@ that account.
       status email, CSV without questionnaire answers, no reopen for closed events).
       Owner: joint · Shape: docs commit · Blocked by: BL-06 · Done when: the filled
       rehearsal file is on `dev`.
-- [ ] **007-T018** — Fix the blockers the session surfaces, one PR each, test per
+      **Record.** `specs/007-production-readiness/rehearsal/2026-10-06-organizer-uat.md`.
+      Two sittings (2026-10-06 23:34–23:48 and 2026-10-07 17:20–17:33 MDT), Owen as the
+      `+uat-org` organizer, Claude driving Chrome and Gmail. All steps reached (step 9 `n/a`:
+      invite-only host), zero console errors, four emails from the verified domain within a
+      minute, zero blockers. Organizer decisions verbatim in the findings table: F-001 CSV
+      "backlog"; F-002 "agreed, warn with save-and-confirm"; F-003 "agreed, backlog with the
+      close copy change"; F-005 (duplicate refusal is a 4 s toast only) "later"; F-006 (no
+      event filter) "now".
+- [x] **007-T018** (PRs #55, #56, #57 merged 2026-10-07; zero open blockers) — Fix the blockers the session surfaces, one PR each, test per
       constitution. A finding that needs a schema, RLS or auth change opens a spec
       instead (next free number is 011). Exit condition: zero open blocker findings.
       Owner: agent · Shape: PR each · Blocked by: 007-T017.
+      **Record.** No blocker-severity finding. Tier3 fixes, one PR each, re-checked with Owen:
+      #55 Close prompt says the event cannot be reopened (F-003 interim); #56 Event select on
+      `/dashboard/applications` (F-006); #57 unsaved-notes warning with "Save notes and
+      confirm" on emailing status changes (F-002; the note reached the approved email on the
+      PR preview). Fix PRs recorded in the log's table.
 - [x] **UAT-7** `[P]` (PR #53 merged 2026-10-06) — Polish: the locked questionnaire view in
       `src/app/dashboard/events/[id]/questionnaire-builder.tsx` lists type and required
       but not the show-if rule, so a conditional question looks unconditional.
@@ -239,13 +252,32 @@ that account.
 - [x] **UAT-8** `[P]` (PR #54 merged 2026-10-06; evidence: 930 px and 1024 px checks on the PR preview, recorded on the PR) — Polish: on `/dashboard/events` at about 930 px the "Yes, delete /
       Cancel" pair overlaps the Applications column.
       Owner: agent · Shape: PR · Do if organizers notice or time allows.
-- [ ] **BL-07** — Reset dev again with BL-04 after the organizers are done, so the
+- [x] **BL-07** (run 2026-10-07, Owen's go in chat) — Reset dev again with BL-04 after the organizers are done, so the
       training environment is clean for any later cohort. Keep the organizer accounts.
       Owner: Owen's go, agent executes · Shape: SQL + storage · Blocked by: 007-T018.
+      **Record (2026-10-07, 18:06 MDT).** Runbook §1–§6, Management API path, dev project.
+      Keep-list: `owenconnorrose@gmail.com` (admin), the `+uat-org` organizer, event
+      `Holigay Winter Market 2026` (`a37ece55…`) with its questionnaire, the template.
+      Inventory before: events 2 (sample 0 apps; `UAT Dry Run — 2026-10-06` `cd9751a5…`
+      closed, 2 apps), event_questionnaires 2, event_questions 14, vendors 2 (UAT Vendor One /
+      Two, no users), applications 2, application_answers 10, attachments 0, templates 1/1,
+      user_profiles 2, auth.users 2, bucket objects 2 (placeholder +
+      `uploads/1791351596575-orrmzw-uat-dry-run.pdf`). Owen deleted the PDF in the dashboard
+      (1.4 re-read: placeholder only). Write: one request — answers → attachments →
+      applications (all, the sample's included) → vendors → `events WHERE id <> sample` →
+      `auth.users NOT IN (keep-list)` (0 rows) → `[]`. Verify: events 1, event_questionnaires
+      1, event_questions 7, vendors 0, applications 0, application_answers 0, attachments 0,
+      questionnaire_templates 1, template_questions 1, user_profiles 2, auth.users 2 (admin +
+      `+uat-org` organizer, both confirmed), storage.objects 1
+      (`uploads/.emptyFolderPlaceholder`).
 
 ---
 
 ## Phase 3 — Production rollout
+
+Phase 2 note (2026-10-07): no Phase 2 finding changes this order. The three T018 fixes
+(#55, #56, #57) ride the same `dev → main` promotion; F-001 and F-005 are backlog (see
+Deferred); F-003's reopen question waits on the organizers and is not a go-live gate.
 
 Everything here hangs on one `dev → main` promotion (`dev` is 90 commits ahead of
 `origin/main`, which is `66fc1dd` from 2026-09-17: the rest of spec 007, migration 013
@@ -371,10 +403,13 @@ Not needed for UAT or go-live on the current stack.
 - **ROADMAP Tier 4:** retire the legacy form; role in JWT claims; email via `after()`;
   structured logging; Epic 6.9 file previews; Epic 6.10 mobile polish (375 px pass,
   44 px touch targets); shared icon module.
-- **Pre-triaged organizer judgement calls** (from `docs/M3-PLAN.md`): CSV export lacks
-  questionnaire answers (`export.ts` writes the 13 legacy columns); unsaved organizer
-  notes are not in the status email; closed events cannot be reopened
-  (`VALID_TRANSITIONS` is forward-only). Decide after Phase 2, not before.
+- **Organizer judgement calls, decided 2026-10-07** (Phase 2 session, verbatim answers in
+  the rehearsal log): CSV export lacks questionnaire answers and shows blank legacy
+  Booth/Categories/Requirements columns for dynamic-form rows (F-001) — "backlog"; the
+  duplicate-application refusal is a four-second toast with no inline message (F-005) —
+  "later"; closed events cannot be reopened (F-003) — "backlog with the close copy change"
+  (copy shipped in #55; reopen itself waits on the organizers). Unsaved-notes-in-email
+  (F-002) and the missing event filter (F-006) were fixed in Phase 2.
 
 ---
 

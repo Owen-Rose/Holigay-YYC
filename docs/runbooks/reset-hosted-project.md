@@ -330,3 +330,10 @@ the intended shape: inventory read → his go → the one write request → veri
   `auth.users` = keep-list of one, bucket holds only the placeholder. Owen removed a stray
   1-byte `__probe-011/x.txt` (spec 006 probe) in the dashboard. Full record under BL-05 in
   `docs/backlog/2026-10-06-uat-and-go-live.md`.
+- **2026-10-07, dev (BL-07).** Second run, same path, with a keep-list that included an event:
+  §4 ran with `DELETE FROM events WHERE id <> '<sample>'` and no guards on 4.1–4.4 because every
+  application, answer and vendor was to go; the sample's questionnaire (7 questions) survived
+  the cascade untouched. Owen removed the one bucket object in the dashboard first; 1.4 was
+  re-read before the write. Verify matched the expected table exactly (record under BL-07 in
+  the backlog). Lesson: with a kept event, state in the record that its applications were
+  deleted on purpose — otherwise a later reader will think 4.3 overreached.

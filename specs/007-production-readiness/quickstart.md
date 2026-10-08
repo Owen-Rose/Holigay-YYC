@@ -135,6 +135,12 @@ T013a rows above both assumed it did not exist.
   steps 3 and 7 against the verified domain directly — the "passed on fallback sender"
   carve-out below is moot. Four findings are pre-seeded (the three expected ones plus the
   PKCE confirmation-link gap from the T013a notes, as F-004 at severity backlog).
+- **2026-10-06/07 — T017 run as the organizer session** (backlog Phase 2, reframed):
+  `rehearsal/2026-10-06-organizer-uat.md`, uat host at `dev` `137b2ad`, the maintainer on
+  the `+uat-org` organizer account, Claude driving Chrome. All steps reached (step 9 `n/a`
+  on the invite-only host), zero console errors, four emails from the verified domain,
+  zero blockers. **T018** closed the same day with PRs #55, #56, #57 (all tier3,
+  re-checked on previews); F-001 and F-005 backlog by decision.
 - Environment: the `dev` branch Vercel preview, dev Supabase, keep-alive live, organizer
   account from T014, the maintainer's own mailbox as the vendor email.
 - Pass criteria (spec US4 / SC-005): all eleven steps' expected results observed; the
