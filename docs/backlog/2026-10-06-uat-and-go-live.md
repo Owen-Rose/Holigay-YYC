@@ -304,7 +304,7 @@ so the order below is strict.
       to dev. Also closes the second "Still owed on prod" box in
       `specs/006-close-public-data-exposure/quickstart.md`.
       Owner: Owen · Shape: dashboard · Blocked by: — · Evidence: 007 quickstart T019 rows.
-- [ ] **007-T020 / 009-T018 (1)** — Promote `dev → main`:
+- [x] **007-T020 / 009-T018 (1)** (promoted 2026-10-07, `66fc1dd..94e6f6d`, Production Ready) — Promote `dev → main`:
       `git checkout main && git merge --ff-only dev && git push origin main`. Confirm
       `RESEND_API_KEY`, `EMAIL_FROM_ADDRESS` and `SUPABASE_SERVICE_ROLE_KEY` exist on
       Production first (the env guard fails the build otherwise), Production build green,
