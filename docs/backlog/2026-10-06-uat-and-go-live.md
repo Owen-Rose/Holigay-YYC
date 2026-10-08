@@ -285,7 +285,7 @@ and all of spec 009, UAT fixes #36/#37, all of spec 010). **The Production build
 fail until `SUPABASE_SERVICE_ROLE_KEY` is set on Vercel Production** (009 T017 step 3),
 so the order below is strict.
 
-- [ ] **010-T011** `[P]` — Prod read-backs, read-only, can be done any time:
+- [x] **010-T011** `[P]` (read 2026-10-07 via the Management API: sign-up on, confirmations on) — Prod read-backs, read-only, can be done any time:
       "Allow new users to sign up" is on (`disable_signup: false`); read and record
       "Confirm email" (`mailer_autoconfirm`). Change nothing.
       Owner: Owen, or agent in default mode · Shape: dashboard or Management API ·

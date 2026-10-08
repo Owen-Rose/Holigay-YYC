@@ -86,7 +86,7 @@ be tested on the training deployment (spec D7 / FR-018).
 
 | Row | Item | Where | Date | Evidence | Done |
 |---|---|---|---|---|---|
-| P1 | Prod "Allow new users to sign up" confirmed **on** (`disable_signup: false`); "Confirm email" read and recorded (`mailer_autoconfirm`) — FR-016; closes UAT-findings item 2's unchecked prod note | Supabase prod | | `disable_signup` = … ; `mailer_autoconfirm` = … | ☐ |
+| P1 | Prod "Allow new users to sign up" confirmed **on** (`disable_signup: false`); "Confirm email" read and recorded (`mailer_autoconfirm`) — FR-016; closes UAT-findings item 2's unchecked prod note | Supabase prod | 2026-10-07 | `disable_signup` = `false` (sign-up on); `mailer_autoconfirm` = `false` (confirmations **on** — a new vendor must click the confirmation mail; the signup page's "check your email" copy is therefore correct on prod); `site_url` = `https://vendors.holigayeventsyyc.ca`. Read via the Management API (`GET /v1/projects/hgmfjvjlxrhdojwlkgap/config/auth`, CLI login token, output filtered to the three fields) from the maintainer-approved Phase 3 session in default mode; nothing changed | ☑ |
 | P2 | `NEXT_PUBLIC_INVITE_ONLY` **absent** from Production scope; after the next `dev → main`, production `/login` shows "Sign up" and `/signup` renders — FR-015, US4 scenario 1 | Vercel + production | | | ☐ |
 | P3 | **Story 4 on production**: sign up `<maintainer>+010-p@…` → confirmation mail arrives → link lands signed in on `/vendor-dashboard` (UAT-findings item 2); the success copy matches what actually happened given P1's confirm setting (item 3); the signup subtitle speaks to vendors (item 9 — if still organizer-flavoured, note it for its own PR); throwaway deleted | production + mailbox | | | ☐ |
 
