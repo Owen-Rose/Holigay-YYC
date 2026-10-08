@@ -317,7 +317,7 @@ so the order below is strict.
       four repo secrets (agent PR).
       Owner: Owen (vars), agent (deletion PR) · Shape: dashboard + PR · Blocked by:
       007-T020 · Evidence: 007 quickstart T008 rows.
-- [ ] **010-T012** — Production non-regression: no Production-scope
+- [x] **010-T012** (run 2026-10-07; sign-up → mail → `/vendor-dashboard` all good; items 3 and 9 confirmed, PRs follow) — Production non-regression: no Production-scope
       `NEXT_PUBLIC_INVITE_ONLY`; `/login` shows Sign up and `/signup` renders; sign up a
       throwaway, record whether the "check your email" copy matched P1's confirm setting
       (UAT item 3: `signUp` in `src/lib/actions/auth.ts` discards `authData.session`)
