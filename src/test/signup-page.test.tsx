@@ -13,6 +13,20 @@ import SignupPage from '@/app/(auth)/signup/page';
 const SUCCESS_COPY =
   'Account created! Check your email for a confirmation link — clicking it will sign you in.';
 
+describe('SignupPage header', () => {
+  // UAT-findings item 9: the subtitle spoke to organizers ("manage vendor applications")
+  // on a page only vendors can reach (organizers are invited, spec 009).
+  it('addresses vendors, not organizers', () => {
+    render(<SignupPage />);
+
+    const subtitle = screen.getByText(
+      'Create a vendor account to apply to events and track your applications.'
+    );
+    expect(subtitle).toBeInTheDocument();
+    expect(screen.queryByText(/manage vendor applications/i)).not.toBeInTheDocument();
+  });
+});
+
 describe('SignupPage success message', () => {
   it('describes the confirmation link and does not send the vendor to sign in', async () => {
     // Arrange
