@@ -6,13 +6,16 @@ import { SignupForm } from '@/components/auth/signup-form';
 import { signUp } from '@/lib/actions/auth';
 import type { SignupInput } from '@/lib/validations/auth';
 
+const DEFAULT_SUCCESS_MESSAGE =
+  'Account created! Check your email for a confirmation link — clicking it will sign you in.';
+
 export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit(data: SignupInput) {
     setError(null);
-    setSuccess(false);
+    setSuccess(null);
 
     try {
       const result = await signUp(data);
@@ -22,8 +25,9 @@ export default function SignupPage() {
         return;
       }
 
-      // Show success message - user may need to verify email
-      setSuccess(true);
+      // Show what the action says happened: whether a confirmation mail is on its way or
+      // the vendor is already signed in (UAT-findings item 3).
+      setSuccess(result.message ?? DEFAULT_SUCCESS_MESSAGE);
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       console.error('Signup error:', err);
@@ -50,10 +54,7 @@ export default function SignupPage() {
       {/* Success Message */}
       {success && (
         <div className="rounded-md bg-green-500/10 p-4">
-          <p className="text-sm text-green-400">
-            Account created! Check your email for a confirmation link — clicking it will sign you
-            in.
-          </p>
+          <p className="text-sm text-green-400">{success}</p>
         </div>
       )}
 
