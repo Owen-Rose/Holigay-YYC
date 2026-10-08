@@ -105,7 +105,7 @@ every missing variable while a plain `npm run build` succeeds.
 
 **Purpose**: Rotate the database passwords while the CLI work from T010 is fresh. Needs no Resend.
 
-- [ ] T019 [manual] Rotate the database password on both hosted projects (Supabase Dashboard → Settings → Database → Reset database password), confirm no local password files remain from the 2026-09 rollouts, and `npx supabase link --project-ref kcokcufmzyckbodelqpb` (dev). Do this after T010 (which links to dev) and before T021. evidence: the three T019 rows in quickstart.md — FR-017
+- [x] T019 [manual] **Done 2026-10-07 (backlog Phase 3): both passwords reset by the maintainer, no local files, CLI relinked to dev.** Rotate the database password on both hosted projects (Supabase Dashboard → Settings → Database → Reset database password), confirm no local password files remain from the 2026-09 rollouts, and `npx supabase link --project-ref kcokcufmzyckbodelqpb` (dev). Do this after T010 (which links to dev) and before T021. evidence: the three T019 rows in quickstart.md — FR-017
 
 ---
 

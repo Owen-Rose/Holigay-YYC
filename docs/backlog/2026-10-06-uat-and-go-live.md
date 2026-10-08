@@ -299,7 +299,7 @@ so the order below is strict.
       Invite, Reset password, Confirm signup from
       `specs/009-organizer-invites/contracts/email-templates.md` (rows P3–P5).
       Owner: Owen · Shape: dashboard · Blocked by: — · Evidence: 009 quickstart V4, P2–P5.
-- [ ] **007-T019** — Rotate the database password on dev and prod (Settings → Database
+- [x] **007-T019** (done 2026-10-07; both rotated, CLI relinked to dev) — Rotate the database password on dev and prod (Settings → Database
       → Reset database password); confirm no local password files remain; relink the CLI
       to dev. Also closes the second "Still owed on prod" box in
       `specs/006-close-public-data-exposure/quickstart.md`.

@@ -154,7 +154,8 @@ What happened, so the next person doesn't re-derive it:
 - [x] Dashboard → Storage → Policies visual confirmation that no old dashboard-named
       policies linger alongside the three migration-named ones. — 2026-09-18, spec 007 T012, PR [#21](https://github.com/Owen-Rose/Holigay-YYC/pull/21);
       exactly the three, names as in migration 011.
-- [ ] Rotate the prod database password (it was handled locally during the rollout).
+- [x] Rotate the prod database password (it was handled locally during the rollout). — 2026-10-07, spec 007 T019
+      (backlog Phase 3); dev rotated the same day; no local password files remain.
 
 ## Where things live
 
