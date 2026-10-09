@@ -62,16 +62,34 @@ awaits the single Phase 4 promotion (Owen runs it — auto mode denies pushes to
 
 ## Phase 4 — Go-live clean slate and docs truth-up
 
-- [ ] **BL-08** — Prod reset right before the first real event, using BL-04. Keep Owen's
+- [x] **BL-08** (run 2026-10-08, near no-op — see record) — Prod reset right before the first real event, using BL-04. Keep Owen's
       admin and the real organizers; remove every test event, vendor, application,
       attachment, bucket object and throwaway user from Phase 3. Inventory read →
       Owen confirms → write → verify. (Prod was last wiped 2026-09-19; Phase 3 adds test
       rows again.)
       Owner: Owen's go, agent executes in default mode · Shape: SQL + storage ·
       Blocked by: 007-T021, 009-T018 · Done when: verify query recorded under this item.
-- [ ] **BL-09** — Final `npm run smoke` against prod after the reset; record the date
+      **Record (2026-10-08, ~22:00 MDT; Management API read path, default mode, prod
+      `hgmfjvjlxrhdojwlkgap`).** Runbook §1.1 inventory: `events` 0, `event_questionnaires` 0,
+      `event_questions` 0, `vendors` 0, `applications` 0, `application_answers` 0, `attachments` 0,
+      `questionnaire_templates` 0, `template_questions` 0, `user_profiles` 2, `auth.users` 2,
+      `storage.objects` (attachments) 1 — only `uploads/.emptyFolderPlaceholder` (0 bytes). §1.2:
+      the maintainer's admin (created 2025-12-26) and the `+prod-org` organizer from 009 P7
+      (created 2026-10-08), both confirmed. Phase 3's smoke rows were already removed by 007
+      T021, so **no write was needed**. Decision (Owen, in chat): the `+prod-org` organizer
+      **stays** — it is the maintainer's own alias and the only organizer seat on prod until
+      BL-12. Verify query (re-run after BL-13): `events` 0, `vendors` 0, non-placeholder bucket
+      objects 0. Observation, not acted on: `questionnaire_templates` is 0 on prod, so the
+      builder's "seed from template" has nothing to offer there until a template is created.
+- [x] **BL-09** (run 2026-10-08) — Final `npm run smoke` against prod after the reset; record the date
       in `docs/runbooks/event-week-smoke.md`.
       Owner: agent · Shape: terminal · Blocked by: BL-08.
+      **Record (2026-10-08, 22:11 MDT).** Run right after the Phase 4 promotion
+      (`94e6f6d..e342cf6`) reached Production (Vercel status `success`; `/`, `/apply`, `/login`,
+      `/signup` → 200, `/api/keepalive` without a header → 401, the #58 sign-up subtitle live):
+      `PASS app-pages`, `private-tables-closed`, `questionnaire-invariant (no active events)`,
+      `submit-rpc-event-gate`, `organizer-rpcs-denied` — all 5, exit 0. Anon key from
+      `supabase projects api-keys`. Dated entry in `docs/runbooks/event-week-smoke.md`.
 - [x] **009-T019** (PR #60 merged 2026-10-08) — Docs and constitution PATCH per FR-031: CLAUDE.md Epic 4 row
       ("Partial … pending service-role client" is wrong — spec 009 shipped it),
       `docs/ARCHITECTURE.md` line 224 ("one TODO (`team.ts` invite stub)" no longer
@@ -97,13 +115,21 @@ awaits the single Phase 4 promotion (Owen runs it — auto mode denies pushes to
       `specs/010-invite-only-uat/quickstart.md`, and tell them what to test.
       Owner: Owen · Shape: UI · Blocked by: BL-10 · Done when: the organizers have signed
       in and land on `/dashboard`.
-- [ ] **BL-13** (added 2026-10-08 from the Phase 3 review) — `/forgot-password` live mail on
+- [x] **BL-13** (added and run 2026-10-08) — `/forgot-password` live mail on
       **prod**: the reset template was set (009 row P4) but never exercised by a real mail.
       Request a reset for an existing prod account (Owen's admin or the `+prod-org`
       organizer) → mail from `noreply@holigayeventsyyc.ca` with the §2 body → link →
       `/set-password` signed in → new password → `/dashboard`. Record the date and link host
       under this item and cross-reference 009 quickstart P4. Run alongside BL-09.
       Owner: joint · Shape: UI + mailbox · Blocked by: nothing · Done when: recorded here.
+      **Record (2026-10-08, ~22:15 MDT).** Agent (Chrome extension) submitted
+      `/forgot-password` on `vendors.holigayeventsyyc.ca` for the maintainer's admin address →
+      neutral "If that address has an account, a reset link is on its way." Owen: mail from
+      `noreply@holigayeventsyyc.ca`, link host `vendors.holigayeventsyyc.ca` (`/auth/confirm`,
+      type recovery) → landed signed in on `/set-password` → new password → `/dashboard`.
+      Corroborated by a read-only prod query: `auth.users.last_sign_in_at` 2026-10-09 04:16Z
+      (the link's `verifyOtp`), `updated_at` 04:18Z (the password change). 009 quickstart P4
+      annotated. Pass.
 
 ---
 

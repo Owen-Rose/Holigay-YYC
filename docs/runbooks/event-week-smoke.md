@@ -336,3 +336,10 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
   questionnaire with its question deleted → `FAIL … has a questionnaire with no questions`;
   no questionnaire row at all → `PASS (1 active event, 1 on the legacy form)`. The
   click-through in section 2 has not yet been run end to end; T021 is the first live run.
+- **2026-10-08, production (007 T021).** First live run: `npm run smoke` 5/5 twice (before and
+  after a full click-through with one dynamic-form submission, both emails, review, signed-URL
+  download and cleanup). Record: `specs/007-production-readiness/quickstart.md` T021 rows.
+- **2026-10-08, production (backlog BL-09).** Final go-live smoke after the Phase 4 promotion
+  (`main` = `e342cf6`): 5/5, exit 0, `questionnaire-invariant` vacuous (0 active events — read
+  the note, gotcha 11). Prod data 0 events / 0 vendors / 0 real bucket objects. Next run: before
+  event week and after every promotion to `main`, per the top of this runbook.
