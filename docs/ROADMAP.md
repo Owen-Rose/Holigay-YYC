@@ -28,7 +28,7 @@ in-flight feature safely, then paying down consistency debt.
 | RBAC (DB + app), vendor dashboard, event management | ✅ Complete (Epics 1–3, 5; specs 001/002/004 merged) |
 | Brand re-skin | ✅ Mostly (6.9 file previews, 6.10 mobile polish outstanding) |
 | Organizer invites (Epic 4) | ✅ **Complete — spec 009.** Shipped to `dev` 2026-09-27 (PRs #27–#35); migration `013` on dev and prod 2026-09-27; prod configured 2026-10-07 and the first onboarding rehearsed on prod 2026-10-08. Real organizer invites are backlog BL-12 |
-| **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Manual probe checklist + live test submission on prod still owed (quickstart "Prod rollout record"). |
+| **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Prod probe checklist run 2026-09-18 (007 T012) and the live test submission done 2026-10-08 (007 T021) — every "Prod rollout record" box ticked. |
 | **Dynamic questionnaires (spec 005)** | ✅ **Feature-complete.** Shipped to `dev` with 006; on prod since 2026-09-13. Required-answer semantics fixed by 006/US3; builder atomicity and `seeded_from_template_id` fixed by Phase 11 (migration `012`, 2026-09-14). Migration 012 on dev and prod since 2026-09-14 |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
 
@@ -298,10 +298,10 @@ operational readiness, not implementation.
 
 | Milestone | Contents | Target |
 |---|---|---|
-| **M1 — Safe** ✅ | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Prod closed 2026-09-13**: `009`–`011` pushed to the prod project (history repaired first — its `schema_migrations` was empty like dev's), all object markers verified, `dev` promoted to `main` (`3dc243c`). Residual: the manual probe checklist and one live test submission on prod | done |
+| **M1 — Safe** ✅ | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Prod closed 2026-09-13**: `009`–`011` pushed to the prod project (history repaired first — its `schema_migrations` was empty like dev's), all object markers verified, `dev` promoted to `main` (`3dc243c`). Probe checklist run 2026-09-18 (007 T012); live test submission 2026-10-08 (007 T021) — no residual | done |
 | **M2 — Feature-complete** ✅ | Spec 005 shipped to `dev` 2026-08-22 with T050 waived; Phase 11 (2026-09-14) landed the atomic builder save with real-DB suites (retiring the waiver's main gap) and populated `seeded_from_template_id`. Migration `012` on dev and prod, dev probe passed, promoted to `main` 2026-09-14 | done |
-| **M3 — Production-ready** | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them. **Sequenced in [M3-PLAN.md](./M3-PLAN.md)** (2026-09-13): three tracks, dashboard-vs-repo split, UAT script, exit criteria | month 2 |
-| **M4 — Live** | First real event on the platform; maintenance mode after | month 2–3 |
+| **M3 — Production-ready** ✅ | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them. **Sequenced in [M3-PLAN.md](./M3-PLAN.md)** (2026-09-13). **Closed 2026-10-08** (spec 007 T022): every checklist box ticked below; organizer session held 2026-10-06/07 with its three fixes shipped (#55–#57); `dev` → `main` 2026-10-07; prod smoke 5/5 + live submission 2026-10-08. Residual: the T008 seven-day dev-active check (2026-10-15) | done |
+| **M4 — Live** (entered 2026-10-08) | Production live on `vendors.holigayeventsyyc.ca` since 2026-10-07; first real event pending. Remaining: backlog Phase 4 — prod clean slate (BL-08/09), real organizer invites (BL-12), `/forgot-password` prod mail (BL-13), one `dev` → `main` promotion. Maintenance mode after the first event | in progress |
 
 **Live order of work for M3 → M4** (organizer UAT, production rollout, clean slate):
 [backlog/2026-10-06-uat-and-go-live.md](./backlog/2026-10-06-uat-and-go-live.md).

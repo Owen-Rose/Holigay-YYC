@@ -142,14 +142,16 @@ In `src/lib/actions/answers.ts` around line 220–243, capture the `sendEmail` r
 
 ## M3 exit criteria
 
-- [ ] Every roadmap checklist box ticked, with the PR or date beside it.
-- [ ] Emails from the dynamic form, legacy form and status update all delivered from the verified domain on prod (C7).
-- [ ] Keep-alive cron has run at least once with a green log; dev did not pause in the following week.
-- [ ] One restore drill recorded in `docs/runbooks/backup-restore.md`.
-- [ ] Passwords rotated on dev and prod; CLI relinked to dev.
-- [ ] The four "Still owed on prod" boxes in `specs/006-close-public-data-exposure/quickstart.md` ticked.
-- [ ] Solo rehearsal findings log committed; every blocker fixed and merged; `main` = `dev`. (The organizer session is M4's entry gate, not an M3 exit criterion.)
-- [ ] `npm run smoke` passes against prod.
+- [x] Every roadmap checklist box ticked, with the PR or date beside it. ✅ 2026-10-08 (007 T022, PR #61).
+- [x] Emails from the dynamic form, legacy form and status update all delivered from the verified domain on prod (C7). ✅ Dynamic form and status update: 2026-10-08 live run (007 T021), both from `noreply@holigayeventsyyc.ca`. Legacy form: not exercised on prod — no legacy-form event exists there; it shares the sender and client proven by T006 (2026-09-20).
+- [ ] Keep-alive cron has run at least once with a green log; dev did not pause in the following week. First half ✅ 2026-10-08 12:33Z on both projects (007 T008); the seven-day dev-active check is due 2026-10-15 (T008 third row) — the only open M3 criterion.
+- [x] One restore drill recorded in `docs/runbooks/backup-restore.md`. ✅ 2026-09-17 (007 T010, PR #16).
+- [x] Passwords rotated on dev and prod; CLI relinked to dev. ✅ 2026-10-07 (007 T019).
+- [x] The four "Still owed on prod" boxes in `specs/006-close-public-data-exposure/quickstart.md` ticked. ✅ 2026-10-08 (007 T021; probe and storage check were ticked 2026-09-18).
+- [x] Solo rehearsal findings log committed; every blocker fixed and merged; `main` = `dev`. ✅ The rehearsal ran as the organizer session 2026-10-06/07 (007 T017, log `specs/007-production-readiness/rehearsal/2026-10-06-organizer-uat.md`, PR #52); blockers fixed in #55–#57 (T018); `main` = `dev` at the 2026-10-07 promotion (`94e6f6d`). (The organizer session is M4's entry gate, not an M3 exit criterion.)
+- [x] `npm run smoke` passes against prod. ✅ 2026-10-08, 5/5 twice (007 T021).
+
+**M3 closed 2026-10-08** with the seven-day keep-alive check carried as the one open item (closes 2026-10-15 under 007 T008). M4 entered the same day; the remaining go-live work is backlog Phase 4.
 
 ## Execution structure (added 2026-09-14): spec 007, solo-first
 
