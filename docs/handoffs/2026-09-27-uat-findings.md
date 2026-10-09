@@ -33,7 +33,8 @@ Moved to the production-only checklist below: dev no longer allows sign-up (spec
 
 ### 3. Sign-up message ignores whether a session was returned — _moved_
 
-Moved to the production-only checklist below.
+Moved to the production-only checklist below. Confirmed on prod 2026-10-07 (spec 010 row P3);
+fixed by PR #59 (`signUp` returns a `message` that follows `authData.session`), on `dev`.
 
 ### 4. Times render in UTC — _should-fix_
 
@@ -74,7 +75,8 @@ Applications column.
 
 ### 9. Sign-up subtitle is organizer-flavoured — _moved_
 
-Moved to the production-only checklist below.
+Moved to the production-only checklist below. Confirmed on prod 2026-10-07 (spec 010 row P3);
+fixed by PR #58 (vendor-flavoured subtitle), on `dev`.
 
 ### 10. Storage read policy is broader than needed — _note, pre-existing_
 

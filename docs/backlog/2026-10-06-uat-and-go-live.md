@@ -333,12 +333,12 @@ so the order below is strict.
       on prod" box in the 006 quickstart.
       Owner: joint · Shape: terminal + browser · Blocked by: 007-T020, 007-T019 ·
       Evidence: 007 quickstart T021 rows; 006 quickstart boxes.
-- [ ] **009-T018 (P7–P9)** — First real onboarding on prod: invite a real organizer
+- [x] **009-T018 (P7–P9)** (rehearsal 2026-10-08: `+prod-org` invited and in as organizer, P8 via 010 P3, placeholder removed; real organizer → BL-12) — First real onboarding on prod: invite a real organizer
       (P7), throwaway vendor sign-up and delete (P8), remove the auto-confirmed
       placeholder organizer from 007 T015 (P9).
       Owner: Owen · Shape: UI + dashboard · Blocked by: 007-T020 · Evidence: 009
       quickstart P7–P9.
-- [ ] **007-T014 / 007-T015** — Close as superseded: real organizer accounts are created
+- [x] **007-T014 / 007-T015** (closed 2026-10-08 as superseded by the invite flow; note under both tasks) — Close as superseded: real organizer accounts are created
       by the spec 009/010 invite flow (BL-06 on dev, P7 on prod), not by SQL. One docs
       commit noting that under both tasks.
       Owner: agent · Shape: docs commit (with 007-T022) · Blocked by: 009-T018.
@@ -376,7 +376,7 @@ so the order below is strict.
       M3 exit criteria in `docs/M3-PLAN.md`; archive this backlog's completed phases
       with a closing note.
       Owner: agent · Shape: PR · Blocked by: 007-T022.
-- [ ] **BL-12** — Invite the real organizers from `/dashboard/team` (role picker →
+- [ ] **BL-12** (also covers **prod**: 009 P7 on 2026-10-08 was a rehearsal with `+prod-org`, so the real organizers are invited on both hosts here) — Invite the real organizers from `/dashboard/team` (role picker →
       Organizer). Until then the organizer seat is Owen on the `+uat-org` account (BL-06).
       Record who (role only, no addresses) and when in
       `specs/010-invite-only-uat/quickstart.md`, and tell them what to test.
