@@ -102,6 +102,8 @@ Task IDs are filled in by `/speckit-tasks`; the rows are fixed now so `tasks.md`
    `specs/README.md`, 007 env-contract and quickstart backlog note, 008 tasks follow-up, the
    migrations README, the constitution PATCH removing the acknowledged invite-stub note).
 
+**Closed 2026-10-08.** Every row ☑ — V1–V4, D1–D12 (2026-09-27), P1–P9 (2026-09-27 → 2026-10-08; P7–P9 in rehearsal form with a `+prod-org` account, the real organizers are backlog BL-12). Step 4 shipped as PR [#60](https://github.com/Owen-Rose/Holigay-YYC/pull/60) `[009-T019]`; the `/forgot-password` live mail on prod (row P4) is tracked as backlog BL-13.
+
 ## Known behaviours worth not filing as bugs
 
 - **An invitee who clicked the link but never set a password** is confirmed and has signed

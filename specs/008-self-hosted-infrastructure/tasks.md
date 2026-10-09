@@ -369,6 +369,8 @@ git commit -m "build: multi-stage Dockerfile for the standalone app image [008-T
 
 > Note (spec 010, research R14): `NEXT_PUBLIC_INVITE_ONLY` is platform-neutral — staging sets `true`, production leaves it unset; nothing in `APP_ENV` implies it.
 
+> Note (spec 009, research R22): `SUPABASE_SERVICE_ROLE_KEY` is a real production requirement now (`src/lib/supabase/admin.ts` behind `inviteOrganizer`). Carry it into the `APP_ENV` strictness rule — required when `APP_ENV=production`, like `EMAIL_FROM_ADDRESS` — keep the `supabaseServiceRoleKey` export, and mint the key in `deploy/.env` next to the anon key (T013's `mint-keys.sh`).
+
 **Files:**
 - Modify: `src/lib/env.ts`, `src/test/env.test.ts`, `src/test/keepalive-route.test.ts` (stub list only), `.env.example`, `CLAUDE.md` ("Environment Variables" section), `specs/007-production-readiness/contracts/env-contract.md`, `docs/DEV-ENVIRONMENT-SETUP.md` (Part 8 table)
 
@@ -1558,6 +1560,8 @@ git commit -m "feat(smoke): optional authenticated storage round-trip [008-T011]
 
 **Interfaces:**
 - Consumes: the app image `ghcr.io/owen-rose/holigay-app:<tag>` (T010) with env `APP_ENV`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SMTP_*`, `EMAIL_FROM_ADDRESS` (T008/T009).
+
+> Note (spec 009, research R22 — added 2026-10-08): the app consumes every emailed link at its own `GET /auth/confirm` (`specs/009-organizer-invites/contracts/email-templates.md`). The GoTrue draft below must therefore (a) point `GOTRUE_MAILER_URLPATHS_{INVITE,CONFIRMATION,RECOVERY,EMAIL_CHANGE}` at the **app** origin's `/auth/confirm`, not the API's `/auth/v1/verify`, and (b) carry the three template bodies and subjects from that contract via `GOTRUE_MAILER_TEMPLATES_{INVITE,CONFIRMATION,RECOVERY}` and `GOTRUE_MAILER_SUBJECTS_*` (the hosted projects hold them in the dashboard today). `deploy/.env` also mints `SUPABASE_SERVICE_ROLE_KEY` for the app (see the T008 note).
 - Produces: services `caddy`, `app`, `db`, `auth`, `rest`, `storage` (+ profile `admin`: `meta`, `studio`); env keys documented in `deploy/.env.example` (consumed by `deploy.sh` T014, `compose.staging.yml` T020, `backup.sh` T022); `mint-keys.sh` output lines `POSTGRES_PASSWORD`, `JWT_SECRET`, `ANON_KEY`, `SERVICE_ROLE_KEY`, `PG_META_CRYPTO_KEY`, `RESTIC_PASSWORD`.
 
 - [ ] **Step 1: `deploy/README.md`**
@@ -1733,6 +1737,9 @@ services:
       GOTRUE_SMTP_PASS: ${SMTP_PASS}
       GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
       # Links in auth emails are API_EXTERNAL_URL resolved against these paths (research R3).
+      # SPEC 009 (R22): these four must resolve to the APP origin's /auth/confirm, and the three
+      # bodies in specs/009-organizer-invites/contracts/email-templates.md must be supplied via
+      # GOTRUE_MAILER_TEMPLATES_* / GOTRUE_MAILER_SUBJECTS_* — see the note above this block.
       GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify

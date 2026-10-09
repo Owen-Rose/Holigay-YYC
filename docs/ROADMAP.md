@@ -27,7 +27,7 @@ in-flight feature safely, then paying down consistency debt.
 |---|---|
 | RBAC (DB + app), vendor dashboard, event management | ✅ Complete (Epics 1–3, 5; specs 001/002/004 merged) |
 | Brand re-skin | ✅ Mostly (6.9 file previews, 6.10 mobile polish outstanding) |
-| Organizer invites (Epic 4) | UI only — backend stub awaits a service-role client |
+| Organizer invites (Epic 4) | ✅ **Complete — spec 009.** Shipped to `dev` 2026-09-27 (PRs #27–#35); migration `013` on dev and prod 2026-09-27; prod configured 2026-10-07 and the first onboarding rehearsed on prod 2026-10-08. Real organizer invites are backlog BL-12 |
 | **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Manual probe checklist + live test submission on prod still owed (quickstart "Prod rollout record"). |
 | **Dynamic questionnaires (spec 005)** | ✅ **Feature-complete.** Shipped to `dev` with 006; on prod since 2026-09-13. Required-answer semantics fixed by 006/US3; builder atomicity and `seeded_from_template_id` fixed by Phase 11 (migration `012`, 2026-09-14). Migration 012 on dev and prod since 2026-09-14 |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
@@ -148,6 +148,10 @@ rewrite session.
   touch them. Kills the three-coexisting-shapes drift and per-file response types.
 - **`requireVendor()` helper** next to `requireRole()` — replaces the ownership-scoping
   block copy-pasted 5× in `vendor-dashboard.ts`/`vendors.ts`.
+- **`users_with_roles` is readable by any authenticated JWT** (migration `013` closed the
+  `anon` read — spec 009 research R20). Consider `security_invoker` plus an admin-only
+  policy, or an admin-only RPC, so a signed-in vendor cannot list every account's email
+  and role.
 - **Read-auth consistency**: add `requireRole('organizer')` to organizer-facing reads in
   `applications.ts`/`events.ts` (as `templates.ts` already does). RLS remains the
   authority; this restores the two-layer convention and makes intent legible.
@@ -177,9 +181,10 @@ rewrite session.
 
 ## Tier 4 — When there's appetite
 
-- **Epic 4 backend** (organizer invites): needs the service-role client the app
-  deliberately doesn't have yet. Contain it in `src/lib/supabase/admin.ts`, used only by
-  `team.ts`.
+- ~~**Epic 4 backend** (organizer invites)~~ ✅ **Shipped 2026-09-27 as spec 009.** The
+  service-role client is contained in `src/lib/supabase/admin.ts`, used only by `team.ts`,
+  with `src/test/admin-client-containment.test.ts` enforcing the containment;
+  `/auth/confirm`, `/set-password` and `/forgot-password` came with it.
 - **Retire the legacy form**: once existing events are upgraded
   (`ensure_event_questionnaire`), delete the static form path (`apply/client.tsx`,
   `vendor-application-form.tsx`, the legacy half of `applications.ts`) — several hundred
@@ -321,8 +326,8 @@ items there and here together.
       migration 011 is applied. Restore-and-migrate must happen back-to-back.
 - [ ] Confirm database backups are enabled on prod; do one restore drill on dev.
 - [ ] Env validation module in place; `.env` contract in CLAUDE.md current.
-- [ ] Seed the real organizer accounts (manual SQL is fine — Epic 4 backend is not
-      launch-blocking with ~2 organizers).
+- [ ] Seed the real organizer accounts (invited in-app from `/dashboard/team` since
+      spec 009 — no manual SQL; the real invites are backlog BL-12).
 - [x] Preview-deployment access decided for UAT (Vercel preview URLs are
       public-by-link). Decided 2026-09-27 (spec 010): previews stay public by link and
       accounts are invite-only — dev sign-up off, `NEXT_PUBLIC_INVITE_ONLY=true` on

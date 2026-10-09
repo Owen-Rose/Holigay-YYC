@@ -92,7 +92,7 @@ passwords, no vendor PII.
   it is a sequencing fact rather than a defect, and it does **not** touch `/apply`: public
   submissions go through `submit_public_application` and need no account. It does mean US5
   scenario 4 stays unprovable until T013b lands.
-- **Nothing exchanges the confirmation link's code** (and, seen 2026-09-23 on dev, nothing consumes the `#access_token=…` hash that a dashboard **invite** link returns either — the invitee lands on the public landing page signed out, with no way to set a password. Any organizer-invite feature must ship an auth callback route plus a set-password page first). `@supabase/ssr` defaults to PKCE and the
+- **Nothing exchanges the confirmation link's code** (closed 2026-09-27 by spec 009: `GET /auth/confirm` consumes every emailed link and `/set-password` follows — what remains of this bullet is the pre-009 state) (and, seen 2026-09-23 on dev, nothing consumes the `#access_token=…` hash that a dashboard **invite** link returns either — the invitee lands on the public landing page signed out, with no way to set a password. Any organizer-invite feature must ship an auth callback route plus a set-password page first). `@supabase/ssr` defaults to PKCE and the
   app has no auth callback route, so a confirmation link returns `?code=…` to the Site URL and
   the address is confirmed but the visitor is left signed out. `src/app/(auth)/signup/page.tsx`
   already tells them to sign in afterwards, so the flow completes — it is a rough edge, logged

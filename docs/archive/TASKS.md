@@ -358,6 +358,8 @@
 
 ### Story 4.2: Invite Server Action
 
+> **Superseded by spec 009 (shipped 2026-09-27).** The admin client is `src/lib/supabase/admin.ts`; the invite action, `/auth/confirm` and `/set-password` are specified in `specs/009-organizer-invites/`. Tasks 4.2.x below are kept as history and are not open work.
+
 #### Task 4.2.1: Set up Supabase Admin client
 - [ ] Create server-only client using service role key
 - [ ] Add `SUPABASE_SERVICE_ROLE_KEY` to .env.example
