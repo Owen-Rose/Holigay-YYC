@@ -122,7 +122,7 @@ In `src/lib/actions/answers.ts` around line 220–243, capture the `sendEmail` r
 
 **Fake event.** "UAT Dry Run — <date>", a plausible real market: date two months out, real venue text, booth prices as they would write them. Created by an organizer from scratch, not seeded by Owen, so the create path is tested.
 
-**Script, in order.** Each step has an expected result written into `docs/uat/<date>-organizer-dry-run.md` before the session, with a column for observed result.
+**Script, in order.** Each step has an expected result written into the rehearsal log before the session, with a column for observed result. (The log lives at `specs/007-production-readiness/rehearsal/<date>-*.md` — template from T016, solo run and organizer session `2026-10-06-organizer-uat.md` — not under `docs/uat/`, which was never created.)
 
 1. **Organizer: create the event** as draft → open the builder → seed from the existing template → add one yes/no question and one short-text question that shows if the first equals Yes → mark one question required → reorder → save once → hard reload, everything present.
 2. **Organizer: publish** (draft → active). Confirm the builder locks. Confirm `/apply` lists the event.

@@ -357,7 +357,7 @@ so the order below is strict.
 - [ ] **BL-09** — Final `npm run smoke` against prod after the reset; record the date
       in `docs/runbooks/event-week-smoke.md`.
       Owner: agent · Shape: terminal · Blocked by: BL-08.
-- [ ] **009-T019** — Docs and constitution PATCH per FR-031: CLAUDE.md Epic 4 row
+- [x] **009-T019** (PR #60 merged 2026-10-08) — Docs and constitution PATCH per FR-031: CLAUDE.md Epic 4 row
       ("Partial … pending service-role client" is wrong — spec 009 shipped it),
       `docs/ARCHITECTURE.md` line 224 ("one TODO (`team.ts` invite stub)" no longer
       exists), `docs/ROADMAP.md` current-state row "Organizer invites: UI only", notes
@@ -382,6 +382,13 @@ so the order below is strict.
       `specs/010-invite-only-uat/quickstart.md`, and tell them what to test.
       Owner: Owen · Shape: UI · Blocked by: BL-10 · Done when: the organizers have signed
       in and land on `/dashboard`.
+- [ ] **BL-13** (added 2026-10-08 from the Phase 3 review) — `/forgot-password` live mail on
+      **prod**: the reset template was set (009 row P4) but never exercised by a real mail.
+      Request a reset for an existing prod account (Owen's admin or the `+prod-org`
+      organizer) → mail from `noreply@holigayeventsyyc.ca` with the §2 body → link →
+      `/set-password` signed in → new password → `/dashboard`. Record the date and link host
+      under this item and cross-reference 009 quickstart P4. Run alongside BL-09.
+      Owner: joint · Shape: UI + mailbox · Blocked by: nothing · Done when: recorded here.
 
 ---
 

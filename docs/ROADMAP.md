@@ -310,30 +310,47 @@ items there and here together.
 
 **Production-readiness checklist (M3):** (order, owners and the UAT script: [M3-PLAN.md](./M3-PLAN.md))
 
-- [ ] **Verify a sending domain in Resend** and set `EMAIL_FROM_ADDRESS`. The current
-      fallback `onboarding@resend.dev` cannot deliver to real vendors — production email
-      is silently broken until this is done. (Confirm current restrictions in the Resend
-      dashboard.)
-- [ ] Keep both projects awake: free tier pauses after ~1 week idle (fatal for a
+- [x] **Verify a sending domain in Resend** and set `EMAIL_FROM_ADDRESS`. ✅ 2026-09-20
+      (spec 007 T002/T003: `holigayeventsyyc.ca` verified in Resend, sender
+      `noreply@holigayeventsyyc.ca` on Production and Preview; delivery proven by T006 the
+      same day and by the live prod submission in T021 on 2026-10-08). The old fallback
+      `onboarding@resend.dev` is refused in production by the env module (PR #10).
+- [x] Keep both projects awake: free tier pauses after ~1 week idle (fatal for a
       seasonal app). **Decided (M3-PLAN): stay free; daily keep-alive cron instead of a
-      paid tier** — `/api/keepalive` built by spec 007 T007. Closes when T008's first
-      Production cron run is green and dev is still active a week later.
+      paid tier** — `/api/keepalive` built by spec 007 T007 (PR #13). ✅ First Production
+      cron run green 2026-10-08 12:33Z on both projects (T008); the interim GitHub Actions
+      schedule (T008a, PR #14) covered 2026-09-17 → 2026-10-08. Residual: the seven-day
+      dev-still-active check due 2026-10-15, then the PR deleting the interim workflow.
       **This has now happened: on 2026-08-22 both the dev and prod projects were found
       paused** — subdomains NXDOMAIN, empty API-key lists — blocking the spec 006
       dev rollout until Holigay-Dev was manually restored. Note the security angle:
       while prod is paused the data exposure is unreachable, but the permissive
       policies are still in that database, so restoring prod re-opens the hole until
       migration 011 is applied. Restore-and-migrate must happen back-to-back.
-- [ ] Confirm database backups are enabled on prod; do one restore drill on dev.
-- [ ] Env validation module in place; `.env` contract in CLAUDE.md current.
-- [ ] Seed the real organizer accounts (invited in-app from `/dashboard/team` since
-      spec 009 — no manual SQL; the real invites are backlog BL-12).
+- [x] Confirm database backups are enabled on prod; do one restore drill on dev. ✅
+      2026-09-17 (T009 runbook PR #15; T010 drill PR #16 — dev dump restored into the local
+      stack, row counts and a signed-URL download verified, CLI relinked to dev).
+- [x] Env validation module in place; `.env` contract in CLAUDE.md current. ✅ 2026-09-17
+      (T004, PR #10: `src/lib/env.ts` + `src/lib/env-public.ts`, strictness keyed on
+      `VERCEL_ENV`; contract in `specs/007-production-readiness/contracts/env-contract.md`).
+- [x] Seed the real organizer accounts. ✅ Mechanism proven: in-app invites from
+      `/dashboard/team` (spec 009) rehearsed on the training host 2026-10-06 (BL-06) and on
+      prod 2026-10-08 (009 row P7, `+prod-org`). The real organizers' invites are backlog
+      BL-12 — a Phase 4 action, not an M3 blocker.
 - [x] Preview-deployment access decided for UAT (Vercel preview URLs are
       public-by-link). Decided 2026-09-27 (spec 010): previews stay public by link and
       accounts are invite-only — dev sign-up off, `NEXT_PUBLIC_INVITE_ONLY=true` on
       Preview, the Team page invites vendors as well as organizers; `/apply` stays open.
-- [ ] A smoke-test script for event week: submit test application, check email arrives,
-      check review flow.
+- [x] A smoke-test script for event week: submit test application, check email arrives,
+      check review flow. ✅ `npm run smoke` + `docs/runbooks/event-week-smoke.md` (T011,
+      PR #20, 2026-09-19); passed against prod 5/5 twice on 2026-10-08 with one live
+      dynamic-form submission and both emails (T021).
+
+**M3 closed 2026-10-08** (spec 007 T022). **M4 entry gate — the organizer session — was
+held 2026-10-06/07** on the training deployment (spec 007 T017; log:
+`specs/007-production-readiness/rehearsal/2026-10-06-organizer-uat.md`); its blockers
+shipped as PRs #55–#57 (T018). `dev` was promoted to `main` on 2026-10-07 and production
+has been live on `vendors.holigayeventsyyc.ca` since.
 
 **Maintenance mode (post-M4):** small fixes as single PRs under the constitution's
 gates; keep this file current as items land; occasional dependency/security bump
