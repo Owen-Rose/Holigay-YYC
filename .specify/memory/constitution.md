@@ -1,33 +1,48 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.1.0 → 1.1.1
-Bump rationale: PATCH — remove references to the deleted `isOrganizerOrAdmin()` helper
-(feature 001-consolidate-role-helpers). Wording refinement only; no principle added,
-removed, or materially redefined. Classification per research.md §R4.
+Version change: 1.1.1 → 1.1.2
+Bump rationale: PATCH — the Epic 4 invite stub is gone (spec 009 shipped the real
+`inviteOrganizer` over a contained service-role client), so the acknowledged violation and
+the `team.ts` example are removed; clarify that pre-session auth actions are outside the
+`requireRole()` rule. Wording refinement only; no principle added, removed, or materially
+redefined.
 
 Modified principles: none (principles unchanged).
 
 Modified sections:
-  - Principle I, server-action authorization bullet: `requireRole()` / `isOrganizerOrAdmin()`
-    → `requireRole()`.
-  - Development Workflow & Quality Gates, PR checklist (Principle I bullet): same edit.
+  - Principle I, server-action authorization bullet 2: one sentence added — actions that
+    establish a session for a caller who has none yet (`signIn`, `signUp`,
+    `requestPasswordReset`) cannot call `requireRole()`; they still validate with Zod first
+    and return the same response shape.
+  - Principle I, incomplete-features bullet: the `src/lib/actions/team.ts` example removed
+    (no longer incomplete).
+  - "Acknowledged pre-existing violations": the `team.ts` placeholder entry removed; the
+    Toaster entry stands.
 
 Added sections: none.
 
 Removed sections: none.
 
-Templates requiring updates:
-  - ✅ .specify/templates/plan-template.md — no isOrganizerOrAdmin references, no edit required.
-  - ✅ .specify/templates/spec-template.md — no isOrganizerOrAdmin references, no edit required.
-  - ✅ .specify/templates/tasks-template.md — no isOrganizerOrAdmin references; prior follow-up
-       (tasks-template-alignment) remains open.
+Previous amendment (1.1.0 → 1.1.1, 2026-04-21): removed references to the deleted
+`isOrganizerOrAdmin()` helper (feature 001-consolidate-role-helpers).
 
-Downstream doc propagation:
-  - CLAUDE.md: line 99 (server-action pattern) and line 196 (Role System module listing)
-    updated to drop `isOrganizerOrAdmin()`; stale `roles.ts` server-action-file bullet
-    removed since `src/lib/actions/roles.ts` was deleted.
-  - README.md: no change required (no isOrganizerOrAdmin references).
+Templates requiring updates:
+  - ✅ .specify/templates/plan-template.md — no `team.ts` or invite-stub references, no edit.
+  - ✅ .specify/templates/spec-template.md — same.
+  - ✅ .specify/templates/tasks-template.md — same; prior follow-up (tasks-template-alignment)
+       remains open.
+
+Downstream doc propagation (same PR, [009-T019]):
+  - CLAUDE.md: Epic 4 row → Complete (spec 009); `team.ts` server-action bullet; Route
+    Structure gains `/auth/confirm`, `/set-password`, `/forgot-password`; migration `013`
+    listed; Current Development Phase and Recent Changes carry the 009 dates.
+  - docs/ARCHITECTURE.md: the "no service-role key anywhere" statements (request flow,
+    §3) now describe the contained admin client; "one TODO" → zero; `/auth/confirm` added
+    to the Route Handler list.
+  - docs/ROADMAP.md: Organizer invites row → Complete; Tier 4 Epic 4 bullet struck; M3
+    organizer-accounts note; new Tier 3 candidate for the `users_with_roles` read.
+  - README.md: no change required.
 
 Deferred items / follow-up TODOs (carried from v1.1.0):
   - TODO(tasks-template-alignment): Amend .specify/templates/tasks-template.md so test
@@ -41,9 +56,6 @@ Deferred items / follow-up TODOs (carried from v1.1.0):
 
 Acknowledged pre-existing violations (load-bearing for reviewers):
   - src/app/layout.tsx:32-34 — inline hex in Toaster toastOptions (Principle III).
-  - src/lib/actions/team.ts:22-40 — Epic 4.2.x invite flow returns a placeholder error;
-    must be tracked as a spec under `specs/` (not a constitutional violation — guard and
-    response shape are compliant).
 -->
 
 # Holigay Vendor Market Constitution
@@ -66,7 +78,10 @@ guidelines.
   1. Validate input with a Zod schema from `src/lib/validations/` via `safeParse` before any
      database call.
   2. Authorize via `requireRole()` (`src/lib/auth/roles.ts`) at the
-     top of the action body for any mutation or privileged read.
+     top of the action body for any mutation or privileged read. Actions that establish a
+     session for a caller who has none yet (`signIn`, `signUp`, `requestPasswordReset`)
+     cannot call `requireRole()`; they still validate with Zod first and return the same
+     response shape.
   3. Return a `{ success: boolean, error: string | null, data: T | null }` response — no
      throwing across the server/client boundary.
 - Row Level Security MUST be enabled on every user-data table. New tables that store user or
@@ -76,8 +91,8 @@ guidelines.
 - CI (`.github/workflows/ci.yml`) MUST run `npm run format:check`, `npm run lint`, `npm test`,
   and `npm run build`, in that order. A red check on any of these blocks merge.
 - Commented-out code, dead exports, and half-finished abstractions MUST be removed before
-  merge. Known incomplete features (e.g., `src/lib/actions/team.ts`) MUST fail closed with an
-  explicit error response and MUST be tracked as a spec under `specs/`.
+  merge. Known incomplete features MUST fail closed with an explicit error response and MUST
+  be tracked as a spec under `specs/`.
 
 ### II. Testing Standards
 
@@ -237,4 +252,4 @@ bundle). These rules keep it that way and close the cache-invalidation gap.
 - **Runtime guidance**: `CLAUDE.md` at the repository root remains the day-to-day operational
   reference for contributors and assistants; it does NOT override this document.
 
-**Version**: 1.1.1 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-04-21
+**Version**: 1.1.2 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-10-08

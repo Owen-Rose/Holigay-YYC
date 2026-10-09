@@ -43,8 +43,10 @@ src/lib/actions/*            – 'use server' actions; ALL mutations follow the 
   │                            pattern: requireRole() → Zod safeParse → query →
   │                            revalidatePath(). Reads are less consistent (see §7).
   ▼
-supabase-js (anon key)       – created per-request by src/lib/supabase/server.ts;
-  │                            no service-role key is used anywhere in the app
+supabase-js (anon key)       – created per-request by src/lib/supabase/server.ts.
+  │                            The one service-role client (src/lib/supabase/admin.ts,
+  │                            spec 009) is imported only by src/lib/actions/team.ts
+  │                            behind requireRole('admin'); a test asserts that
   ▼
 PostgreSQL + RLS             – Row Level Security is the final authority on every read
                                and write. Policies key off auth.uid() and get_user_role().
@@ -58,9 +60,13 @@ multi-table write in one transaction under definer privileges. RLS still guards 
 anon-reachable read; the RPC is the one audited hole punched through it, and it is
 `anon`-executable by explicit `GRANT` (migration 011).
 
-There is **no REST API surface** — the only two `/api` routes are dev-only email tools,
-gated off in production. All reads and writes go through server actions, which Next.js
-exposes as POST endpoints (relevant to security: server actions are publicly invocable).
+There is **no REST API surface** — only four Route Handlers: `GET /auth/confirm` (spec 009:
+exchanges an emailed `token_hash` via `verifyOtp` on the cookie-backed server client, then
+redirects to `/set-password`, `/dashboard` or `/vendor-dashboard`; it performs no other
+write), `GET /api/keepalive` (the daily Vercel cron, bearer-secret gated, spec 007) and the
+two dev-only email tools, gated off in production. All other reads and writes go through
+server actions, which Next.js exposes as POST endpoints (relevant to security: server
+actions are publicly invocable).
 
 ## 3. The authorization model — three layers
 
@@ -74,9 +80,13 @@ Authorization is enforced three times, at decreasing distance from the data:
 
 Two facts make layer 3 the one that matters:
 
-1. **The app only ever uses the anon key.** There is no service-role client, so nothing
-   can bypass RLS. Whatever RLS allows the `anon` role is what an attacker with the
-   (public, shipped-to-every-browser) anon key can do against PostgREST directly.
+1. **The app uses the anon key everywhere but one place.** The only service-role client
+   is `src/lib/supabase/admin.ts` (spec 009), imported solely by `src/lib/actions/team.ts`
+   behind `requireRole('admin')` and used for `auth.admin.inviteUserByEmail`;
+   `src/test/admin-client-containment.test.ts` fails the suite if anything else imports
+   it. Nothing else can bypass RLS, so whatever RLS allows the `anon` role is what an
+   attacker with the (public, shipped-to-every-browser) anon key can do against PostgREST
+   directly.
 2. **The public `/apply` flow is anonymous**, so the `vendors`, `applications`,
    `attachments`, and `application_answers` tables carry `anon` policies to make the
    unauthenticated submission work. Several of these are `USING (true)` — see
@@ -222,7 +232,7 @@ server-only and owns the rest; its production-only rules key on `VERCEL_ENV`, ne
 dev-only API routes keep a raw `NODE_ENV` gate by design.
 
 **Code hygiene** (verified at review time): zero `as any`, zero `@ts-ignore`, zero
-`eslint-disable`, one TODO (`team.ts` invite stub). Error reporting is `console.error`
+`eslint-disable`, zero TODOs (the `team.ts` invite stub was replaced by spec 009). Error reporting is `console.error`
 only — no structured logging or error tracker.
 
 ## 8. Leaving Supabase — the honest tradeoff map

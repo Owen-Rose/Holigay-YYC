@@ -14,7 +14,7 @@ At-a-glance status of every Speckit spec in this repo. New specs go here, one di
 | 006 | Close the public data exposure | ✅ Shipped; prod migrated 2026-09-13 | [#7](https://github.com/Owen-Rose/Holigay-YYC/pull/7) | 2026-08-22 |
 | 007 | Production readiness (M3) | 🚧 In progress | [#9](https://github.com/Owen-Rose/Holigay-YYC/pull/9) | — |
 | 008 | Self-hosted infrastructure | 🚧 In progress — design, plan and tasks T001–T027 written 2026-09-19 | [#23](https://github.com/Owen-Rose/Holigay-YYC/pull/23) | — |
-| 009 | Organizer invites, link consumption and password reset | 🚧 In progress — spec, plan and tasks T001–T019 written 2026-09-26 | [#27](https://github.com/Owen-Rose/Holigay-YYC/pull/27) | — |
+| 009 | Organizer invites, link consumption and password reset | ✅ Shipped; migration `013` on dev and prod 2026-09-27; prod configured 2026-10-07, first onboarding rehearsed 2026-10-08 (real organizers → backlog BL-12) | [#27](https://github.com/Owen-Rose/Holigay-YYC/pull/27) (spec), [#28](https://github.com/Owen-Rose/Holigay-YYC/pull/28)–[#35](https://github.com/Owen-Rose/Holigay-YYC/pull/35) (T002–T015) | 2026-09-27 |
 | 010 | Invite-only UAT environment | 🚧 Training deployment invite-only since 2026-09-27 (T001–T010, T013, T014 done); left: prod T011/T012 (P1–P3) | [#38](https://github.com/Owen-Rose/Holigay-YYC/pull/38) | — |
 
 ### Post-merge detail
