@@ -311,7 +311,7 @@ so the order below is strict.
       `/apply` loads, `/api/keepalive` answers 401 without the secret.
       Owner: Owen · Shape: git + Vercel · Blocked by: 009-T017, 007-T018 (zero blockers) ·
       Evidence: 007 quickstart T020 row, 009 row P6.
-- [ ] **007-T008** (vars set and `200 ok:true` proven 2026-10-07; open: first scheduled run → 7-day check → workflow + secrets deletion PR on `main`) — Vercel Production → `CRON_SECRET` and `KEEPALIVE_SUPABASE_TARGETS`
+- [ ] **007-T008** (vars set and `200 ok:true` proven 2026-10-07; first scheduled run seen 2026-10-08 12:33Z on both projects; open: 7-day check due 2026-10-15 → workflow + secrets deletion PR on `main`) — Vercel Production → `CRON_SECRET` and `KEEPALIVE_SUPABASE_TARGETS`
       (both projects listed). Watch the first cron run; seven days later confirm dev is
       still active. Then delete `.github/workflows/keepalive.yml` from `main` and its
       four repo secrets (agent PR).
