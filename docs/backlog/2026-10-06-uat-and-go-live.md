@@ -54,6 +54,10 @@ PRs #46–#51), Phase 2 (organizer UAT, 2026-10-06/07, PRs #52 and #55–#57) an
 promoted 2026-10-07 (`66fc1dd..94e6f6d`), production live on `vendors.holigayeventsyyc.ca`,
 prod smoke 5/5 with a live submission 2026-10-08, prod data 0 events / 0 vendors / 0 objects.
 
+Housekeeping 2026-10-08 (BL-02-style, Owen's go in chat): the squash-merged remote branches
+`uat-3-signup-session-message` and `uat-9-signup-subtitle` (#59, #58) deleted; `main` still
+awaits the single Phase 4 promotion (Owen runs it — auto mode denies pushes to `main`).
+
 ---
 
 ## Phase 4 — Go-live clean slate and docs truth-up
@@ -82,7 +86,7 @@ prod smoke 5/5 with a live submission 2026-10-08, prod data 0 events / 0 vendors
       paragraphs in CLAUDE.md; remove the dead `docs/uat/<date>-organizer-dry-run.md`
       reference from `docs/M3-PLAN.md`; confirm `git diff main dev` is empty.
       Owner: agent · Shape: PR · Blocked by: 007-T021, 009-T019.
-- [ ] **BL-10** — Mark M3 done and M4 entered in `docs/ROADMAP.md` "Milestones to
+- [x] **BL-10** (PR #62 merged 2026-10-08) — Mark M3 done and M4 entered in `docs/ROADMAP.md` "Milestones to
       production"; move spec 008 to a "post-launch" note in `specs/README.md`; tick the
       M3 exit criteria in `docs/M3-PLAN.md`; archive this backlog's completed phases
       with a closing note.
