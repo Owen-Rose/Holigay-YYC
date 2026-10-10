@@ -130,6 +130,25 @@ awaits the single Phase 4 promotion (Owen runs it — auto mode denies pushes to
       Corroborated by a read-only prod query: `auth.users.last_sign_in_at` 2026-10-09 04:16Z
       (the link's `verifyOtp`), `updated_at` 04:18Z (the password change). 009 quickstart P4
       annotated. Pass.
+- [x] **BL-14** (added and run 2026-10-09) — Serve the training deployment at
+      `training.holigayeventsyyc.ca`: Vercel branch domain (Preview / `dev`) on the
+      `holigay-yyc` project, one GoDaddy CNAME `training` → `2dca14a070d5bcca.vercel-dns-017.com`
+      (the same per-project target as `vendors`), dev Supabase `site_url` → the new host and
+      the host appended to `uri_allow_list`.
+      Design: `docs/superpowers/specs/2026-10-09-uat-custom-domain-design.md`; plan:
+      `docs/superpowers/plans/2026-10-09-uat-custom-domain-plan.md`.
+      Owner: joint (agent drives Chrome + Management API, Owen signed in) · Shape: dashboards +
+      API + docs PR · Blocked by: nothing · Done when: an emailed link's host is the new domain.
+      **Record (2026-10-09).** Vercel row Valid Configuration on branch `dev` (`vendors` still
+      Production); GoDaddy zone 12 → 13 records (reached through Delegate Access → Access now);
+      HTTPS `200 0` after a ~2 min certificate wait; `/signup` 404 on the new host (invite-only
+      intact). Management API read-back `site_url` = `https://training.holigayeventsyyc.ca`,
+      allow-list = git-dev, uat vercel.app, training (each `/**`). `/forgot-password` on the
+      new host for `+uat-org` → neutral message → Owen opened the mail and clicked the link →
+      landed signed in on `training.holigayeventsyyc.ca/dashboard`. (A first mail, opened late,
+      reported the link expired; a fresh request worked.) `uat-holigay-yyc.vercel.app` and
+      `vendors.holigayeventsyyc.ca` 200; `vendors`/`send`/`rsend`/`resend._domainkey` unchanged
+      (dig diff empty). Pass.
 
 ---
 

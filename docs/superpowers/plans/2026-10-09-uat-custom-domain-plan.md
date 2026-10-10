@@ -30,12 +30,12 @@
 **Interfaces:**
 - Produces: the baseline DNS answers that Task 6 compares against.
 
-- [ ] **Step 1: Confirm branch and clean tree**
+- [x] **Step 1: Confirm branch and clean tree**
 
 Run: `git -C /home/wrenn/Github/Holigay-YYC status --short --branch`
 Expected: `## bl-14-uat-custom-domain...origin/bl-14-uat-custom-domain` and no changed files.
 
-- [ ] **Step 2: Record the DNS baseline**
+- [x] **Step 2: Record the DNS baseline**
 
 ```bash
 cd /home/wrenn/Github/Holigay-YYC
@@ -46,12 +46,12 @@ dig +short resend._domainkey.holigayeventsyyc.ca TXT | tee -a "$SCRATCH/bl14-bas
 ```
 Expected: `vendors` → a `*.vercel-dns-017.com.` target; `send`/`rsend` → Resend targets; `resend._domainkey` → a TXT (`p=…`); **`training` → empty**. If `training` already has a record, stop and ask Owen.
 
-- [ ] **Step 3: Confirm the two preview hosts are reachable logged-out**
+- [x] **Step 3: Confirm the two preview hosts are reachable logged-out**
 
 Run: `for h in uat-holigay-yyc.vercel.app holigay-yyc-git-dev-owen-roses-projects.vercel.app; do curl -s -o /dev/null -w "$h %{http_code}\n" "https://$h/"; done`
 Expected: both `200` (Deployment Protection is off; verified 2026-10-09). A `302` to `vercel.com/sso-api` means protection was turned back on — stop and ask.
 
-- [ ] **Step 4: Connect Chrome**
+- [x] **Step 4: Connect Chrome**
 
 Call `mcp__claude-in-chrome__tabs_context_mcp`. Expected: a tab list. If the extension does not answer, stop and ask Owen to open Chrome with the extension connected.
 
@@ -64,21 +64,21 @@ Call `mcp__claude-in-chrome__tabs_context_mcp`. Expected: a tab list. If the ext
 **Interfaces:**
 - Produces: `VERCEL_CNAME_TARGET` — the exact CNAME value Vercel asks for (looks like `<hex>.vercel-dns-017.com`). Task 3 uses it verbatim.
 
-- [ ] **Step 1: Open the Domains settings in a new tab**
+- [x] **Step 1: Open the Domains settings in a new tab**
 
 `tabs_create_mcp`, then `navigate` to `https://vercel.com/owen-roses-projects/holigay-yyc/settings/domains`. Take a screenshot. Expected: the Domains page listing `vendors.holigayeventsyyc.ca` (Production) and the `*.vercel.app` hosts. If Vercel shows a login page, ask Owen to sign in, then reload.
 
-- [ ] **Step 2: Add the domain**
+- [x] **Step 2: Add the domain**
 
 Click **Add** (or **Add Domain**). In the dialog: domain `training.holigayeventsyyc.ca`; environment **Preview**; git branch **`dev`** (the dialog may call it "Connect to an environment" → Preview → branch, or show a branch field after the domain is added — in that case add the domain, then open its row's **Edit** and set *Git Branch* to `dev`). Confirm. Screenshot the result.
 
 Expected: a new row `training.holigayeventsyyc.ca` whose badge says **Preview** and **`dev`**, with a status of *Invalid Configuration* and a box showing the required record: `Type CNAME · Name training · Value <hex>.vercel-dns-017.com`.
 
-- [ ] **Step 3: Capture the CNAME target**
+- [x] **Step 3: Capture the CNAME target**
 
 Read the Value from the page (use `read_page` / `get_page_text`, not a guess). Write it down in the session as `VERCEL_CNAME_TARGET`. Expected shape: ends in `.vercel-dns-017.com` (or `cname.vercel-dns.com` on older projects). Compare with `vendors`'s baseline target from Task 1 — same suffix family is expected; a different form is fine as long as it came from the page.
 
-- [ ] **Step 4: Check the row is on Preview, not Production**
+- [x] **Step 4: Check the row is on Preview, not Production**
 
 Screenshot the row. Expected: the `vendors.holigayeventsyyc.ca` row still says Production and the new row says Preview / `dev`. If the new row says Production, open its Edit and change it before going on.
 
@@ -91,17 +91,17 @@ Screenshot the row. Expected: the `vendors.holigayeventsyyc.ca` row still says P
 **Interfaces:**
 - Consumes: `VERCEL_CNAME_TARGET` from Task 2.
 
-- [ ] **Step 1: Open the DNS records for the zone in a new tab**
+- [x] **Step 1: Open the DNS records for the zone in a new tab**
 
 `tabs_create_mcp`, then `navigate` to `https://dcc.godaddy.com/control/holigayeventsyyc.ca/dns`. Screenshot. Expected: the DNS Records table showing at least the rows `vendors` (CNAME), `send`, `rsend`, `resend._domainkey` (TXT). If GoDaddy opens on Owen's own domain list instead, ask him to switch to the **delegate** account for `holigayeventsyyc.ca` in the account menu, then reload.
 
-- [ ] **Step 2: Add the record**
+- [x] **Step 2: Add the record**
 
 Click **Add New Record** (or **Add**). Type **CNAME**; Name `training`; Value `VERCEL_CNAME_TARGET` exactly as captured (no trailing dot needed; GoDaddy strips it); TTL default (1 hour) or 600 seconds if offered. Save. Screenshot.
 
 Expected: a new row `training · CNAME · <target>`. The other rows are unchanged (count them against Task 1's baseline; four named records plus whatever the apex has).
 
-- [ ] **Step 3: Confirm propagation from the shell**
+- [x] **Step 3: Confirm propagation from the shell**
 
 Run: `for i in 1 2 3 4 5 6; do r=$(dig +short training.holigayeventsyyc.ca CNAME @1.1.1.1); [ -n "$r" ] && { echo "$r"; break; }; sleep 20; done`
 Expected: prints the target within about two minutes. If empty after six tries, also query `@8.8.8.8` and GoDaddy's own nameservers (`dig NS holigayeventsyyc.ca +short`); wait up to ten minutes before treating it as a problem.
@@ -112,16 +112,16 @@ Expected: prints the target within about two minutes. If empty after six tries, 
 
 **Files:** none
 
-- [ ] **Step 1: Refresh the Vercel row**
+- [x] **Step 1: Refresh the Vercel row**
 
 Back on the Vercel Domains tab: click **Refresh** on the `training.holigayeventsyyc.ca` row (or reload the page). Screenshot. Expected: status becomes **Valid Configuration**; a certificate spinner may show for a minute.
 
-- [ ] **Step 2: Confirm HTTPS from the shell**
+- [x] **Step 2: Confirm HTTPS from the shell**
 
 Run: `curl -sS -o /dev/null -w "%{http_code} %{ssl_verify_result}\n" https://training.holigayeventsyyc.ca/`
 Expected: `200 0`. A `000` with an SSL error means the certificate is still being issued — wait a minute and retry (up to five minutes). A `404` with `DEPLOYMENT_NOT_FOUND` means the row is not attached to branch `dev` — go back to Task 2 Step 4.
 
-- [ ] **Step 3: Confirm the invite-only posture carried over**
+- [x] **Step 3: Confirm the invite-only posture carried over**
 
 Run: `for p in / /apply /login /signup; do curl -s -o /dev/null -w "$p %{http_code}\n" "https://training.holigayeventsyyc.ca$p"; done`
 Expected: `/ 200`, `/apply 200`, `/login 200`, **`/signup 404`** (the middleware rewrite under `NEXT_PUBLIC_INVITE_ONLY=true`). A `200` on `/signup` means this is not a Preview deployment — stop and re-check Task 2.
@@ -136,7 +136,7 @@ Expected: `/ 200`, `/apply 200`, `/login 200`, **`/signup 404`** (the middleware
 **Interfaces:**
 - Consumes: nothing from Chrome; this is terminal-only and needs a **default-mode** session.
 
-- [ ] **Step 1: Read the CLI token from the keyring**
+- [x] **Step 1: Read the CLI token from the keyring**
 
 Runbook source: `docs/runbooks/reset-hosted-project.md` ("Management API" section). Repeated here so this task stands alone:
 
@@ -167,7 +167,7 @@ REF=kcokcufmzyckbodelqpb   # DEV. Never hgmfjvjlxrhdojwlkgap here.
 ```
 Expected: `token ok (NN chars)`. Never print `$TOKEN`. If the command is denied, the session is in auto mode — ask Owen to switch to default mode and run the whole task in one Bash call (shell variables do not persist between calls).
 
-- [ ] **Step 2: Read the current values (same Bash call as Step 1)**
+- [x] **Step 2: Read the current values (same Bash call as Step 1)**
 
 ```bash
 curl -sS "https://api.supabase.com/v1/projects/$REF/config/auth" -H "Authorization: Bearer $TOKEN" \
@@ -175,7 +175,7 @@ curl -sS "https://api.supabase.com/v1/projects/$REF/config/auth" -H "Authorizati
 ```
 Expected (from spec 010 row D2): `site_url` = `https://uat-holigay-yyc.vercel.app`; `uri_allow_list` = `https://holigay-yyc-git-dev-owen-roses-projects.vercel.app/**,https://uat-holigay-yyc.vercel.app/**`. If `site_url` is something else, stop and show Owen the file before writing.
 
-- [ ] **Step 3: Build the new allow-list and PATCH (same Bash call)**
+- [x] **Step 3: Build the new allow-list and PATCH (same Bash call)**
 
 Copies every entry that names the old UAT host, rewrites the host, and appends — so the shape (`/**` or not) always matches what is already there:
 
@@ -192,7 +192,7 @@ jq -n --arg s 'https://training.holigayeventsyyc.ca' --arg l "$NEW" '{site_url:$
 ```
 Expected: the PATCH response echoes `site_url` = `https://training.holigayeventsyyc.ca` and an allow-list with **three** entries (git-dev, uat vercel.app, training). An error body `{"message": …}` means nothing changed — read it and stop.
 
-- [ ] **Step 4: Read back (same Bash call)**
+- [x] **Step 4: Read back (same Bash call)**
 
 ```bash
 curl -sS "https://api.supabase.com/v1/projects/$REF/config/auth" -H "Authorization: Bearer $TOKEN" \
@@ -207,19 +207,19 @@ Expected: `diff` shows exactly the two changed lines. Keep both files for the ba
 
 **Files:** none
 
-- [ ] **Step 1: Request a password reset on the new host**
+- [x] **Step 1: Request a password reset on the new host**
 
 `tabs_create_mcp`, `navigate` to `https://training.holigayeventsyyc.ca/forgot-password`. Type the `+uat-org` organizer address (Owen's; ask him for it if it is not in the session — do not guess it). Submit. Screenshot. Expected: the form is replaced by "If that address has an account, a reset link is on its way."
 
-- [ ] **Step 2: Owen opens the mail**
+- [x] **Step 2: Owen opens the mail**
 
 Ask Owen to open the reset mail and report (or paste) the link host. Expected: sender `noreply@holigayeventsyyc.ca`; link host **`training.holigayeventsyyc.ca`** with path `/auth/confirm?...type=recovery...`. If the host is still `uat-holigay-yyc.vercel.app`, Task 5 did not take — re-run its Step 4 read-back.
 
-- [ ] **Step 3: Follow the link**
+- [x] **Step 3: Follow the link**
 
 Owen clicks it in Chrome (or pastes it and I `navigate`). Screenshot. Expected: lands signed in on `https://training.holigayeventsyyc.ca/set-password`. He may cancel here or set a password; either way then load `/dashboard` and confirm it renders for the organizer.
 
-- [ ] **Step 4: Confirm the old hosts and prod are untouched**
+- [x] **Step 4: Confirm the old hosts and prod are untouched**
 
 ```bash
 for h in uat-holigay-yyc.vercel.app vendors.holigayeventsyyc.ca; do curl -s -o /dev/null -w "$h %{http_code}\n" "https://$h/"; done
@@ -228,7 +228,7 @@ diff <(grep -v '^training' "$SCRATCH/bl14-baseline.txt" | head -4) <(for n in ve
 ```
 Expected: both hosts `200`; the `diff` is empty.
 
-- [ ] **Step 5: Close the Chrome tabs this session opened**
+- [x] **Step 5: Close the Chrome tabs this session opened**
 
 `tabs_close_mcp` for each tab id created in Tasks 2, 3 and 6.
 
@@ -242,7 +242,7 @@ Expected: both hosts `200`; the `diff` is empty.
 - Modify: `specs/010-invite-only-uat/quickstart.md:74` (row D2 — append a note)
 - Modify: `docs/superpowers/plans/2026-10-09-uat-custom-domain-plan.md` (tick the boxes)
 
-- [ ] **Step 1: CLAUDE.md**
+- [x] **Step 1: CLAUDE.md**
 
 Replace, in the paragraph at line 213:
 
@@ -255,7 +255,7 @@ The training deployment `training.holigayeventsyyc.ca` (Vercel branch domain for
 ```
 (`DD` = the real day.)
 
-- [ ] **Step 2: Backlog entry**
+- [x] **Step 2: Backlog entry**
 
 Insert after the BL-13 block (keep the list's indentation style — six spaces on continuation lines):
 
@@ -277,7 +277,7 @@ Insert after the BL-13 block (keep the list's indentation style — six spaces o
 ```
 Fill `<VERCEL_CNAME_TARGET>` and the dates with the real values.
 
-- [ ] **Step 3: 010 quickstart row D2**
+- [x] **Step 3: 010 quickstart row D2**
 
 Append to the end of the D2 row's last cell (before the final `| ☑ |`):
 
@@ -285,12 +285,12 @@ Append to the end of the D2 row's last cell (before the final `| ☑ |`):
  **Superseded 2026-10-DD (BL-14):** `site_url` → `https://training.holigayeventsyyc.ca`; `uri_allow_list` gained `https://training.holigayeventsyyc.ca/**` (the two earlier origins kept).
 ```
 
-- [ ] **Step 4: Tick this plan's boxes and run the gate**
+- [x] **Step 4: Tick this plan's boxes and run the gate**
 
 Run: `cd /home/wrenn/Github/Holigay-YYC && npm run lint && npm test && npm run build`
 Expected: lint clean, all unit tests pass (the security project self-skips without a local stack), build succeeds.
 
-- [ ] **Step 5: Commit and open the PR**
+- [x] **Step 5: Commit and open the PR**
 
 ```bash
 git add CLAUDE.md docs/backlog/2026-10-06-uat-and-go-live.md specs/010-invite-only-uat/quickstart.md docs/superpowers/plans/2026-10-09-uat-custom-domain-plan.md
