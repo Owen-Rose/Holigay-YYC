@@ -1,3 +1,4 @@
+import { copyrightLine } from '@/lib/constants/brand';
 import { emailFromAddress, resendApiKey } from '@/lib/env';
 import { Resend } from 'resend';
 
@@ -383,7 +384,7 @@ export function wrapEmailTemplate(
           <tr>
             <td class="email-footer">
               <p style="margin: 0;">
-                &copy; ${new Date().getFullYear()} Holigay Vendor Market. All rights reserved.
+                ${copyrightLine()}
               </p>
               <p style="margin: 8px 0 0 0; font-size: 12px;">
                 This email was sent regarding your vendor application.

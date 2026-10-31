@@ -1,4 +1,5 @@
 import { wrapEmailTemplate } from '../client';
+import { EMAIL_SIGN_OFF_CLOSING, EMAIL_SIGN_OFF_NAMES } from '@/lib/constants/brand';
 import type { ApplicationStatus } from '@/lib/constants/application-status';
 
 // =============================================================================
@@ -254,8 +255,8 @@ export function statusUpdateEmail(data: StatusUpdateEmailData): EmailContent {
     </p>
 
     <p style="margin-bottom: 0;">
-      Best regards,<br>
-      <strong>The Holigay Vendor Market Team</strong>
+      ${EMAIL_SIGN_OFF_CLOSING}<br>
+      <strong>${EMAIL_SIGN_OFF_NAMES}</strong>
     </p>
   `;
 
@@ -330,8 +331,8 @@ Status: ${config.statusLabel}
 ${additionalText}${notesSection}
 If you have any questions, please contact the Holigay Events YYC organizers directly. This mailbox is not monitored.
 
-Best regards,
-The Holigay Vendor Market Team
+${EMAIL_SIGN_OFF_CLOSING}
+${EMAIL_SIGN_OFF_NAMES}
   `.trim();
 }
 

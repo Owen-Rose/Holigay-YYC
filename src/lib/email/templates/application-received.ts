@@ -1,4 +1,5 @@
 import { wrapEmailTemplate } from '../client';
+import { EMAIL_SIGN_OFF_CLOSING, EMAIL_SIGN_OFF_NAMES } from '@/lib/constants/brand';
 
 // =============================================================================
 // Types
@@ -148,8 +149,8 @@ export function applicationReceivedEmail(data: ApplicationReceivedEmailData): Em
     </p>
 
     <p style="margin-bottom: 0;">
-      Best regards,<br>
-      <strong>The Holigay Vendor Market Team</strong>
+      ${EMAIL_SIGN_OFF_CLOSING}<br>
+      <strong>${EMAIL_SIGN_OFF_NAMES}</strong>
     </p>
   `;
 
@@ -179,8 +180,8 @@ WHAT HAPPENS NEXT?
 
 If you have any questions in the meantime, please contact the Holigay Events YYC organizers directly. This mailbox is not monitored.
 
-Best regards,
-The Holigay Vendor Market Team
+${EMAIL_SIGN_OFF_CLOSING}
+${EMAIL_SIGN_OFF_NAMES}
   `.trim();
 
   return { subject, html, text };

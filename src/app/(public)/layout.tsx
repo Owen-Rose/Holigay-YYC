@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { copyrightLine } from '@/lib/constants/brand';
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -40,9 +41,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       {/* Footer */}
       <footer className="border-border-subtle mt-auto border-t">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-          <p className="text-muted-foreground text-center text-sm">
-            &copy; {new Date().getFullYear()} Holigay Vendor Market. All rights reserved.
-          </p>
+          <p className="text-muted-foreground text-center text-sm">{copyrightLine()}</p>
         </div>
       </footer>
     </div>
