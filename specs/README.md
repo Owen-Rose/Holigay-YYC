@@ -42,7 +42,7 @@ merged as one unit.
 
 ## Queued work (no spec yet)
 
-Production has been live since 2026-10-07. The ordered list of what remains for go-live's clean slate (prod reset and final smoke, real organizer invites, the `/forgot-password` prod check, one `dev` → `main` promotion) is Phase 4 of `docs/backlog/2026-10-06-uat-and-go-live.md`; its completed Phases 0–3 are archived in `docs/archive/backlog-2026-10-06-phases-0-3.md`. Spec 008 (self-hosting) is the post-launch track. Beyond that, see `docs/ROADMAP.md` Tier 3 (foundation hardening) and Tier 4. `docs/cleanup-roadmap.md` is historical — all five of its workstreams are complete and its leftover items were folded into Tier 3.
+Production has been live since 2026-10-07. The ordered list of what remains for go-live's clean slate (prod reset and final smoke, real organizer invites, the `/forgot-password` prod check, one `dev` → `main` promotion) is Phase 4 of `docs/backlog/2026-10-06-uat-and-go-live.md`; its completed Phases 0–3 are archived in `docs/archive/backlog-2026-10-06-phases-0-3.md`. Spec 008 (self-hosting) is the post-launch track. **Spec 011** (vendor account ↔ vendor-row linking, the contact block without phone and with three product links, legacy form retirement; one migration `014`) is queued from the organizers' October 2026 vendor-side UAT — decisions and outline in `docs/handoffs/2026-10-31-vendor-uat-findings.md`, sequencing in backlog Phase 5 (BL-16 writes it). Beyond that, see `docs/ROADMAP.md` Tier 3 (foundation hardening) and Tier 4. `docs/cleanup-roadmap.md` is historical — all five of its workstreams are complete and its leftover items were folded into Tier 3.
 
 ## Conventions
 
