@@ -170,7 +170,7 @@ as it merges.
 - [x] **BL-15** (PR #66 merged 2026-10-31) — This record: the handoff doc, this phase, the BL-12 observation and the
       Deferred CRM note.
       Owner: agent · Shape: docs PR · Blocked by: nothing · Done when: merged to `dev`.
-- [ ] **UAT2-7** `[P]` — Sign-off "Yours in Holigay Cheer, Lauren, Sandy, Tony, and Beans" and
+- [x] **UAT2-7** (PR #67 merged 2026-10-31; training mail confirmed the same day) — Sign-off "Yours in Holigay Cheer, Lauren, Sandy, Tony, and Beans" and
       footer "© {year} Holigay Events YYC. Don't steal, that's not cool." in both email templates
       (HTML and text), the email wrapper and the public site footer, from one constants module;
       unit tests assert the templates carry the constants.
@@ -180,7 +180,8 @@ as it merges.
       `src/lib/questionnaire/default-questions.ts`: the five spaces (keys and labels in the
       handoff), the tables-and-chairs plus lottery help text, a required yes/no acknowledgement
       shown only when `corner` is chosen, and radio rendering for single-select questions with
-      up to six options.
+      up to six options. Takes migration `014` (seed RPC accepts per-question `id` and
+      `show_if`; spec 011's migration becomes `015`).
       Owner: agent · Shape: PR · Blocked by: nothing · Done when: a **new** event on the training
       site shows the five options, the help text, and the acknowledgement appears on choosing
       Corner (published questionnaires are locked, so the existing event will not change).
@@ -191,10 +192,10 @@ as it merges.
 - [ ] **BL-16** `[P]` — Write spec 011 (`specs/011-vendor-linking-and-contact-fields/`:
       `spec.md`, `plan.md`, `tasks.md`) from the outline in the handoff: story 1 account ↔ vendor
       linking (UAT2-5), story 2 contact block (UAT2-1, UAT2-2), story 3 legacy form retirement;
-      one migration `014`.
+      one migration `015` (`014` went to UAT2-3+4).
       Owner: agent · Shape: docs PR · Blocked by: nothing · Done when: `specs/README.md` lists 011.
 - [ ] **011 tasks** — Spec 011 implemented task by task, one PR each, on Owen's go per task;
-      migration `014` to dev → training walkthrough (apply signed in; apply signed out then
+      migration `015` to dev → training walkthrough (apply signed in; apply signed out then
       invite; invite then apply) → migration to prod in default mode with the inventory → confirm
       → write → verify sequence.
       Owner: agent; Owen for prod · Shape: PRs + SQL · Blocked by: BL-16.

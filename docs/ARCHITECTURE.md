@@ -114,7 +114,8 @@ lives where:
 - Atomic multi-table writes via `SECURITY DEFINER` RPCs:
   `submit_public_application(jsonb)` (public submissions — event gate, vendor upsert,
   application insert, answers and attachments, all-or-nothing; failures surface as
-  ERRCODEs `P0001`–`P0004`), `create_event_with_default_questionnaire(jsonb)` and
+  ERRCODEs `P0001`–`P0004`), `create_event_with_default_questionnaire(jsonb)` (since 014 the
+  seed may carry ids and show-if rules, validated like the builder save) and
   `ensure_event_questionnaire(uuid)` (organizer-only — `anon` EXECUTE revoked)
 - `updated_at` maintenance triggers; the `users_with_roles` admin view
 

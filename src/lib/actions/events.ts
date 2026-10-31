@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { requireRole } from '@/lib/auth/roles';
 import { eventFormSchema, type EventFormInput } from '@/lib/validations/event';
-import { DEFAULT_EVENT_QUESTIONS } from '@/lib/questionnaire/default-questions';
+import { buildDefaultQuestionnaire } from '@/lib/questionnaire/default-questions';
 
 // =============================================================================
 // Types
@@ -117,7 +117,7 @@ export async function createEvent(
       application_deadline: applicationDeadline || null,
       status,
       max_vendors: maxVendors ? parseInt(maxVendors, 10) : null,
-      questions: DEFAULT_EVENT_QUESTIONS,
+      questions: buildDefaultQuestionnaire(),
     },
   });
 

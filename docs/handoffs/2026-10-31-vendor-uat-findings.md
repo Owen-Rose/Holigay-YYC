@@ -196,7 +196,7 @@ change is a one-line edit. Unit tests assert the templates carry the constants.
 | 3     | UAT2-3 + UAT2-4                | New default booth question, help text, conditional acknowledgement, radio rendering  | PR            | agent                | —                  |
 | 4     | UAT2-6                         | Email body copy: draft → organizers → PR                                             | copy, then PR | joint                | organizer feedback |
 | 5     | BL-16                          | Spec 011 written: `spec.md`, `plan.md`, `tasks.md`                                   | docs PR       | agent                | —                  |
-| 6     | UAT2-5, UAT2-1, UAT2-2, legacy | Spec 011 tasks, one PR each; migration `014` on dev, training walkthrough, then prod | PRs + SQL     | agent; Owen for prod | BL-16              |
+| 6     | UAT2-5, UAT2-1, UAT2-2, legacy | Spec 011 tasks, one PR each; migration `015` on dev, training walkthrough, then prod | PRs + SQL     | agent; Owen for prod | BL-16              |
 | 7     | BL-17                          | `dev` → `main` promotion, prod smoke, new event on prod shows the new default        | promotion     | joint                | all above          |
 
 Items 2, 3 and 5 are independent and can run in parallel. The organizers can review items 2
@@ -216,7 +216,7 @@ tasked.
   and export (UAT2-1, UAT2-2).
 - **Story 3 (P3)** — one apply form: the legacy fixed form and its action, schema, RPC branch and
   export columns are removed.
-- **Migration `014`** — storage for the links (shape decided in `plan.md`: `text[]` with a 1–3
+- **Migration `015`** (`014` was taken by UAT2-3+4: the seed RPC learns `id` and `show_if`) — storage for the links (shape decided in `plan.md`: `text[]` with a 1–3
   check, or three columns; `website` migrated into slot 1), a replacement
   `submit_public_application` (new column list, link-at-submit, `legacy` branch dropped), the
   self-heal RPC. Security suite: `submission-rpc.test.ts`, `invite-flow.test.ts` and a new
