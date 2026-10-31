@@ -63,6 +63,117 @@ async function fillVendorFields(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/email/i), 'jane@artisan.com');
 }
 
+// ---------------------------------------------------------------------------
+// Single-select rendering (UAT2-3): radios up to six options, dropdown beyond
+// ---------------------------------------------------------------------------
+
+const BOOTH_OPTIONS = [
+  { key: 'single_central', label: 'Single space in central area' },
+  { key: 'single_wall', label: 'Single space on the wall' },
+  { key: 'double_central', label: 'Double space in central area' },
+  { key: 'double_wall', label: 'Double space on the wall' },
+  { key: 'corner', label: 'Corner space, lottery' },
+];
+
+function options(count: number) {
+  return Array.from({ length: count }, (_, i) => ({ key: `k${i + 1}`, label: `Option ${i + 1}` }));
+}
+
+describe('DynamicApplicationForm single-select rendering (UAT2-3)', () => {
+  it('renders six options as radio buttons with the help text', () => {
+    const question = makeQuestion({
+      id: 'q-six',
+      type: 'single_select',
+      label: 'Six Q',
+      help_text: 'Pick one.',
+      options: options(6) as never,
+    });
+    render(
+      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[question]} />
+    );
+
+    expect(screen.getByRole('group', { name: /six q/i })).toBeInTheDocument();
+    expect(screen.getAllByRole('radio')).toHaveLength(6);
+    expect(screen.getByText('Pick one.')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('renders seven options as a dropdown', () => {
+    const question = makeQuestion({
+      id: 'q-seven',
+      type: 'single_select',
+      label: 'Seven Q',
+      options: options(7) as never,
+    });
+    render(
+      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[question]} />
+    );
+
+    expect(screen.getByRole('combobox', { name: /seven q/i })).toBeInTheDocument();
+    expect(screen.queryAllByRole('radio')).toHaveLength(0);
+  });
+
+  it('reveals the corner acknowledgement only while corner is chosen (UAT2-4)', async () => {
+    const user = userEvent.setup();
+    const booth = makeQuestion({
+      id: 'q-booth',
+      type: 'single_select',
+      label: 'Booth Preference',
+      required: true,
+      position: 0,
+      options: BOOTH_OPTIONS as never,
+    });
+    const ack = makeQuestion({
+      id: 'q-ack',
+      type: 'yes_no',
+      label: 'I understand that corner spaces are assigned by lottery',
+      required: true,
+      position: 1,
+      show_if: { questionId: 'q-booth', operator: 'equals', value: 'corner' } as never,
+    });
+    render(
+      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[booth, ack]} />
+    );
+
+    expect(screen.queryByRole('group', { name: /i understand/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByLabelText(/corner space, lottery/i));
+    expect(screen.getByRole('group', { name: /i understand/i })).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText(/single space on the wall/i));
+    expect(screen.queryByRole('group', { name: /i understand/i })).not.toBeInTheDocument();
+  });
+
+  it('submits the chosen radio as a choice answer', async () => {
+    const user = userEvent.setup();
+    mockSubmitDynamic.mockResolvedValue({ success: true, error: null, data: { id: 'app-1' } });
+    const booth = makeQuestion({
+      id: 'q-booth',
+      type: 'single_select',
+      label: 'Booth Preference',
+      required: true,
+      options: BOOTH_OPTIONS as never,
+    });
+    render(<DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[booth]} />);
+
+    await fillVendorFields(user);
+    await user.click(screen.getByLabelText(/double space on the wall/i));
+    await user.click(screen.getByRole('button', { name: /submit/i }));
+
+    await waitFor(() => expect(mockSubmitDynamic).toHaveBeenCalled());
+    expect(mockSubmitDynamic).toHaveBeenCalledWith(
+      expect.objectContaining({
+        answers: expect.arrayContaining([
+          expect.objectContaining({
+            questionId: 'q-booth',
+            value: { kind: 'choice', value: 'double_wall' },
+          }),
+        ]),
+      })
+    );
+  });
+});
+
 // =============================================================================
 // Tests
 // =============================================================================
@@ -137,15 +248,17 @@ describe('DynamicApplicationForm rendering', () => {
     expect(screen.getByLabelText(/number q/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/date q/i)).toBeInTheDocument();
 
-    // Select
-    expect(screen.getByLabelText(/single select q/i)).toBeInTheDocument();
+    // Single select with two options — a radio group (UAT2-3), not a dropdown
+    expect(screen.getByRole('group', { name: /single select q/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/option a/i)).toHaveAttribute('type', 'radio');
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
 
     // Multi select — options are Checkbox labels
     expect(screen.getByLabelText(/option x/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/option y/i)).toBeInTheDocument();
 
-    // Yes / No radios
-    expect(screen.getAllByRole('radio')).toHaveLength(2);
+    // Radios: two for the single select, two for Yes / No
+    expect(screen.getAllByRole('radio')).toHaveLength(4);
 
     // File upload
     expect(screen.getByLabelText(/file upload q/i)).toBeInTheDocument();

@@ -18,6 +18,9 @@ export interface QuestionInputProps {
   onFileSelect?: (file: File | null) => void;
 }
 
+/** Single-select questions with this many options or fewer render as radios. */
+export const RADIO_MAX_OPTIONS = 6;
+
 function requiredLabel(label: string, required: boolean) {
   return required ? `${label} *` : label;
 }
@@ -152,6 +155,42 @@ export function QuestionInput({
 
   if (type === 'single_select') {
     const optList = (options as { key: string; label: string }[] | null) ?? [];
+    const chosen = value?.kind === 'choice' ? value.value : null;
+
+    // Short lists are radios so long option labels read on a phone (UAT2-3);
+    // the dropdown stays for longer lists.
+    if (optList.length <= RADIO_MAX_OPTIONS) {
+      return (
+        <fieldset>
+          <legend className="text-foreground mb-2 text-sm font-medium">{displayLabel}</legend>
+          {hint && <p className="text-muted mb-2 text-xs">{hint}</p>}
+          <div className="space-y-2">
+            {optList.map((opt) => (
+              <label
+                key={opt.key}
+                className="flex cursor-pointer items-start gap-2 text-sm leading-tight"
+              >
+                <input
+                  type="radio"
+                  name={`ss-${question.id}`}
+                  value={opt.key}
+                  checked={chosen === opt.key}
+                  onChange={() => onChange({ kind: 'choice', value: opt.key })}
+                  className="text-primary focus:ring-primary/50 mt-0.5 h-4 w-4 shrink-0"
+                />
+                <span className="text-foreground">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+          {error && (
+            <p className="mt-1 text-sm text-red-400" role="alert">
+              {error}
+            </p>
+          )}
+        </fieldset>
+      );
+    }
+
     return (
       <Select
         label={displayLabel}
