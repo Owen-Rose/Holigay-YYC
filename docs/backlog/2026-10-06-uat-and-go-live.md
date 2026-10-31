@@ -5,8 +5,9 @@ the ROADMAP M3 checklist and the 2026-09-27 UAT findings. This is the single ord
 list of what stands between today and (a) inviting real organizers to the training
 deployment and (b) going live on production with a clean environment.
 
-**Status 2026-10-08:** (b) is done — production has been live since 2026-10-07. Phases 0–3
-are complete and archived (see below); Phase 4 is the live list.
+**Status 2026-10-31:** (b) is done — production has been live since 2026-10-07. Phases 0–3
+are complete and archived (see below); Phase 4 has BL-12 open; Phase 5 (the organizers'
+vendor-side UAT feedback, triaged 2026-10-31) is the live list.
 
 Decisions this list is built on (Owen, 2026-10-06):
 
@@ -26,8 +27,9 @@ Decisions this list is built on (Owen, 2026-10-06):
   constitution's workflow; the list does not replace it.
 - **Nothing starts without Owen naming the item.** Agents may prepare, but not begin.
 - **IDs:** an existing spec task keeps its ID (`007-T019`); a UAT finding keeps its
-  number from `docs/handoffs/2026-09-27-uat-findings.md` (`UAT-6`); new items are
-  `BL-nn`.
+  number from `docs/handoffs/2026-09-27-uat-findings.md` (`UAT-6`) or, for the October
+  2026 vendor-side round, from `docs/handoffs/2026-10-31-vendor-uat-findings.md`
+  (`UAT2-5`); new items are `BL-nn`.
 - **Owner:** `agent` (repo work), `Owen` (dashboard, decisions, prod), or
   `joint` (Owen drives Chrome or types passwords while the agent follows).
 - **Prod rule:** anything that reads or writes the production project needs the
@@ -115,6 +117,9 @@ awaits the single Phase 4 promotion (Owen runs it — auto mode denies pushes to
       `specs/010-invite-only-uat/quickstart.md`, and tell them what to test.
       Owner: Owen · Shape: UI · Blocked by: BL-10 · Done when: the organizers have signed
       in and land on `/dashboard`.
+      **Observation (2026-10-31, dev inventory for UAT2-5):** two real organizers were invited on
+      the training site on 2026-10-11 and have signed in (each also holds a `+vendor` alias
+      account). The training half is done in practice; prod not checked — tick when both are.
 - [x] **BL-13** (added and run 2026-10-08) — `/forgot-password` live mail on
       **prod**: the reset template was set (009 row P4) but never exercised by a real mail.
       Request a reset for an existing prod account (Owen's admin or the `+prod-org`
@@ -152,6 +157,53 @@ awaits the single Phase 4 promotion (Owen runs it — auto mode denies pushes to
 
 ---
 
+## Phase 5 — Vendor-side UAT feedback (October 2026)
+
+Source: `docs/handoffs/2026-10-31-vendor-uat-findings.md` — the organizers tested the vendor
+side of the training site on 2026-10-11; Owen triaged the notes with the agent on 2026-10-31
+and every decision is recorded there (phone out; three product links with the first required;
+new default booth question with the lottery acknowledgement; the unlinked-application cause
+and fix; sign-off and footers; email copy draft). `UAT2-n` IDs keep their number from that
+doc. Items 2, 3 and 5 are independent `[P]`; the organizers review each on the training site
+as it merges.
+
+- [ ] **BL-15** — This record: the handoff doc, this phase, the BL-12 observation and the
+      Deferred CRM note.
+      Owner: agent · Shape: docs PR · Blocked by: nothing · Done when: merged to `dev`.
+- [ ] **UAT2-7** `[P]` — Sign-off "Yours in Holigay Cheer, Lauren, Sandy, Tony, and Beans" and
+      footer "© {year} Holigay Events YYC. Don't steal, that's not cool." in both email templates
+      (HTML and text), the email wrapper and the public site footer, from one constants module;
+      unit tests assert the templates carry the constants.
+      Owner: agent · Shape: PR · Blocked by: nothing · Done when: a training-site confirmation
+      mail shows both lines.
+- [ ] **UAT2-3 + UAT2-4** `[P]` — Default booth question re-seeded from
+      `src/lib/questionnaire/default-questions.ts`: the five spaces (keys and labels in the
+      handoff), the tables-and-chairs plus lottery help text, a required yes/no acknowledgement
+      shown only when `corner` is chosen, and radio rendering for single-select questions with
+      up to six options.
+      Owner: agent · Shape: PR · Blocked by: nothing · Done when: a **new** event on the training
+      site shows the five options, the help text, and the acknowledgement appears on choosing
+      Corner (published questionnaires are locked, so the existing event will not change).
+- [ ] **UAT2-6** — Email body copy. The draft is in the handoff doc; Owen takes it to the
+      organizers and brings back their wording; the PR lands once settled. Auth emails (confirm,
+      invite, reset) are dashboard templates on each project, changed by hand if wanted.
+      Owner: joint · Shape: copy, then PR · Blocked by: organizer feedback.
+- [ ] **BL-16** `[P]` — Write spec 011 (`specs/011-vendor-linking-and-contact-fields/`:
+      `spec.md`, `plan.md`, `tasks.md`) from the outline in the handoff: story 1 account ↔ vendor
+      linking (UAT2-5), story 2 contact block (UAT2-1, UAT2-2), story 3 legacy form retirement;
+      one migration `014`.
+      Owner: agent · Shape: docs PR · Blocked by: nothing · Done when: `specs/README.md` lists 011.
+- [ ] **011 tasks** — Spec 011 implemented task by task, one PR each, on Owen's go per task;
+      migration `014` to dev → training walkthrough (apply signed in; apply signed out then
+      invite; invite then apply) → migration to prod in default mode with the inventory → confirm
+      → write → verify sequence.
+      Owner: agent; Owen for prod · Shape: PRs + SQL · Blocked by: BL-16.
+- [ ] **BL-17** — Promotion `dev` → `main` after the round; `npm run smoke` against prod; a new
+      event on prod shows the new default questionnaire; record in the event-week runbook.
+      Owner: joint · Shape: promotion · Blocked by: everything above.
+
+---
+
 ## Deferred — listed, not prioritized
 
 Not needed for UAT or go-live on the current stack.
@@ -159,6 +211,12 @@ Not needed for UAT or go-live on the current stack.
 - **Spec 008 self-hosted infrastructure**, T002–T027 (26 open tasks), plus the eight
   findings in `specs/008-self-hosted-infrastructure/review-2026-09-19.md` (BL-01) to fix
   in the spec before any task starts. Post-launch.
+- **CRM for vendor email** (Owen, 2026-10-31) — wait until the organizers say what they want to
+  do with it. Tiers, cheapest first: an in-app log of every email sent per application;
+  organizer-edited templates plus "email all approved vendors for this event"; a third-party
+  CRM sync (easy to call, but a second copy of vendor data outside Supabase, and anything
+  beyond transactional mail needs consent under Canada's anti-spam law). Scope the first two
+  tiers as a spec when asked.
 - **UAT-10** — `attachments_authenticated_select` (migration 011) lets any signed-in
   user read or sign any object in the bucket. Scoping reads to organizers plus the
   owning vendor is an RLS change, so it needs a spec (ROADMAP Tier 3 candidate).
