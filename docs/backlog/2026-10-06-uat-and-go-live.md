@@ -167,7 +167,7 @@ and fix; sign-off and footers; email copy draft). `UAT2-n` IDs keep their number
 doc. Items 2, 3 and 5 are independent `[P]`; the organizers review each on the training site
 as it merges.
 
-- [ ] **BL-15** — This record: the handoff doc, this phase, the BL-12 observation and the
+- [x] **BL-15** (PR #66 merged 2026-10-31) — This record: the handoff doc, this phase, the BL-12 observation and the
       Deferred CRM note.
       Owner: agent · Shape: docs PR · Blocked by: nothing · Done when: merged to `dev`.
 - [ ] **UAT2-7** `[P]` — Sign-off "Yours in Holigay Cheer, Lauren, Sandy, Tony, and Beans" and

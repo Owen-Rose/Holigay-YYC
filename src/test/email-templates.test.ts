@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
 import { APPLICATION_STATUSES } from '@/lib/constants/application-status';
+import { EMAIL_SIGN_OFF_CLOSING, EMAIL_SIGN_OFF_NAMES, copyrightLine } from '@/lib/constants/brand';
 
 // UAT-5: every vendor email is sent from a noreply@ address, so the copy must
 // not invite a reply. There is no reply-to mailbox by decision (2026-10-06);
@@ -50,4 +51,29 @@ describe('email copy does not invite replies to the noreply sender (UAT-5)', () 
       expect(content.text).toMatch(/organizers/);
     }
   );
+});
+
+// UAT2-7: the organizers' sign-off and the footer line come from one constants
+// module so the next wording change is a one-line edit.
+describe('sign-off and footer come from the brand constants (UAT2-7)', () => {
+  const everyEmail = [
+    { name: 'application-received', content: received },
+    ...statusEmails.map(({ status, content }) => ({ name: `status-update (${status})`, content })),
+  ];
+
+  it.each(everyEmail)("$name signs off in the organizers' voice (HTML and text)", ({ content }) => {
+    expect(content.html).toContain(EMAIL_SIGN_OFF_CLOSING);
+    expect(content.html).toContain(EMAIL_SIGN_OFF_NAMES);
+    expect(content.text).toContain(EMAIL_SIGN_OFF_CLOSING);
+    expect(content.text).toContain(EMAIL_SIGN_OFF_NAMES);
+  });
+
+  it.each(everyEmail)('$name carries the footer line in the HTML wrapper', ({ content }) => {
+    expect(content.html).toContain(copyrightLine());
+  });
+
+  it.each(everyEmail)('$name no longer carries the old sign-off or footer', ({ content }) => {
+    expect(content.html).not.toMatch(/Best regards|All rights reserved/);
+    expect(content.text).not.toMatch(/Best regards|All rights reserved/);
+  });
 });
