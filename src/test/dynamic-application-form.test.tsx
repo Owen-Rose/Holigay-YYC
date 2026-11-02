@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DynamicApplicationForm } from '@/app/(public)/apply/_components/dynamic-application-form';
+import {
+  ACCOUNT_EMAIL_HINT,
+  DynamicApplicationForm,
+} from '@/app/(public)/apply/_components/dynamic-application-form';
 import { toast } from 'sonner';
 import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
 import type { Database } from '@/types/database';
@@ -89,7 +92,12 @@ describe('DynamicApplicationForm single-select rendering (UAT2-3)', () => {
       options: options(6) as never,
     });
     render(
-      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[question]} />
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[question]}
+      />
     );
 
     expect(screen.getByRole('group', { name: /six q/i })).toBeInTheDocument();
@@ -106,7 +114,12 @@ describe('DynamicApplicationForm single-select rendering (UAT2-3)', () => {
       options: options(7) as never,
     });
     render(
-      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[question]} />
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[question]}
+      />
     );
 
     expect(screen.getByRole('combobox', { name: /seven q/i })).toBeInTheDocument();
@@ -132,7 +145,12 @@ describe('DynamicApplicationForm single-select rendering (UAT2-3)', () => {
       show_if: { questionId: 'q-booth', operator: 'equals', value: 'corner' } as never,
     });
     render(
-      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[booth, ack]} />
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[booth, ack]}
+      />
     );
 
     expect(screen.queryByRole('group', { name: /i understand/i })).not.toBeInTheDocument();
@@ -154,7 +172,14 @@ describe('DynamicApplicationForm single-select rendering (UAT2-3)', () => {
       required: true,
       options: BOOTH_OPTIONS as never,
     });
-    render(<DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[booth]} />);
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[booth]}
+      />
+    );
 
     await fillVendorFields(user);
     await user.click(screen.getByLabelText(/double space on the wall/i));
@@ -236,7 +261,12 @@ describe('DynamicApplicationForm rendering', () => {
     ];
 
     render(
-      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={questions} />
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={questions}
+      />
     );
 
     // Text inputs
@@ -265,7 +295,14 @@ describe('DynamicApplicationForm rendering', () => {
   });
 
   it('renders vendor contact fields', () => {
-    render(<DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[]} />);
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[]}
+      />
+    );
 
     expect(screen.getByLabelText(/business name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/contact name/i)).toBeInTheDocument();
@@ -282,6 +319,7 @@ describe('DynamicApplicationForm validation', () => {
     const user = userEvent.setup();
     render(
       <DynamicApplicationForm
+        accountEmail={null}
         eventId="event-1"
         eventName="Test Event"
         questions={[ONE_TEXT_QUESTION]}
@@ -309,6 +347,7 @@ describe('DynamicApplicationForm validation', () => {
     const user = userEvent.setup();
     render(
       <DynamicApplicationForm
+        accountEmail={null}
         eventId="event-1"
         eventName="Test Event"
         questions={[ONE_TEXT_QUESTION]}
@@ -344,6 +383,7 @@ describe('DynamicApplicationForm validation', () => {
 
     render(
       <DynamicApplicationForm
+        accountEmail={null}
         eventId="event-1"
         eventName="Test Event"
         questions={[multiQuestion]}
@@ -374,7 +414,12 @@ describe('DynamicApplicationForm validation', () => {
     });
 
     render(
-      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[fileQuestion]} />
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[fileQuestion]}
+      />
     );
 
     await fillVendorFields(user);
@@ -399,6 +444,7 @@ describe('DynamicApplicationForm validation', () => {
 
     render(
       <DynamicApplicationForm
+        accountEmail={null}
         eventId="event-1"
         eventName="Test Event"
         questions={[optionalQuestion]}
@@ -430,7 +476,12 @@ describe('DynamicApplicationForm file upload', () => {
     });
 
     render(
-      <DynamicApplicationForm eventId="event-1" eventName="Test Event" questions={[fileQuestion]} />
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[fileQuestion]}
+      />
     );
 
     await fillVendorFields(user);
@@ -480,6 +531,7 @@ describe('DynamicApplicationForm submission', () => {
     const user = userEvent.setup();
     render(
       <DynamicApplicationForm
+        accountEmail={null}
         eventId="event-1"
         eventName="Holiday Market"
         questions={[ONE_TEXT_QUESTION]}
@@ -501,6 +553,7 @@ describe('DynamicApplicationForm submission', () => {
     const user = userEvent.setup();
     render(
       <DynamicApplicationForm
+        accountEmail={null}
         eventId="event-1"
         eventName="Holiday Market"
         questions={[ONE_TEXT_QUESTION]}
@@ -523,6 +576,7 @@ describe('DynamicApplicationForm submission', () => {
     const user = userEvent.setup();
     render(
       <DynamicApplicationForm
+        accountEmail={null}
         eventId="event-1"
         eventName="Test Event"
         questions={[ONE_TEXT_QUESTION]}
@@ -548,6 +602,100 @@ describe('DynamicApplicationForm submission', () => {
               value: { kind: 'text', value: 'Pottery' },
             }),
           ]),
+        })
+      );
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Account email (spec 011 FR-006, contracts/server-actions-and-ui.md §9)
+// ---------------------------------------------------------------------------
+
+describe('DynamicApplicationForm account email', () => {
+  it('pins the hint text', () => {
+    expect(ACCOUNT_EMAIL_HINT).toBe(
+      'Taken from your account. Applications are matched to this address.'
+    );
+  });
+
+  it('shows the account address read-only with the hint when signed in', () => {
+    render(
+      <DynamicApplicationForm
+        accountEmail="jane@example.com"
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[ONE_TEXT_QUESTION]}
+      />
+    );
+
+    const email = screen.getByLabelText(/email/i);
+    expect(email).toHaveValue('jane@example.com');
+    expect(email).toHaveAttribute('readonly');
+    expect(email).toHaveAttribute('aria-readonly', 'true');
+    expect(email).toHaveAccessibleDescription(ACCOUNT_EMAIL_HINT);
+  });
+
+  it('leaves the business fields empty when signed in (scenario 11)', () => {
+    render(
+      <DynamicApplicationForm
+        accountEmail="jane@example.com"
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[ONE_TEXT_QUESTION]}
+      />
+    );
+
+    expect(screen.getByLabelText(/business name/i)).toHaveValue('');
+    expect(screen.getByLabelText(/contact name/i)).toHaveValue('');
+    expect(screen.getByLabelText(/business description/i)).toHaveValue('');
+  });
+
+  it('keeps the email empty and editable when signed out', async () => {
+    const user = userEvent.setup();
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[ONE_TEXT_QUESTION]}
+      />
+    );
+
+    const email = screen.getByLabelText(/email/i);
+    expect(email).toHaveValue('');
+    expect(email).not.toHaveAttribute('readonly');
+    expect(email).not.toHaveAttribute('aria-readonly');
+    expect(screen.queryByText(ACCOUNT_EMAIL_HINT)).not.toBeInTheDocument();
+    await user.type(email, 'someone@example.com');
+    expect(email).toHaveValue('someone@example.com');
+  });
+
+  it('submits the account address when signed in', async () => {
+    mockSubmitDynamic.mockResolvedValue({
+      success: true,
+      error: null,
+      data: { applicationId: 'app-1' },
+    });
+    const user = userEvent.setup();
+    render(
+      <DynamicApplicationForm
+        accountEmail="jane@example.com"
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[ONE_TEXT_QUESTION]}
+      />
+    );
+
+    await user.type(screen.getByLabelText(/business name/i), 'Artisan Crafts');
+    await user.type(screen.getByLabelText(/contact name/i), 'Jane Smith');
+    await user.type(screen.getByLabelText(/describe your products/i), 'Pottery');
+    await user.click(screen.getByRole('button', { name: /submit application/i }));
+
+    await waitFor(() => {
+      expect(mockSubmitDynamic).toHaveBeenCalledWith(
+        expect.objectContaining({
+          vendor: expect.objectContaining({ email: 'jane@example.com' }),
         })
       );
     });

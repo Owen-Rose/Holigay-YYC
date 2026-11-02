@@ -92,6 +92,13 @@ export async function submitDynamicApplication(
 
   const supabase = await createClient();
 
+  // A signed-in vendor always applies under their account's address, whatever
+  // the form sent (spec 011 FR-002, research R7); the RPC enforces the same.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const vendorEmail = user?.email?.toLowerCase() ?? email;
+
   // Load questionnaire — reject if none (legacy event).
   //
   // This is now the first database read: the event's existence and status are
@@ -192,7 +199,7 @@ export async function submitDynamicApplication(
     vendor: {
       business_name: businessName,
       contact_name: contactName,
-      email,
+      email: vendorEmail,
       phone: phone || null,
       website: website || null,
       description: description || null,
@@ -240,7 +247,7 @@ export async function submitDynamicApplication(
       applicationId,
     });
     const emailResult = await sendEmail({
-      to: email,
+      to: vendorEmail,
       subject: emailContent.subject,
       html: emailContent.html,
       text: emailContent.text,

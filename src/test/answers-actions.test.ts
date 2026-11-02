@@ -185,8 +185,12 @@ const rpcMock = vi.fn((fn: string, args: unknown) => {
   return { single: () => Promise.resolve(queued) };
 });
 
+// Signed out unless a case says otherwise (spec 011 FR-002 reads the session).
+const mockGetUser = vi.fn();
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn().mockImplementation(async () => ({
+    auth: { getUser: () => mockGetUser() },
     from: (table: string) => makeFrom(table),
     rpc: (fn: string, args: unknown) => rpcMock(fn, args),
   })),
@@ -234,6 +238,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   // Reset to the happy path; individual cases override this for failure modes.
   sendEmailMock.mockResolvedValue({ success: true, messageId: 'msg-1', error: null });
+  mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
   for (const key of Object.keys(selectQueues)) {
     delete selectQueues[key];
   }
@@ -530,5 +535,44 @@ describe('submitDynamicApplication', () => {
 
     expect(result.success).toBe(true);
     expect(result.warning).toBeUndefined();
+  });
+});
+
+// =============================================================================
+// Account address (spec 011 FR-002, research R7, contracts §3 step 1a)
+// =============================================================================
+
+describe('submitDynamicApplication account address', () => {
+  function submitAs(email: string) {
+    queueQuestionnaire([TEXT_QUESTION]);
+    queueRpc({ data: RPC_ROW, error: null });
+    return submitDynamicApplication({
+      eventId: EVENT_UUID,
+      vendor: { ...VENDOR_INPUT, email },
+      answers: [{ questionId: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } }],
+    });
+  }
+
+  it('submits and mails under the signed-in account address, whatever was typed', async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: 'user-1', email: 'Jane@Example.com' } },
+      error: null,
+    });
+
+    const result = await submitAs('someone-else@example.com');
+
+    expect(result.success).toBe(true);
+    expect(lastRpcPayload()['vendor']).toMatchObject({ email: 'jane@example.com' });
+    expect(sendEmailMock).toHaveBeenCalledWith(expect.objectContaining({ to: 'jane@example.com' }));
+  });
+
+  it('uses the submitted address when signed out', async () => {
+    const result = await submitAs('Someone@Example.com');
+
+    expect(result.success).toBe(true);
+    expect(lastRpcPayload()['vendor']).toMatchObject({ email: 'someone@example.com' });
+    expect(sendEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'someone@example.com' })
+    );
   });
 });

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import { getActiveEvents } from '@/lib/actions/applications';
 import { getEventQuestionnaire } from '@/lib/actions/questionnaires';
+import { createClient } from '@/lib/supabase/server';
 import { ApplicationPageClient } from './client';
 import { DynamicApplicationForm } from './_components/dynamic-application-form';
 
@@ -79,6 +80,14 @@ export default async function ApplyPage({
     const questionnaireResult = await getEventQuestionnaire(event_id);
     const hasQuestionnaire = questionnaireResult.success && questionnaireResult.data !== null;
 
+    // A signed-in vendor applies under their account's address: the form shows
+    // it locked and the action uses it again (spec 011 FR-002, FR-006). Only the
+    // email is prefilled; the business fields start empty.
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     return (
       <div>
         {pageHeader}
@@ -96,6 +105,7 @@ export default async function ApplyPage({
               eventId={event_id}
               eventName={selectedEvent.name}
               questions={questionnaireResult.data!.questions}
+              accountEmail={user?.email ?? null}
             />
           ) : (
             <ApplicationPageClient events={[selectedEvent]} />
