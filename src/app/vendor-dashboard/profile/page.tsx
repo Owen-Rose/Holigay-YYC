@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { getVendorProfile } from '@/lib/actions/vendor-dashboard';
 import { VendorProfileForm } from '@/components/forms/vendor-profile-form';
+import { NoVendorProfile } from '@/components/vendor/no-vendor-profile';
 
 // This page uses cookies (via Supabase auth) so it cannot be statically rendered
 export const dynamic = 'force-dynamic';
@@ -8,21 +8,6 @@ export const dynamic = 'force-dynamic';
 // =============================================================================
 // Error States
 // =============================================================================
-
-function NoVendorProfile() {
-  return (
-    <div className="border-border-subtle bg-surface rounded-lg border p-12 text-center">
-      <p className="text-foreground text-sm font-medium">No vendor profile linked</p>
-      <p className="text-muted mt-2 text-sm">
-        Your account isn&apos;t linked to a vendor yet.{' '}
-        <Link href="/apply" className="text-teal-400 hover:text-teal-300">
-          Submit an application
-        </Link>{' '}
-        to create your vendor profile.
-      </p>
-    </div>
-  );
-}
 
 function ErrorState() {
   return (
@@ -48,7 +33,7 @@ export default async function VendorProfilePage() {
             <h1 className="text-foreground text-2xl font-bold">My Profile</h1>
             <p className="text-muted mt-1 text-sm">Manage your business information.</p>
           </div>
-          <NoVendorProfile />
+          <NoVendorProfile variant="inline" />
         </div>
       );
     }

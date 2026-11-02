@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { resolveVendorId } from '@/lib/vendor/resolve-vendor-id';
 import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/vendor';
 
 // =============================================================================
@@ -39,14 +40,10 @@ export async function updateVendorProfile(
     return { success: false, error: 'Not authenticated' };
   }
 
-  // Get vendor_id from user_profiles to scope the update
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('vendor_id')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.vendor_id) {
+  // The tied vendor scopes the update (tying it first if an untied row has the
+  // account's address — spec 011 FR-001); RLS enforces the same scope.
+  const vendorId = await resolveVendorId(supabase, user.id);
+  if (!vendorId) {
     return { success: false, error: 'No vendor profile linked to your account' };
   }
 
@@ -60,7 +57,7 @@ export async function updateVendorProfile(
       description: parsed.data.description || null,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', profile.vendor_id);
+    .eq('id', vendorId);
 
   if (error) {
     console.error('Error updating vendor profile:', error);

@@ -33,6 +33,12 @@ vi.mock('@/app/dashboard/applications/[id]/attachments-list', () => ({
   AttachmentsList: () => React.createElement('div', { 'data-testid': 'attachments' }),
 }));
 
+// The vendor detail page renders the shared empty state, an async RSC that
+// reads the server client; this suite never reaches it.
+vi.mock('@/components/vendor/no-vendor-profile', () => ({
+  NoVendorProfile: () => null,
+}));
+
 vi.mock('@/lib/supabase/client', () => ({
   createClient: vi.fn(),
 }));

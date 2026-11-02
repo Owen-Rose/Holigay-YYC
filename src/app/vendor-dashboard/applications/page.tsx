@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { DATE_SHORT, formatDateOnly, formatDateTime } from '@/lib/format-date';
 import { getVendorApplicationsList, type VendorApplication } from '@/lib/actions/vendor-dashboard';
 import { StatusBadge } from '@/components/ui/badge';
+import { NoVendorProfile } from '@/components/vendor/no-vendor-profile';
 
 // =============================================================================
 // Types
@@ -129,22 +130,6 @@ function EmptyState({ isFiltered }: { isFiltered: boolean }) {
 // No Vendor Profile State
 // =============================================================================
 
-function NoVendorProfile() {
-  return (
-    <div className="border-border-subtle bg-surface rounded-lg border p-12 text-center">
-      <ClipboardIcon className="text-muted-foreground mx-auto h-12 w-12" />
-      <h2 className="text-foreground mt-4 text-lg font-medium">No vendor profile linked</h2>
-      <p className="text-muted mt-2 text-sm">
-        Your account isn&apos;t linked to a vendor yet.{' '}
-        <Link href="/apply" className="text-teal-400 hover:text-teal-300">
-          Submit an application
-        </Link>{' '}
-        to create your vendor profile.
-      </p>
-    </div>
-  );
-}
-
 // =============================================================================
 // Error State
 // =============================================================================
@@ -208,7 +193,9 @@ export default async function VendorApplicationsPage({
       {!result.success && result.error === 'fetch_failed' && <ErrorState />}
 
       {/* No Vendor Profile */}
-      {!result.success && result.error === 'no_vendor_profile' && <NoVendorProfile />}
+      {!result.success && result.error === 'no_vendor_profile' && (
+        <NoVendorProfile variant="card" />
+      )}
 
       {/* Success: show filter tabs and list */}
       {result.success && (
