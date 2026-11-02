@@ -26,39 +26,6 @@ export const FILE_TYPE_LABELS: Record<string, string> = {
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 export const MAX_FILES = 5;
 
-// Booth preference options
-export const BOOTH_PREFERENCES = ['indoor', 'outdoor', 'no_preference'] as const;
-
-// Product category options
-export const PRODUCT_CATEGORIES = [
-  'handmade_crafts',
-  'jewelry',
-  'clothing',
-  'art',
-  'food_beverages',
-  'home_decor',
-  'beauty_wellness',
-  'vintage_antiques',
-  'plants_flowers',
-  'pet_products',
-  'other',
-] as const;
-
-// Human-readable category labels
-export const CATEGORY_LABELS: Record<string, string> = {
-  handmade_crafts: 'Handmade Crafts',
-  jewelry: 'Jewelry & Accessories',
-  clothing: 'Clothing & Apparel',
-  art: 'Art & Prints',
-  food_beverages: 'Food & Beverages',
-  home_decor: 'Home Decor',
-  beauty_wellness: 'Beauty & Wellness',
-  vintage_antiques: 'Vintage & Antiques',
-  plants_flowers: 'Plants & Flowers',
-  pet_products: 'Pet Products',
-  other: 'Other',
-};
-
 // =============================================================================
 // Custom Validators
 // =============================================================================
@@ -138,89 +105,11 @@ export const vendorInfoSchema = z.object({
 });
 
 // =============================================================================
-// Application Details Schema
-// =============================================================================
-
-/**
- * Schema for application-specific details
- */
-export const applicationDetailsSchema = z.object({
-  eventId: z.string().uuid('Please select a valid event'),
-  boothPreference: z.enum(BOOTH_PREFERENCES).optional(),
-  productCategories: z
-    .array(z.enum(PRODUCT_CATEGORIES))
-    .min(1, 'Please select at least one product category')
-    .max(5, 'Please select no more than 5 categories'),
-  specialRequirements: z
-    .string()
-    .max(500, 'Special requirements must be less than 500 characters')
-    .optional()
-    .or(z.literal('')),
-});
-
-// =============================================================================
-// Complete Application Form Schema
-// =============================================================================
-
-/**
- * Complete schema for the vendor application form
- * Combines vendor info, application details, and file attachments
- */
-export const applicationFormSchema = z.object({
-  // Vendor Information
-  businessName: vendorInfoSchema.shape.businessName,
-  contactName: vendorInfoSchema.shape.contactName,
-  email: vendorInfoSchema.shape.email,
-  phone: vendorInfoSchema.shape.phone,
-  website: vendorInfoSchema.shape.website,
-  description: vendorInfoSchema.shape.description,
-
-  // Application Details
-  eventId: applicationDetailsSchema.shape.eventId,
-  boothPreference: applicationDetailsSchema.shape.boothPreference,
-  productCategories: applicationDetailsSchema.shape.productCategories,
-  specialRequirements: applicationDetailsSchema.shape.specialRequirements,
-
-  // File Attachments (validated separately during upload)
-  // Files are handled as File objects in the form but validated on upload
-});
-
-// =============================================================================
-// Server-Side Submission Schema
-// =============================================================================
-
-/**
- * Schema for server-side application submission
- * Includes uploaded file paths instead of File objects
- */
-export const applicationSubmitSchema = applicationFormSchema.extend({
-  attachments: z
-    .array(
-      z.object({
-        fileName: z.string(),
-        filePath: z.string(),
-        fileType: z.string(),
-        fileSize: z.number().optional(),
-      })
-    )
-    .optional(),
-});
-
-// =============================================================================
 // TypeScript Types
 // =============================================================================
 
 export type FileInput = z.infer<typeof fileSchema>;
 export type VendorInfo = z.infer<typeof vendorInfoSchema>;
-export type ApplicationDetails = z.infer<typeof applicationDetailsSchema>;
-export type ApplicationFormInput = z.infer<typeof applicationFormSchema>;
-export type ApplicationSubmitInput = z.infer<typeof applicationSubmitSchema>;
-
-// Booth preference type
-export type BoothPreference = (typeof BOOTH_PREFERENCES)[number];
-
-// Product category type
-export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
 // Allowed file type
 export type AllowedFileType = (typeof ALLOWED_FILE_TYPES)[number];

@@ -78,7 +78,7 @@ npm run smoke
 |---|---|---|
 | `app-pages` | `/` and `/apply` answer 200 | The deploy failed, or the production env guard refused the build (`resend.dev` sender, missing key) |
 | `private-tables-closed` | anon reads nothing from `vendors`, `applications`, `attachments`, `application_answers` | A policy re-added by hand in the dashboard; migration 011 missing on this project |
-| `questionnaire-invariant` | no active event has a questionnaire with zero questions. An event with no questionnaire at all takes applications through the legacy form; those are counted in the note, not failed | Every question deleted in the builder before publishing, or a questionnaire row created from SQL |
+| `questionnaire-invariant` | no active event has a questionnaire with zero questions. An event with no questionnaire at all is shown on `/apply` as not accepting applications (no form); those are counted in the note, not failed | Every question deleted in the builder before publishing, or a questionnaire row created from SQL |
 | `submit-rpc-event-gate` | `submit_public_application` exists, anon may call it, and it rejects an unknown event before writing | Migration 011 not applied, or anon's EXECUTE revoked — either way the public form is down |
 | `organizer-rpcs-denied` | anon cannot call the two organizer-only RPCs | Migration 011 not applied on this project |
 
@@ -92,9 +92,11 @@ check is a statement about active events, and there were none, so nothing was ve
 populated form carries the count — `(2 active events)` — for the same reason. Read the note,
 not just the word PASS.
 
-`(2 active events, 1 on the legacy form)` means one event has no questionnaire row and is
-serving the static form instead. That is supported — every event created before spec 005
-is in that state — but it is the one to give a questionnaire the next time it is a draft.
+`(2 active events, 1 without a questionnaire)` means one event has no questionnaire row, so
+`/apply` shows it as not accepting applications — vendors cannot apply to it. Every event
+since spec 005 is created with a questionnaire, so this should not appear; if it does, give
+that event a questionnaire the next time it is a draft. (Before spec 011 the note read
+`on the legacy form` and such an event served the fixed form.)
 
 ---
 
@@ -300,7 +302,7 @@ Then re-run `npm run smoke`. `questionnaire-invariant` should be back to its pre
 | Every Supabase check fails with `PGRST301` / HTTP 401 | The anon key is wrong or belongs to another project |
 | Every Supabase check fails with an empty code | The request never reached PostgREST: DNS, connection refused, or the 10 s timeout. A paused free-tier project presents as NXDOMAIN |
 | `private-tables-closed` names a table | A policy was added by hand. Compare against `011_close_public_data_exposure.sql`; the probe in `specs/006-close-public-data-exposure/quickstart.md` narrows it |
-| `questionnaire-invariant` names an event | That event has a questionnaire row with no questions, so `/apply` is offering it with nothing to fill in. It cannot be unpublished from the UI (the only transition from active is closed) and its questionnaire is locked, so close it and create a replacement with its questions. An event with no questionnaire at all is *not* reported here — it serves the legacy form and appears in the PASS note instead |
+| `questionnaire-invariant` names an event | That event has a questionnaire row with no questions, so `/apply` is offering it with nothing to fill in. It cannot be unpublished from the UI (the only transition from active is closed) and its questionnaire is locked, so close it and create a replacement with its questions. An event with no questionnaire at all is *not* reported here — `/apply` shows it as not accepting applications, and it appears in the PASS note instead |
 | `submit-rpc-event-gate` returns `PGRST202` or `42883` | Migration 011 is not applied to this project — the public form cannot submit at all |
 | `organizer-rpcs-denied` reports anon was allowed | Stop and treat it as an incident: anon can create events. Check migration 011's REVOKE and migration 012's in-function role gate |
 

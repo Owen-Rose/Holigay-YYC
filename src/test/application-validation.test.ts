@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applicationFormSchema, vendorInfoSchema } from '@/lib/validations/application';
+import { vendorInfoSchema } from '@/lib/validations/application';
 
 // UAT-11: GoTrue stores addresses lower-cased and handle_new_user matches
 // vendors.email exactly, so the public form must store the normalized address
@@ -30,18 +30,5 @@ describe('vendorInfoSchema.email — normalization (UAT-11)', () => {
     const result = vendorInfoSchema.safeParse({ ...base, email: 'not-an-email' });
 
     expect(result.success).toBe(false);
-  });
-
-  it('applies the same normalization through applicationFormSchema', () => {
-    const result = applicationFormSchema.safeParse({
-      ...base,
-      email: 'Vendor@Example.COM',
-      eventId: '0b9b5a5c-9b1e-4b1e-9a1e-7c0a0b1c2d3e',
-      productCategories: ['art'],
-      specialRequirements: '',
-    });
-
-    expect(result.success).toBe(true);
-    expect(result.success && result.data.email).toBe('vendor@example.com');
   });
 });

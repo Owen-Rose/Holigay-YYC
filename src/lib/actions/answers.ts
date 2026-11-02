@@ -99,11 +99,12 @@ export async function submitDynamicApplication(
   } = await supabase.auth.getUser();
   const vendorEmail = user?.email?.toLowerCase() ?? email;
 
-  // Load questionnaire — reject if none (legacy event).
+  // Load questionnaire — reject if none: an event without a questionnaire
+  // takes no applications (spec 011 FR-018; the fixed form is gone).
   //
   // This is now the first database read: the event's existence and status are
   // checked inside submit_public_application (P0002 / P0001), not here. A
-  // bogus event id therefore stops at this lookup with the legacy-form
+  // bogus event id therefore stops at this lookup with the not-accepting
   // message; unreachable from the UI, which only renders this form for events
   // that already have a questionnaire.
   const { data: questionnaire, error: qError } = await supabase
@@ -113,7 +114,7 @@ export async function submitDynamicApplication(
     .single();
 
   if (qError || !questionnaire) {
-    return { success: false, error: 'This event uses the legacy form', data: null };
+    return { success: false, error: 'This event is not accepting applications', data: null };
   }
 
   // Load questions ordered by position

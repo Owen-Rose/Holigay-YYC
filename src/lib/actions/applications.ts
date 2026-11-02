@@ -3,38 +3,14 @@
 import { createClient } from '@/lib/supabase/server';
 import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import type { Json } from '@/types/database';
-import {
-  applicationSubmitSchema,
-  type ApplicationSubmitInput,
-} from '@/lib/validations/application';
 import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
-import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
 import { sendEmail } from '@/lib/email/client';
-import { applicationReceivedEmail, statusUpdateEmail } from '@/lib/email/templates';
+import { statusUpdateEmail } from '@/lib/email/templates';
 import { requireRole } from '@/lib/auth/roles';
-import { mapSubmissionError } from '@/lib/submission/errors';
 
 // =============================================================================
 // Types
 // =============================================================================
-
-/**
- * Response type for application submission
- */
-export type ApplicationResponse = {
-  success: boolean;
-  error: string | null;
-  /**
-   * User-facing warning message when a non-critical side effect failed
-   * (e.g., the DB write succeeded but the confirmation email could not
-   * be sent). Callers should surface this via a toast.
-   */
-  warning?: string;
-  data: {
-    applicationId: string;
-    vendorId: string;
-  } | null;
-};
 
 /**
  * Filter parameters for fetching applications
@@ -101,151 +77,6 @@ export type GetApplicationsResponse = {
 // =============================================================================
 // Server Actions
 // =============================================================================
-
-/**
- * Submits a vendor application for an event (legacy static form)
- *
- * This action:
- * 1. Validates the input data
- * 2. Hands the whole submission to submit_public_application, which upserts
- *    the vendor, rejects duplicates, and writes the application plus its
- *    attachments in one transaction
- * 3. Sends the confirmation email from the event details the RPC returns
- *
- * @param data - The validated application form data
- * @returns ApplicationResponse with IDs on success or error message on failure
- */
-export async function submitApplication(
-  data: ApplicationSubmitInput
-): Promise<ApplicationResponse> {
-  // Validate input
-  const parsed = applicationSubmitSchema.safeParse(data);
-  if (!parsed.success) {
-    return {
-      success: false,
-      error: parsed.error.issues[0]?.message || 'Invalid input',
-      data: null,
-    };
-  }
-
-  const {
-    businessName,
-    contactName,
-    email,
-    phone,
-    website,
-    description,
-    eventId,
-    boothPreference,
-    productCategories,
-    specialRequirements,
-    attachments,
-  } = parsed.data;
-
-  const supabase = await createClient();
-
-  // -------------------------------------------------------------------------
-  // Single transactional write (spec 006, FR-004/005/006/007)
-  //
-  // The seven broad anon RLS policies this action used to rely on are gone
-  // (migration 011 §3). Vendor upsert, duplicate detection, the application
-  // row, and the attachment rows all happen inside submit_public_application,
-  // so a failure at any step leaves nothing behind (FR-008).
-  // -------------------------------------------------------------------------
-  const payload = {
-    event_id: eventId,
-    vendor: {
-      business_name: businessName,
-      contact_name: contactName,
-      email,
-      phone: phone || null,
-      website: website || null,
-      description: description || null,
-    },
-    legacy: {
-      booth_preference: boothPreference || null,
-      product_categories: productCategories,
-      special_requirements: specialRequirements || null,
-    },
-    answers: null,
-    attachments: (attachments ?? []).map((attachment) => ({
-      file_name: attachment.fileName,
-      file_path: attachment.filePath,
-      file_type: attachment.fileType,
-      file_size: attachment.fileSize ?? null,
-    })),
-  };
-
-  const { data: submission, error: submissionError } = await supabase
-    .rpc('submit_public_application', { p_submission: payload as unknown as Json })
-    .single();
-
-  if (submissionError || !submission) {
-    // Raw PostgREST text stays server-side; the caller gets a canned message.
-    console.error('Error submitting application:', submissionError);
-    return {
-      success: false,
-      error: mapSubmissionError(submissionError),
-      data: null,
-    };
-  }
-
-  const applicationId = submission.application_id;
-  const vendorId = submission.vendor_id;
-
-  // -------------------------------------------------------------------------
-  // Send confirmation email (non-blocking but surfaced via warning)
-  //
-  // The RPC returns the event name and date, so this no longer needs its own
-  // events read — which anon can no longer perform for non-active events.
-  // -------------------------------------------------------------------------
-  let warning: string | undefined;
-
-  try {
-    // Format the event date for display
-    const eventDate = formatDateOnly(submission.event_date, DATE_LONG);
-
-    // Generate the email content
-    const emailContent = applicationReceivedEmail({
-      vendorName: contactName,
-      businessName,
-      eventName: submission.event_name,
-      eventDate,
-      applicationId,
-    });
-
-    // Send the confirmation email
-    const emailResult = await sendEmail({
-      to: email,
-      subject: emailContent.subject,
-      html: emailContent.html,
-      text: emailContent.text,
-    });
-
-    if (!emailResult.success) {
-      console.error('[Email] Failed to send confirmation email:', emailResult.error);
-      warning = EMAIL_SEND_FAILED_WARNING;
-    } else {
-      console.log('[Email] Confirmation email sent:', emailResult.messageId);
-    }
-  } catch (emailError) {
-    console.error('[Email] Unexpected error sending confirmation email:', emailError);
-    warning = EMAIL_SEND_FAILED_WARNING;
-  }
-
-  // -------------------------------------------------------------------------
-  // Success! (DB write committed; warning is set if the email could not be sent)
-  // -------------------------------------------------------------------------
-  return {
-    success: true,
-    error: null,
-    warning,
-    data: {
-      applicationId,
-      vendorId,
-    },
-  };
-}
 
 /**
  * Fetches events visible to the public: status='active' and deadline not yet passed.
