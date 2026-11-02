@@ -324,6 +324,7 @@ New work is scoped via a Speckit spec under `specs/<nnn>-<slug>/`:
 2. `plan.md` captures the implementation approach
 3. `tasks.md` breaks the plan into executable tasks
 4. Implement; commit with spec or task ID (e.g., `feat(auth): consolidate role helpers [001-consolidate-role-helpers]`)
+   - **No co-authoring.** Commit messages carry no `Co-Authored-By:` trailers, and PR descriptions carry no "Generated with Claude Code" line or other AI-attribution footer. This applies to squash-merge messages too.
 5. Run `npm run lint && npm test && npm run build` before opening a PR
 
 See `.specify/memory/constitution.md` for full governance rules.
