@@ -392,6 +392,7 @@ export type Database = {
           email: string
           id: string
           phone: string | null
+          product_links: string[]
           updated_at: string
           user_id: string | null
           website: string | null
@@ -404,6 +405,7 @@ export type Database = {
           email: string
           id?: string
           phone?: string | null
+          product_links?: string[]
           updated_at?: string
           user_id?: string | null
           website?: string | null
@@ -416,6 +418,7 @@ export type Database = {
           email?: string
           id?: string
           phone?: string | null
+          product_links?: string[]
           updated_at?: string
           user_id?: string | null
           website?: string | null
@@ -456,6 +459,11 @@ export type Database = {
       get_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      link_vendor_account: { Args: never; Returns: string }
+      link_vendor_account_rows: {
+        Args: { p_user_id: string; p_vendor_id: string }
+        Returns: boolean
       }
       save_event_questionnaire: {
         Args: {

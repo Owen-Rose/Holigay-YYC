@@ -5,9 +5,10 @@ import { DATE_SHORT, formatDateTime } from '@/lib/format-date';
 import type { Tables } from '@/types/database';
 import { StatusBadge } from '@/components/ui/badge';
 
-// Type for application with joined vendor data
+// Type for application with joined vendor data — only the vendor fields the
+// table renders, so a new vendors column does not ripple into every reader.
 export type ApplicationWithVendor = Tables<'applications'> & {
-  vendor: Tables<'vendors'>;
+  vendor: Pick<Tables<'vendors'>, 'business_name' | 'contact_name' | 'email'>;
 };
 
 interface ApplicationsTableProps {
