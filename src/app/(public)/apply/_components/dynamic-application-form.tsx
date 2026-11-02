@@ -25,16 +25,23 @@ type SubmissionState =
   | { status: 'submitting' }
   | { status: 'success'; applicationId: string };
 
+/** Shown under the locked Email field when the vendor is signed in (spec 011 FR-006). */
+export const ACCOUNT_EMAIL_HINT =
+  'Taken from your account. Applications are matched to this address.';
+
 interface DynamicApplicationFormProps {
   eventId: string;
   eventName: string;
   questions: EventQuestion[];
+  /** The signed-in account's address, or null when signed out. */
+  accountEmail: string | null;
 }
 
 export function DynamicApplicationForm({
   eventId,
   eventName,
   questions,
+  accountEmail,
 }: DynamicApplicationFormProps) {
   const [state, setState] = React.useState<SubmissionState>({ status: 'idle' });
   const [answers, setAnswers] = React.useState<Record<string, AnswerValue | undefined>>({});
@@ -47,7 +54,9 @@ export function DynamicApplicationForm({
     formState: { errors },
   } = useForm<VendorFields>({
     resolver: zodResolver(vendorInfoSchema),
+    defaultValues: { email: accountEmail ?? '' },
   });
+  const emailLocked = accountEmail !== null;
 
   // Compute visible question set reactively from current answers
   const visibleQuestionIds = React.useMemo(() => {
@@ -236,6 +245,10 @@ export function DynamicApplicationForm({
           label="Email *"
           type="email"
           {...register('email')}
+          // readOnly, not disabled: react-hook-form drops disabled values (research R7)
+          readOnly={emailLocked}
+          aria-readonly={emailLocked || undefined}
+          hint={emailLocked ? ACCOUNT_EMAIL_HINT : undefined}
           error={errors.email?.message}
           placeholder="you@example.com"
         />
