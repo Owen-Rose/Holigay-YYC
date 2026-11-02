@@ -1,48 +1,44 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.1.1 → 1.1.2
-Bump rationale: PATCH — the Epic 4 invite stub is gone (spec 009 shipped the real
-`inviteOrganizer` over a contained service-role client), so the acknowledged violation and
-the `team.ts` example are removed; clarify that pre-session auth actions are outside the
-`requireRole()` rule. Wording refinement only; no principle added, removed, or materially
-redefined.
+Version change: 1.1.2 → 1.1.3
+Bump rationale: PATCH — wording and stale references only. Spec 011 T008 deleted the fixed
+application form, its test and the `FileUpload` primitive, so two file references no longer
+resolve; and Principle I bullet 2 now states the vendor-side authorization model the code
+already follows (spec 011 plan.md Complexity Tracking row 1). No principle added, removed,
+or materially redefined; no new obligation.
 
 Modified principles: none (principles unchanged).
 
 Modified sections:
-  - Principle I, server-action authorization bullet 2: one sentence added — actions that
-    establish a session for a caller who has none yet (`signIn`, `signUp`,
-    `requestPasswordReset`) cannot call `requireRole()`; they still validate with Zod first
-    and return the same response shape.
-  - Principle I, incomplete-features bullet: the `src/lib/actions/team.ts` example removed
-    (no longer incomplete).
-  - "Acknowledged pre-existing violations": the `team.ts` placeholder entry removed; the
-    Toaster entry stands.
+  - Principle I, server-action authorization bullet 2: one sentence added — vendor-scoped
+    actions (the vendor dashboard loaders, `updateVendorProfile`) authorize through
+    `auth.getUser()` plus RLS, or through a `SECURITY DEFINER` function scoped by
+    `auth.uid()` that takes no caller input (spec 011's `link_vendor_account()`);
+    `requireRole()` gates role-based organizer and admin operations.
+  - Principle II, form-test bullet: exemplar `src/test/application-form.test.tsx` (deleted
+    by spec 011 T008) → `src/test/dynamic-application-form.test.tsx`.
+  - Principle III, primitives bullet: `file-upload` dropped from the list
+    (`src/components/ui/file-upload.tsx` deleted by spec 011 T008).
 
 Added sections: none.
 
 Removed sections: none.
 
-Previous amendment (1.1.0 → 1.1.1, 2026-04-21): removed references to the deleted
-`isOrganizerOrAdmin()` helper (feature 001-consolidate-role-helpers).
+Previous amendment (1.1.1 → 1.1.2, 2026-10-08): the Epic 4 invite stub and its
+acknowledged violation removed; pre-session auth actions placed outside the `requireRole()`
+rule (spec 009 T019).
 
 Templates requiring updates:
-  - ✅ .specify/templates/plan-template.md — no `team.ts` or invite-stub references, no edit.
+  - ✅ .specify/templates/plan-template.md — no reference to the form-test exemplar,
+       `file-upload` or the authorization wording; no edit.
   - ✅ .specify/templates/spec-template.md — same.
   - ✅ .specify/templates/tasks-template.md — same; prior follow-up (tasks-template-alignment)
        remains open.
 
-Downstream doc propagation (same PR, [009-T019]):
-  - CLAUDE.md: Epic 4 row → Complete (spec 009); `team.ts` server-action bullet; Route
-    Structure gains `/auth/confirm`, `/set-password`, `/forgot-password`; migration `013`
-    listed; Current Development Phase and Recent Changes carry the 009 dates.
-  - docs/ARCHITECTURE.md: the "no service-role key anywhere" statements (request flow,
-    §3) now describe the contained admin client; "one TODO" → zero; `/auth/confirm` added
-    to the Route Handler list.
-  - docs/ROADMAP.md: Organizer invites row → Complete; Tier 4 Epic 4 bullet struck; M3
-    organizer-accounts note; new Tier 3 candidate for the `users_with_roles` read.
-  - README.md: no change required.
+Downstream doc propagation: none required. CLAUDE.md and README.md name neither deleted
+file. docs/ROADMAP.md's Tier 4 "Retire the legacy form" item is struck by spec 011 T016,
+the spec's close-out docs PR (quickstart.md "Docs to update at close").
 
 Deferred items / follow-up TODOs (carried from v1.1.0):
   - TODO(tasks-template-alignment): Amend .specify/templates/tasks-template.md so test
@@ -81,7 +77,10 @@ guidelines.
      top of the action body for any mutation or privileged read. Actions that establish a
      session for a caller who has none yet (`signIn`, `signUp`, `requestPasswordReset`)
      cannot call `requireRole()`; they still validate with Zod first and return the same
-     response shape.
+     response shape. Vendor-scoped actions (the vendor dashboard loaders,
+     `updateVendorProfile`) authorize through `auth.getUser()` plus Row Level Security, or
+     through a `SECURITY DEFINER` function scoped by `auth.uid()` that takes no caller input;
+     `requireRole()` gates role-based organizer and admin operations.
   3. Return a `{ success: boolean, error: string | null, data: T | null }` response — no
      throwing across the server/client boundary.
 - Row Level Security MUST be enabled on every user-data table. New tables that store user or
@@ -107,7 +106,7 @@ principle sets an honest current bar and a named path forward.
   `src/test/auth-roles.test.ts`.
 - Every new or modified user-facing form in `src/components/forms/` MUST ship with a React
   Testing Library component test covering rendering, validation error display, and successful
-  submission, following the pattern in `src/test/application-form.test.tsx`.
+  submission, following the pattern in `src/test/dynamic-application-form.test.tsx`.
 - Tests MUST use `@testing-library/user-event` for interaction; they MUST NOT assert against
   implementation details (class names, internal state, or DOM structure not visible to users).
 - Reusable fixtures SHOULD be introduced under `src/test/fixtures/` once total test count
@@ -133,7 +132,7 @@ is load-bearing. Inconsistency anywhere silently undoes work done everywhere els
   `src/app/layout.tsx:32-34` (Toaster `toastOptions`) is acknowledged and tracked as
   `TODO(layout-toaster-tokens)`; no new violations may be introduced.
 - New UI MUST reuse primitives from `src/components/ui/` (button, input, textarea, select,
-  badge, checkbox, card, spinner, file-upload) before a new component is introduced.
+  badge, checkbox, card, spinner) before a new component is introduced.
   Justification for a new primitive MUST appear in the PR description.
 - Every form MUST use `react-hook-form` + `zod` + `@hookform/resolvers` and MUST wire
   `aria-invalid`, `aria-describedby`, and `role="alert"` on error messages. Labels MUST use
@@ -252,4 +251,4 @@ bundle). These rules keep it that way and close the cache-invalidation gap.
 - **Runtime guidance**: `CLAUDE.md` at the repository root remains the day-to-day operational
   reference for contributors and assistants; it does NOT override this document.
 
-**Version**: 1.1.2 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-10-08
+**Version**: 1.1.3 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-11-02
