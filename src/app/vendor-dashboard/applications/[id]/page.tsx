@@ -9,6 +9,7 @@ import { AttachmentsList } from '@/app/dashboard/applications/[id]/attachments-l
 import { DynamicAnswers } from '@/app/dashboard/applications/[id]/dynamic-answers';
 import { Card, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';
+import { NoVendorProfile } from '@/components/vendor/no-vendor-profile';
 
 // =============================================================================
 // Types
@@ -148,21 +149,6 @@ function BusinessInfo({ vendor }: { vendor: VendorApplicationDetail['vendor'] })
 // No Vendor Profile State
 // =============================================================================
 
-function NoVendorProfile() {
-  return (
-    <div className="border-border-subtle bg-surface rounded-lg border p-12 text-center">
-      <p className="text-foreground text-sm font-medium">No vendor profile linked</p>
-      <p className="text-muted mt-2 text-sm">
-        Your account isn&apos;t linked to a vendor yet.{' '}
-        <Link href="/apply" className="text-teal-400 hover:text-teal-300">
-          Submit an application
-        </Link>{' '}
-        to create your vendor profile.
-      </p>
-    </div>
-  );
-}
-
 // =============================================================================
 // Main Page Component
 // =============================================================================
@@ -177,7 +163,7 @@ export default async function VendorApplicationDetailPage({
   // Handle error states
   if (!result.success) {
     if (result.error === 'no_vendor_profile') {
-      return <NoVendorProfile />;
+      return <NoVendorProfile variant="inline" />;
     }
     if (result.error === 'not_found') {
       notFound();

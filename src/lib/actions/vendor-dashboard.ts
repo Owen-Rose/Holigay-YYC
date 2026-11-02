@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { resolveVendorId } from '@/lib/vendor/resolve-vendor-id';
 import type { Json } from '@/types/database';
 import type { AnswerWithQuestion } from '@/lib/actions/applications';
 
@@ -49,16 +50,9 @@ export async function getVendorDashboardData(): Promise<VendorDashboardData | nu
 
   if (!user) return null;
 
-  // Get vendor_id from user_profiles
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('vendor_id')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.vendor_id) return null;
-
-  const vendorId = profile.vendor_id;
+  // The tied vendor, tying it first if an untied row has the account's address
+  const vendorId = await resolveVendorId(supabase, user.id);
+  if (!vendorId) return null;
 
   // Fetch all applications for this vendor (status only, for counts)
   const { data: allApps, error: countError } = await supabase
@@ -142,13 +136,8 @@ export async function getVendorApplicationsList(
     return { success: false, error: 'not_authenticated', data: null };
   }
 
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('vendor_id')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.vendor_id) {
+  const vendorId = await resolveVendorId(supabase, user.id);
+  if (!vendorId) {
     return { success: false, error: 'no_vendor_profile', data: null };
   }
 
@@ -167,7 +156,7 @@ export async function getVendorApplicationsList(
       )
     `
     )
-    .eq('vendor_id', profile.vendor_id)
+    .eq('vendor_id', vendorId)
     .order('submitted_at', { ascending: false });
 
   if (status && VALID_STATUSES.includes(status)) {
@@ -229,25 +218,15 @@ export async function getVendorProfile(): Promise<GetVendorProfileResult> {
     return { success: false, error: 'not_authenticated', data: null };
   }
 
-  // Get vendor_id from user_profiles
-  const { data: profile, error: profileError } = await supabase
-    .from('user_profiles')
-    .select('vendor_id')
-    .eq('id', user.id)
-    .single();
-
-  if (profileError) {
-    console.error('[VendorProfile] Error fetching user_profiles:', profileError);
-  }
-
-  if (!profile?.vendor_id) {
+  const vendorId = await resolveVendorId(supabase, user.id);
+  if (!vendorId) {
     return { success: false, error: 'no_vendor_profile', data: null };
   }
 
   const { data: vendor, error } = await supabase
     .from('vendors')
     .select('id, business_name, contact_name, email, phone, website, description')
-    .eq('id', profile.vendor_id)
+    .eq('id', vendorId)
     .single();
 
   if (error || !vendor) {
@@ -325,13 +304,8 @@ export async function getVendorApplicationDetail(
     return { success: false, error: 'not_authenticated', data: null };
   }
 
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('vendor_id')
-    .eq('id', user.id)
-    .single();
-
-  if (!profile?.vendor_id) {
+  const vendorId = await resolveVendorId(supabase, user.id);
+  if (!vendorId) {
     return { success: false, error: 'no_vendor_profile', data: null };
   }
 
@@ -368,7 +342,7 @@ export async function getVendorApplicationDetail(
     `
     )
     .eq('id', applicationId)
-    .eq('vendor_id', profile.vendor_id)
+    .eq('vendor_id', vendorId)
     .single();
 
   if (appError) {

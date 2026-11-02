@@ -3,6 +3,7 @@ import { DATE_SHORT, formatDateOnly, formatDateTime } from '@/lib/format-date';
 import { getVendorDashboardData, type VendorApplication } from '@/lib/actions/vendor-dashboard';
 import { Card } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';
+import { NoVendorProfile } from '@/components/vendor/no-vendor-profile';
 
 // =============================================================================
 // Stat Card
@@ -111,22 +112,6 @@ function RecentApplications({ applications }: { applications: VendorApplication[
 // No Vendor Profile State
 // =============================================================================
 
-function NoVendorProfile() {
-  return (
-    <div className="text-center">
-      <ClipboardIcon className="text-muted-foreground mx-auto h-12 w-12" />
-      <h2 className="text-foreground mt-4 text-lg font-medium">No vendor profile linked</h2>
-      <p className="text-muted mt-2 text-sm">
-        Your account isn&apos;t linked to a vendor yet.{' '}
-        <Link href="/apply" className="text-teal-400 hover:text-teal-300">
-          Submit an application
-        </Link>{' '}
-        to create your vendor profile.
-      </p>
-    </div>
-  );
-}
-
 // =============================================================================
 // Icons
 // =============================================================================
@@ -217,7 +202,7 @@ export default async function VendorDashboardPage() {
         <div className="mb-8">
           <h1 className="text-foreground text-2xl font-bold">Vendor Dashboard</h1>
         </div>
-        <NoVendorProfile />
+        <NoVendorProfile variant="card" />
       </div>
     );
   }
