@@ -176,7 +176,7 @@ as it merges.
       unit tests assert the templates carry the constants.
       Owner: agent · Shape: PR · Blocked by: nothing · Done when: a training-site confirmation
       mail shows both lines.
-- [ ] **UAT2-3 + UAT2-4** `[P]` — Default booth question re-seeded from
+- [x] **UAT2-3 + UAT2-4** (PR #68 merged 2026-10-31; migration `014` on dev the same day; checked on the training site with the throwaway active event "UAT2-3 Booth Default Check (delete me)", `49761999`, left for the organizers to see) — Default booth question re-seeded from
       `src/lib/questionnaire/default-questions.ts`: the five spaces (keys and labels in the
       handoff), the tables-and-chairs plus lottery help text, a required yes/no acknowledgement
       shown only when `corner` is chosen, and radio rendering for single-select questions with
@@ -218,6 +218,11 @@ Not needed for UAT or go-live on the current stack.
   CRM sync (easy to call, but a second copy of vendor data outside Supabase, and anything
   beyond transactional mail needs consent under Canada's anti-spam law). Scope the first two
   tiers as a spec when asked.
+- **Deadline-less events never reach `/apply`** (observed 2026-10-31 while checking UAT2-3):
+  `getActiveEvents` in `src/lib/actions/applications.ts` requires `application_deadline` to be
+  in the future, so an active event saved with the optional deadline blank is invisible to
+  vendors and `/apply?event_id=` says "Event not found". Decide between listing deadline-less
+  events and making the deadline required on the event form.
 - **UAT-10** — `attachments_authenticated_select` (migration 011) lets any signed-in
   user read or sign any object in the bucket. Scoping reads to organizers plus the
   owning vendor is an RLS change, so it needs a spec (ROADMAP Tier 3 candidate).
