@@ -358,7 +358,7 @@ export async function seedFixtures(): Promise<SecurityFixtures> {
         business_name: `SEC Vendor ${suffix}`,
         contact_name: 'Seeded Contact',
         email: seededVendorEmail,
-        phone: '403-555-0000',
+        product_links: ['https://seeded.example'],
       })
       .select('id')
       .single();

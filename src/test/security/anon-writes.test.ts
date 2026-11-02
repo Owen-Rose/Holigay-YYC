@@ -48,7 +48,6 @@ describe.runIf(stackUp)('anon writes', () => {
       business_name: `Anon Insert ${fx.suffix}`,
       contact_name: 'Anon Attacker',
       email,
-      phone: '403-555-9999',
     });
 
     expect(error).not.toBeNull();
@@ -127,7 +126,7 @@ describe.runIf(stackUp)('anon writes', () => {
   it('W2: anon update against the seeded vendor affects no rows', async () => {
     const { data: affected } = await anon
       .from('vendors')
-      .update({ business_name: 'PWNED', phone: '000-000-0000' })
+      .update({ business_name: 'PWNED' })
       .eq('id', fx.seededVendorId)
       .select('id');
 
@@ -135,11 +134,10 @@ describe.runIf(stackUp)('anon writes', () => {
 
     const { data } = await service
       .from('vendors')
-      .select('business_name, phone')
+      .select('business_name')
       .eq('id', fx.seededVendorId)
       .single();
     expect(data?.business_name).toBe(`SEC Vendor ${fx.suffix}`);
-    expect(data?.phone).toBe('403-555-0000');
   });
 
   it('W2: anon update against the seeded application affects no rows', async () => {
