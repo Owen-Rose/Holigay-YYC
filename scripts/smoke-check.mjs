@@ -203,7 +203,7 @@ async function checkPrivateTables(supabase) {
   return problems.length > 0 ? fail(problems.join('; ')) : pass();
 }
 
-/** 3. No active event offers an empty questionnaire; legacy-form events are counted, not failed. */
+/** 3. No active event offers an empty questionnaire; events without one are counted, not failed. */
 async function checkQuestionnaireInvariant(supabase) {
   // One embedded select rather than three round trips: PostgREST resolves both embeds
   // through the real foreign keys (event_questionnaires.event_id → events.id,
@@ -225,7 +225,7 @@ async function checkQuestionnaireInvariant(supabase) {
   if (data.length === 0) return pass('no active events');
 
   const problems = [];
-  let legacy = 0;
+  let withoutQuestionnaire = 0;
 
   for (const event of data) {
     const label = `"${event.name}" (${event.id})`;
@@ -239,16 +239,16 @@ async function checkQuestionnaireInvariant(supabase) {
 
     // Two states that look alike from the outside and are not:
     //
-    // No questionnaire row is NOT a fault. /apply falls back to the legacy static form for
-    // such an event (src/app/(public)/apply/page.tsx), which is how every event that
-    // predates spec 005 still takes applications. It is counted into the PASS note so the
-    // operator can see it, and it can only be upgraded while the event is a draft anyway.
+    // No questionnaire row is NOT a fault. /apply shows such an event as not accepting
+    // applications, with no form (src/app/(public)/apply/page.tsx; the fixed form was
+    // retired by spec 011). It is counted into the PASS note so the operator can see it,
+    // and it can only be given a questionnaire while the event is a draft anyway.
     //
     // A questionnaire row with NO questions is the broken state: the dynamic form renders
     // with nothing to fill in. It is reachable — the builder has no minimum and publishing
     // does not count questions — so it is the one this check exists to catch.
     if (!questionnaire) {
-      legacy += 1;
+      withoutQuestionnaire += 1;
     } else if ((questionnaire.event_questions ?? []).length === 0) {
       problems.push(`${label} has a questionnaire with no questions`);
     }
@@ -258,7 +258,9 @@ async function checkQuestionnaireInvariant(supabase) {
 
   const count = `${data.length} active event${data.length === 1 ? '' : 's'}`;
 
-  return pass(legacy > 0 ? `${count}, ${legacy} on the legacy form` : count);
+  return pass(
+    withoutQuestionnaire > 0 ? `${count}, ${withoutQuestionnaire} without a questionnaire` : count
+  );
 }
 
 /** 4. The public write path exists and rejects an unknown event before writing. */

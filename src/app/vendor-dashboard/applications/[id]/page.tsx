@@ -49,7 +49,15 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 // Event Info Component
 // =============================================================================
 
-function EventInfo({ event }: { event: VendorApplicationDetail['event'] }) {
+function EventInfo({
+  event,
+  submittedAt,
+  updatedAt,
+}: {
+  event: VendorApplicationDetail['event'];
+  submittedAt: string;
+  updatedAt: string;
+}) {
   return (
     <InfoSection title="Event Details">
       <dl className="divide-border-subtle divide-y">
@@ -66,40 +74,8 @@ function EventInfo({ event }: { event: VendorApplicationDetail['event'] }) {
           }
         />
         <InfoRow label="Max Vendors" value={event.max_vendors?.toString() || 'Unlimited'} />
-      </dl>
-    </InfoSection>
-  );
-}
-
-// =============================================================================
-// Application Details Component
-// =============================================================================
-
-function ApplicationDetails({ application }: { application: VendorApplicationDetail }) {
-  return (
-    <InfoSection title="Application Details">
-      <dl className="divide-border-subtle divide-y">
-        <InfoRow label="Booth Preference" value={application.booth_preference} />
-        <InfoRow
-          label="Product Categories"
-          value={
-            application.product_categories?.length ? (
-              <div className="flex flex-wrap gap-1">
-                {application.product_categories.map((category) => (
-                  <span
-                    key={category}
-                    className="bg-foreground/10 text-foreground inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  >
-                    {category}
-                  </span>
-                ))}
-              </div>
-            ) : null
-          }
-        />
-        <InfoRow label="Special Requirements" value={application.special_requirements} />
-        <InfoRow label="Submitted" value={formatDateTime(application.submitted_at)} />
-        <InfoRow label="Last Updated" value={formatDateTime(application.updated_at)} />
+        <InfoRow label="Submitted" value={formatDateTime(submittedAt)} />
+        <InfoRow label="Last Updated" value={formatDateTime(updatedAt)} />
       </dl>
     </InfoSection>
   );
@@ -213,16 +189,16 @@ export default async function VendorApplicationDetailPage({
 
       {/* Main Content Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <EventInfo event={application.event} />
+        <EventInfo
+          event={application.event}
+          submittedAt={application.submitted_at}
+          updatedAt={application.updated_at}
+        />
         <BusinessInfo vendor={application.vendor} />
       </div>
 
       <div className="mt-6">
-        {application.dynamicAnswers !== null ? (
-          <DynamicAnswers answers={application.dynamicAnswers} />
-        ) : (
-          <ApplicationDetails application={application} />
-        )}
+        <DynamicAnswers answers={application.dynamicAnswers ?? []} />
       </div>
 
       {/* Attachments Section */}

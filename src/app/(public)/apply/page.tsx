@@ -3,7 +3,6 @@ import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import { getActiveEvents } from '@/lib/actions/applications';
 import { getEventQuestionnaire } from '@/lib/actions/questionnaires';
 import { createClient } from '@/lib/supabase/server';
-import { ApplicationPageClient } from './client';
 import { DynamicApplicationForm } from './_components/dynamic-application-form';
 
 export const metadata = {
@@ -56,7 +55,7 @@ export default async function ApplyPage({
   );
 
   // -------------------------------------------------------------------------
-  // Event selected via URL param — branch on questionnaire presence
+  // Event selected via URL param — questionnaire form, or not accepting
   // -------------------------------------------------------------------------
   if (event_id) {
     const selectedEvent = formattedEvents.find((e) => e.id === event_id);
@@ -108,7 +107,11 @@ export default async function ApplyPage({
               accountEmail={user?.email ?? null}
             />
           ) : (
-            <ApplicationPageClient events={[selectedEvent]} />
+            // No questionnaire, no form: the fixed application form is gone
+            // (spec 011 FR-018), so the event simply takes no applications.
+            <p className="text-muted text-center">
+              This event is not accepting applications right now.
+            </p>
           )}
         </div>
       </div>

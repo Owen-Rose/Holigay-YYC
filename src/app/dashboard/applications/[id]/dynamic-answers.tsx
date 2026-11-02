@@ -11,6 +11,9 @@ export function DynamicAnswers({ answers }: DynamicAnswersProps) {
   return (
     <Card>
       <CardTitle className="mb-4 font-semibold">Application Answers</CardTitle>
+      {answers.length === 0 && (
+        <p className="text-muted text-sm">No answers recorded for this application.</p>
+      )}
       <dl className="divide-border-subtle divide-y">
         {answers.map((a) => (
           <AnswerRenderer

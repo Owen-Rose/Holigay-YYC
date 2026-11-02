@@ -4,6 +4,9 @@ import * as React from 'react';
 import ApplyPage from '@/app/(public)/apply/page';
 import { getEventQuestionnaire } from '@/lib/actions/questionnaires';
 
+// Spec 011 FR-018: the fixed application form is gone, so an event without a
+// questionnaire shows a not-accepting message instead of a form.
+
 // =============================================================================
 // Mocks
 // =============================================================================
@@ -11,8 +14,8 @@ import { getEventQuestionnaire } from '@/lib/actions/questionnaires';
 vi.mock('@/lib/actions/applications', () => ({
   getActiveEvents: vi.fn().mockResolvedValue([
     {
-      id: 'event-legacy',
-      name: 'Legacy Market',
+      id: 'event-1',
+      name: 'Winter Market',
       event_date: '2024-12-15',
       location: 'Calgary',
       description: null,
@@ -25,13 +28,8 @@ vi.mock('@/lib/actions/questionnaires', () => ({
   getEventQuestionnaire: vi.fn().mockResolvedValue({
     success: true,
     error: null,
-    data: null, // no questionnaire → legacy path
+    data: null, // no questionnaire row
   }),
-}));
-
-vi.mock('@/app/(public)/apply/client', () => ({
-  ApplicationPageClient: () =>
-    React.createElement('div', { 'data-testid': 'legacy-form' }, 'Legacy Form'),
 }));
 
 const mockGetUser = vi.fn();
@@ -71,38 +69,37 @@ beforeEach(() => {
   mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
 });
 
-describe('ApplyPage — legacy event (no questionnaire row)', () => {
-  it('renders ApplicationPageClient when questionnaire is null', async () => {
-    const pageElement = await ApplyPage({
-      searchParams: Promise.resolve({ event_id: 'event-legacy' }),
-    });
-    render(pageElement);
+describe('ApplyPage — event without a questionnaire (spec 011 FR-018)', () => {
+  it('shows the not-accepting message and the back link', async () => {
+    render(await ApplyPage({ searchParams: Promise.resolve({ event_id: 'event-1' }) }));
 
-    expect(screen.getByTestId('legacy-form')).toBeInTheDocument();
+    expect(
+      screen.getByText('This event is not accepting applications right now.')
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '← Back to events' })).toHaveAttribute(
+      'href',
+      '/apply'
+    );
   });
 
-  it('does not render DynamicApplicationForm when questionnaire is null', async () => {
-    const pageElement = await ApplyPage({
-      searchParams: Promise.resolve({ event_id: 'event-legacy' }),
-    });
-    render(pageElement);
+  it('renders no form', async () => {
+    const { container } = render(
+      await ApplyPage({ searchParams: Promise.resolve({ event_id: 'event-1' }) })
+    );
 
     expect(screen.queryByTestId('dynamic-form')).not.toBeInTheDocument();
+    expect(container.querySelector('form')).toBeNull();
   });
 
   it('renders the event picker when no event_id is provided', async () => {
-    const pageElement = await ApplyPage({
-      searchParams: Promise.resolve({}),
-    });
-    render(pageElement);
+    render(await ApplyPage({ searchParams: Promise.resolve({}) }));
 
-    // Event picker shows the event name with an Apply link
-    expect(screen.getByText('Legacy Market')).toBeInTheDocument();
+    expect(screen.getByText('Winter Market')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /apply/i })).toBeInTheDocument();
   });
 });
 
-describe('ApplyPage — account email (spec 011 FR-006)', () => {
+describe('ApplyPage — event with a questionnaire, account email (spec 011 FR-006)', () => {
   beforeEach(() => {
     vi.mocked(getEventQuestionnaire).mockResolvedValueOnce({
       success: true,
@@ -111,22 +108,25 @@ describe('ApplyPage — account email (spec 011 FR-006)', () => {
     });
   });
 
-  it('passes the signed-in address to the form', async () => {
+  it('renders the questionnaire form with the signed-in address', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'user-1', email: 'jane@example.com' } },
       error: null,
     });
 
-    render(await ApplyPage({ searchParams: Promise.resolve({ event_id: 'event-legacy' }) }));
+    render(await ApplyPage({ searchParams: Promise.resolve({ event_id: 'event-1' }) }));
 
     expect(screen.getByTestId('dynamic-form')).toHaveAttribute(
       'data-account-email',
       'jane@example.com'
     );
+    expect(
+      screen.queryByText('This event is not accepting applications right now.')
+    ).not.toBeInTheDocument();
   });
 
   it('passes null when signed out', async () => {
-    render(await ApplyPage({ searchParams: Promise.resolve({ event_id: 'event-legacy' }) }));
+    render(await ApplyPage({ searchParams: Promise.resolve({ event_id: 'event-1' }) }));
 
     expect(screen.getByTestId('dynamic-form')).toHaveAttribute('data-account-email', 'null');
   });

@@ -282,10 +282,10 @@ describe('submitDynamicApplication', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // No questionnaire (legacy event) — short-circuits before the RPC
+  // No questionnaire — the event takes no applications; short-circuits before the RPC
   // ---------------------------------------------------------------------------
 
-  it('rejects legacy events that have no questionnaire row', async () => {
+  it('rejects events that have no questionnaire row', async () => {
     queueSelect('event_questionnaires', {
       data: null,
       error: { code: 'PGRST116', message: 'No rows found' },
@@ -298,7 +298,7 @@ describe('submitDynamicApplication', () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/legacy form/i);
+    expect(result.error).toBe('This event is not accepting applications');
     expect(rpcMock).not.toHaveBeenCalled();
   });
 

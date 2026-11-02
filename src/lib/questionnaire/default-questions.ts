@@ -1,4 +1,3 @@
-import { CATEGORY_LABELS, PRODUCT_CATEGORIES } from '@/lib/validations/application';
 import type { QuestionType } from '@/components/questionnaire/question-types';
 import type { ShowIfRule } from '@/lib/questionnaire/show-if';
 
@@ -21,6 +20,40 @@ export type DefaultQuestion = {
   options?: { key: string; label: string }[];
   /** Shown only when the named earlier question has this option key chosen. */
   show_if?: { question: string; value: string };
+};
+
+/**
+ * Product category options for the seeded "Product categories" question.
+ * Moved here from the retired fixed application form (spec 011, research R10):
+ * the seed is now their only consumer.
+ */
+export const PRODUCT_CATEGORIES = [
+  'handmade_crafts',
+  'jewelry',
+  'clothing',
+  'art',
+  'food_beverages',
+  'home_decor',
+  'beauty_wellness',
+  'vintage_antiques',
+  'plants_flowers',
+  'pet_products',
+  'other',
+] as const;
+
+/** Human-readable labels for {@link PRODUCT_CATEGORIES}. */
+export const CATEGORY_LABELS: Record<string, string> = {
+  handmade_crafts: 'Handmade Crafts',
+  jewelry: 'Jewelry & Accessories',
+  clothing: 'Clothing & Apparel',
+  art: 'Art & Prints',
+  food_beverages: 'Food & Beverages',
+  home_decor: 'Home Decor',
+  beauty_wellness: 'Beauty & Wellness',
+  vintage_antiques: 'Vintage & Antiques',
+  plants_flowers: 'Plants & Flowers',
+  pet_products: 'Pet Products',
+  other: 'Other',
 };
 
 export const BOOTH_OPTIONS = [
