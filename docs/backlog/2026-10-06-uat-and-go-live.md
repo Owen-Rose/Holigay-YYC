@@ -189,6 +189,18 @@ as it merges.
       organizers and brings back their wording; the PR lands once settled. Auth emails (confirm,
       invite, reset) are dashboard templates on each project, changed by hand if wanted.
       Owner: joint · Shape: copy, then PR · Blocked by: organizer feedback.
+- [ ] **BL-18** `[P]` (added 2026-11-03; seen in spec 011's training walkthrough, row D2) — Vendor
+      invites carry organizer copy. The Supabase "Invite user" template (spec 009
+      `contracts/email-templates.md` §1, the same on dev and prod) says "An admin has invited you to
+      help run the Holigay Vendor Market", but since spec 010 the Team page also invites vendors, and
+      they get that sentence too. Two ways: (a) one wording that fits both roles — a dashboard edit
+      on both projects, no code; (b) role-specific wording — `inviteOrganizerCore`
+      (`src/lib/team/invite-organizer-core.ts`) passes the role as user metadata
+      (`inviteUserByEmail(email, { data: { invited_role } })`) and the template branches on
+      `{{ .Data.invited_role }}`. Whichever lands, update the 009 contract to match.
+      Owner: joint (Owen picks the wording and edits both dashboards; agent for (b)'s PR) · Shape:
+      copy + dashboard, optionally a PR · Blocked by: nothing; fits UAT2-6's copy pass · Done when: a
+      Vendor invite on the training site reads as a vendor invitation and prod's template matches.
 - [ ] **BL-16** `[P]` — Write spec 011 (`specs/011-vendor-linking-and-contact-fields/`:
       `spec.md`, `plan.md`, `tasks.md`) from the outline in the handoff: story 1 account ↔ vendor
       linking (UAT2-5), story 2 contact block (UAT2-1, UAT2-2), story 3 legacy form retirement;
