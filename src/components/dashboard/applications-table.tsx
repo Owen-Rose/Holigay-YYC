@@ -5,9 +5,13 @@ import { DATE_SHORT, formatDateTime } from '@/lib/format-date';
 import type { Tables } from '@/types/database';
 import { StatusBadge } from '@/components/ui/badge';
 
-// Type for application with joined vendor data — only the vendor fields the
-// table renders, so a new vendors column does not ripple into every reader.
-export type ApplicationWithVendor = Tables<'applications'> & {
+// Type for application with joined vendor data — only the fields the table
+// renders, so a column added to or no longer read from either table does not
+// ripple into every reader.
+export type ApplicationWithVendor = Pick<
+  Tables<'applications'>,
+  'id' | 'status' | 'submitted_at'
+> & {
   vendor: Pick<Tables<'vendors'>, 'business_name' | 'contact_name' | 'email'>;
 };
 

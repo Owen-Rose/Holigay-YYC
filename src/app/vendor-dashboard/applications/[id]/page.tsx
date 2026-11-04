@@ -10,6 +10,7 @@ import { DynamicAnswers } from '@/app/dashboard/applications/[id]/dynamic-answer
 import { Card, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';
 import { NoVendorProfile } from '@/components/vendor/no-vendor-profile';
+import { ProductLinksList } from '@/components/vendor/product-links-list';
 
 // =============================================================================
 // Types
@@ -99,19 +100,12 @@ function BusinessInfo({ vendor }: { vendor: VendorApplicationDetail['vendor'] })
             </a>
           }
         />
-        <InfoRow label="Phone" value={vendor.phone} />
         <InfoRow
-          label="Website"
+          label="Product links"
+          // InfoRow shows '—' only for a falsy value, and an element is never falsy
           value={
-            vendor.website ? (
-              <a
-                href={vendor.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:text-primary-hover"
-              >
-                {vendor.website}
-              </a>
+            vendor.product_links.length > 0 ? (
+              <ProductLinksList links={vendor.product_links} />
             ) : null
           }
         />
