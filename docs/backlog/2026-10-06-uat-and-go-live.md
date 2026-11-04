@@ -5,9 +5,10 @@ the ROADMAP M3 checklist and the 2026-09-27 UAT findings. This is the single ord
 list of what stands between today and (a) inviting real organizers to the training
 deployment and (b) going live on production with a clean environment.
 
-**Status 2026-10-31:** (b) is done — production has been live since 2026-10-07. Phases 0–3
+**Status 2026-11-03:** (b) is done — production has been live since 2026-10-07. Phases 0–3
 are complete and archived (see below); Phase 4 has BL-12 open; Phase 5 (the organizers'
-vendor-side UAT feedback, triaged 2026-10-31) is the live list.
+vendor-side UAT feedback, triaged 2026-10-31) reached prod in BL-17 on 2026-11-03 — UAT2-6
+(email copy) and BL-18 (vendor invite wording) remain for a later promotion.
 
 Decisions this list is built on (Owen, 2026-10-06):
 
@@ -201,19 +202,30 @@ as it merges.
       Owner: joint (Owen picks the wording and edits both dashboards; agent for (b)'s PR) · Shape:
       copy + dashboard, optionally a PR · Blocked by: nothing; fits UAT2-6's copy pass · Done when: a
       Vendor invite on the training site reads as a vendor invitation and prod's template matches.
-- [ ] **BL-16** `[P]` — Write spec 011 (`specs/011-vendor-linking-and-contact-fields/`:
+- [x] **BL-16** `[P]` (PR #70 merged 2026-11-02; `specs/README.md` lists 011) — Write spec 011 (`specs/011-vendor-linking-and-contact-fields/`:
       `spec.md`, `plan.md`, `tasks.md`) from the outline in the handoff: story 1 account ↔ vendor
       linking (UAT2-5), story 2 contact block (UAT2-1, UAT2-2), story 3 legacy form retirement;
       one migration `015` (`014` went to UAT2-3+4).
       Owner: agent · Shape: docs PR · Blocked by: nothing · Done when: `specs/README.md` lists 011.
-- [ ] **011 tasks** — Spec 011 implemented task by task, one PR each, on Owen's go per task;
+- [x] **011 tasks** (T002–T015 and T017 done 2026-11-02/03 — PRs #71, #72, #74–#79; `015` on dev 2026-11-02 and prod 2026-11-03; evidence rows D1–D9, P1–P2 in the 011 quickstart; T016 is this docs close) — Spec 011 implemented task by task, one PR each, on Owen's go per task;
       migration `015` to dev → training walkthrough (apply signed in; apply signed out then
       invite; invite then apply) → migration to prod in default mode with the inventory → confirm
       → write → verify sequence.
       Owner: agent; Owen for prod · Shape: PRs + SQL · Blocked by: BL-16.
-- [ ] **BL-17** — Promotion `dev` → `main` after the round; `npm run smoke` against prod; a new
+- [x] **BL-17** (run 2026-11-03 as spec 011 T015; UAT2-6 and BL-18 go out in a later promotion — Owen's call) — Promotion `dev` → `main` after the round; `npm run smoke` against prod; a new
       event on prod shows the new default questionnaire; record in the event-week runbook.
       Owner: joint · Shape: promotion · Blocked by: everything above.
+      **Record (2026-11-03, default mode, Owen present).** Migrations `014` and `015` applied to prod
+      first (011 quickstart row P1; prod history now ends `013`, `014`, `015`). Promotion: fast-forward
+      `5003918..b6ea7e5` (24 commits: BL-14, BL-15, UAT2-7, UAT2-3+4, spec 011), Vercel Production
+      `success`. `npm run smoke` against prod 5/5 before and after the click-through. A new event
+      (`SMOKE TEST — DELETE ME 2026-11-03`) was seeded with the five booth spaces, the help text and
+      the corner acknowledgement (`show_if` corner — shown only on Corner on `/apply`); a signed-in
+      submission by a throwaway vendor listed on its dashboard first load, the review page showed the
+      product link, Approved sent the status mail, both mails from the verified domain. Test data
+      removed in one transaction; prod back to the admin + `+prod-org`, 0 events / 0 vendors / 0
+      bucket objects. Full record: 011 quickstart row P2; dated entry in
+      `docs/runbooks/event-week-smoke.md`.
 
 ---
 
@@ -242,13 +254,14 @@ Not needed for UAT or go-live on the current stack.
   `requireRole('organizer')` on organizer-facing reads in `applications.ts`/`events.ts`;
   split `applications.ts`; atomic `updateTemplate`; cross-vendor isolation security
   suite; tests for `admin.ts` role changes and `updateEventStatus`; the `as Role` cast
-  in `admin.ts`; attachment orphaning on failed legacy submits.
-- **ROADMAP Tier 4:** retire the legacy form; role in JWT claims; email via `after()`;
+  in `admin.ts`. (`requireVendor()` is partly met by spec 011's `resolveVendorId()`; the
+  legacy-submit attachment orphaning went with the legacy form.)
+- **ROADMAP Tier 4:** ~~retire the legacy form~~ (spec 011, 2026-11-03); role in JWT claims; email via `after()`;
   structured logging; Epic 6.9 file previews; Epic 6.10 mobile polish (375 px pass,
   44 px touch targets); shared icon module.
 - **Organizer judgement calls, decided 2026-10-07** (Phase 2 session, verbatim answers in
-  the rehearsal log): CSV export lacks questionnaire answers and shows blank legacy
-  Booth/Categories/Requirements columns for dynamic-form rows (F-001) — "backlog"; the
+  the rehearsal log): CSV export lacks questionnaire answers (F-001) — "backlog"; its blank
+  legacy Booth/Categories/Requirements columns were dropped by spec 011's eleven-column export; the
   duplicate-application refusal is a four-second toast with no inline message (F-005) —
   "later"; closed events cannot be reopened (F-003) — "backlog with the close copy change"
   (copy shipped in #55; reopen itself waits on the organizers). Unsaved-notes-in-email

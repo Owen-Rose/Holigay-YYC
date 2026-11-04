@@ -1,5 +1,7 @@
 # Contract: `public.submit_public_application(p_submission jsonb)`
 
+> **Superseded** by `specs/011-vendor-linking-and-contact-fields/contracts/submit-public-application-v2.md` — migration `015` (2026-11-02) replaced this body in place (same signature, return type and grants). Kept as the 006 record.
+
 **Feature**: 006-close-public-data-exposure
 **Kind**: PostgreSQL function (PL/pgSQL), invoked via PostgREST
 `POST /rest/v1/rpc/submit_public_application` / supabase-js

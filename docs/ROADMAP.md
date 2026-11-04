@@ -30,6 +30,7 @@ in-flight feature safely, then paying down consistency debt.
 | Organizer invites (Epic 4) | ✅ **Complete — spec 009.** Shipped to `dev` 2026-09-27 (PRs #27–#35); migration `013` on dev and prod 2026-09-27; prod configured 2026-10-07 and the first onboarding rehearsed on prod 2026-10-08. Real organizer invites are backlog BL-12 |
 | **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Prod probe checklist run 2026-09-18 (007 T012) and the live test submission done 2026-10-08 (007 T021) — every "Prod rollout record" box ticked. |
 | **Dynamic questionnaires (spec 005)** | ✅ **Feature-complete.** Shipped to `dev` with 006; on prod since 2026-09-13. Required-answer semantics fixed by 006/US3; builder atomicity and `seeded_from_template_id` fixed by Phase 11 (migration `012`, 2026-09-14). Migration 012 on dev and prod since 2026-09-14 |
+| **Vendor linking and contact fields (spec 011)** | ✅ **Shipped 2026-11-03.** PRs #70–#72 and #74–#79; migration `015` on dev 2026-11-02 and prod 2026-11-03 (with `014`), promoted in BL-17 (`5003918..b6ea7e5`). Applications reach the vendor dashboard whichever came first (self-heal RPC, tie at submit, email locked on `/apply`); three product links replace phone; the fixed application form is retired |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
 
 ---
@@ -174,7 +175,7 @@ rewrite session.
   small `SECURITY DEFINER` RPC). Low stakes — templates are organizer-only and cheap to
   recreate — so fold it into the next PR that touches templates.
 - Leftovers absorbed from cleanup-roadmap.md: `as Role` cast in `admin.ts:103`;
-  attachment orphaning on failed legacy submits (largely mooted by the Tier 1 RPC);
+  ~~attachment orphaning on failed legacy submits~~ (gone with the legacy form, spec 011);
   tests for `admin.ts` role changes and `updateEventStatus`.
 
 ---
@@ -185,10 +186,9 @@ rewrite session.
   service-role client is contained in `src/lib/supabase/admin.ts`, used only by `team.ts`,
   with `src/test/admin-client-containment.test.ts` enforcing the containment;
   `/auth/confirm`, `/set-password` and `/forgot-password` came with it.
-- **Retire the legacy form**: once existing events are upgraded
-  (`ensure_event_questionnaire`), delete the static form path (`apply/client.tsx`,
-  `vendor-application-form.tsx`, the legacy half of `applications.ts`) — several hundred
-  lines and a whole code path gone.
+- ~~**Retire the legacy form**~~ ✅ **Shipped 2026-11-03 as spec 011 (T008, #76).** The
+  static form, its page branch, `submitApplication`, its schemas and the `FileUpload`
+  primitive are deleted; an event without a questionnaire shows a not-accepting message.
 - **Role in JWT claims or session cookie** — drops the per-request `user_profiles` query
   in middleware (fine at current scale; do it for cleanliness, not perf).
 - **Email via `after()`** (Next 16) — moves the awaited Resend call out of the

@@ -52,6 +52,10 @@ application page, and exported in the CSV. The legacy fixed form asks for it too
 for now (no migration just for this; nothing writes it once the inputs are gone). The builder's
 `phone` question type stays, so an organizer can still ask for a number on a specific event.
 
+**Outcome.** Shipped by spec 011 — T010 (#78) and T011 (#79), merged to `dev` 2026-11-03 and
+on prod with BL-17 the same day. Phone is gone from the apply form, the profile form, both
+application detail pages and the export; the column stays, unread.
+
 ### UAT2-2 — "Where can we view your products?" with up to three links — _spec 011, story 2_
 
 **Today.** One optional `Website` field, validated by a URL regex that accepts addresses without
@@ -65,6 +69,13 @@ The organizers give feedback on the shape once it is on the training site. Links
 on save (prepend `https://` when the protocol is missing) so every stored value is a working
 URL. The organizer page lists them as links; the export gets Link 1–3 columns. Existing
 `website` values become Link 1. The vendor profile form edits the same three slots.
+
+**Outcome.** Shipped by spec 011: the shared rule `product-links.ts` (T003, #71), migration `015`
+with `vendors.product_links` and the website → Link 1 copy (T002, #72), both forms (T010, #78),
+link lists on both detail pages and Link 1–3 in an eleven-column export (T011, #79). Walked
+through on the training site 2026-11-03 (011 quickstart rows D2, D6, D7) and on prod with BL-17
+the same day (row P2). The organizers' feedback on the shape is welcome as a follow-up item; it
+did not gate the rollout.
 
 ### UAT2-3 — Booth preference options and header text — _PR_
 
@@ -145,6 +156,14 @@ Not doing: letting a vendor claim an application by ID (anyone could claim anyon
 because the addresses differ. They re-apply signed in as the vendor account (the email is then
 prefilled), or Owen points the existing vendor row at the alias in SQL. The misfiled row stays
 on dev as the reproduction case until then.
+
+**Outcome.** Shipped by spec 011 story 1: migration `015`'s `link_vendor_account()` self-heal and
+the tie inside a signed-in submission (T002, #72), `resolveVendorId()` in every vendor loader with
+the shared empty state (T005, #74), and the email locked to the account on `/apply` (T006, #75).
+All three orderings and the mismatch copy were proven on the training site 2026-11-03 (011
+quickstart rows D2–D5), and a signed-in submission on prod the same day (row P2). The
+reproduction row is still on dev and still untied: its address is the tester's organizer
+address, not the vendor alias, exactly as described above.
 
 ### UAT2-6 — Email body wording — _PR, once the copy settles_
 
@@ -284,10 +303,13 @@ Placeholders in braces are filled by the app. The sign-off and footer come from 
 > Yours in Holigay Cheer,
 > Lauren, Sandy, Tony, and Beans
 
-## Training data left on dev (as of 2026-10-31)
+## Training data left on dev (as of 2026-11-03)
 
-One active event created 2026-10-11 by an organizer; one vendor row and one pending application
-under that organizer's main address (the UAT2-5 reproduction case); accounts: Owen's admin, the
-`+uat-org` organizer from BL-06, two real organizers invited 2026-10-11, and a `+vendor` alias
-account for each of them. Nothing was changed by the triage. BL-12's training half is therefore
-done in practice; prod was not checked.
+Two events: the organizers' active event created 2026-10-11, and the admin's "UAT2-3 Booth
+Default Check (delete me)" (UAT2-3, left for the organizers to see; no applications). Two vendor
+rows, each with one pending application on the organizers' event: the UAT2-5 reproduction case
+(that organizer's main address, untied) and the UAT2-7 footer-check trial (a `+uat2-7` alias,
+2026-10-31). Accounts: Owen's admin, the `+uat-org` organizer from BL-06, two real organizers
+invited 2026-10-11, and a `+vendor` alias account for each of them. Spec 011's `+011-`
+throwaways were removed on 2026-11-03 (011 quickstart row D9). BL-12's training half is done in
+practice; prod holds only the admin and the `+prod-org` organizer.

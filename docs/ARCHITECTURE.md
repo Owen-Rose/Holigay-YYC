@@ -58,7 +58,10 @@ the `anon` role has no table-level write access to `vendors` / `applications` /
 `SECURITY DEFINER` RPC, `submit_public_application(jsonb)`, which performs the whole
 multi-table write in one transaction under definer privileges. RLS still guards every other
 anon-reachable read; the RPC is the one audited hole punched through it, and it is
-`anon`-executable by explicit `GRANT` (migration 011).
+`anon`-executable by explicit `GRANT` (migration 011). Since spec 011 (migration 015) it
+also ties a signed-in caller's account to the vendor row it writes, and a second definer
+RPC, `link_vendor_account()`, is `authenticated`-only and takes no input: it ties the
+caller (`auth.uid()`) to the untied vendor row matching their address.
 
 There is **no REST API surface** — only four Route Handlers: `GET /auth/confirm` (spec 009:
 exchanges an emailed `token_hash` via `verifyOtp` on the cookie-backed server client, then
@@ -87,14 +90,22 @@ Two facts make layer 3 the one that matters:
    it. Nothing else can bypass RLS, so whatever RLS allows the `anon` role is what an
    attacker with the (public, shipped-to-every-browser) anon key can do against PostgREST
    directly.
-2. **The public `/apply` flow is anonymous**, so the `vendors`, `applications`,
-   `attachments`, and `application_answers` tables carry `anon` policies to make the
-   unauthenticated submission work. Several of these are `USING (true)` — see
-   ROADMAP.md Tier 1; this is the most important known issue in the app.
+2. **The public `/apply` flow is anonymous, but anon cannot touch the private tables.**
+   Since spec 006 (migration 011) `vendors`, `applications`, `attachments` and
+   `application_answers` carry no `anon` policies at all; a submission goes through the
+   transactional `submit_public_application(jsonb)` RPC, the only write anon may make.
+   Signed-in vendors reach their own rows through `auth.uid()`-scoped RLS, and the
+   vendor loaders call `link_vendor_account()` (authenticated-only, no arguments) to tie
+   an account to its vendor row by address — the two linking RPCs of spec 011.
 
 Roles are `vendor | organizer | admin` (enum `user_role`), stored in `user_profiles`,
 which is auto-created by the `handle_new_user` trigger on signup (default `vendor`,
-with email-based back-linking to an existing `vendors` row).
+with email-based back-linking to an existing `vendors` row). Two more paths tie an
+account to its vendor row since spec 011: a signed-in submission ties inside
+`submit_public_application`, and `link_vendor_account()` self-heals on the first vendor
+dashboard read when the application came after the account. Both new paths write the tie
+through the private `link_vendor_account_rows` helper, which never re-points an
+already-tied row or profile.
 
 ## 4. The "smart database" stance
 
@@ -112,10 +123,13 @@ lives where:
   never writes `locked_at`. Three independent enforcement layers — the strongest-built
   invariant in the system.
 - Atomic multi-table writes via `SECURITY DEFINER` RPCs:
-  `submit_public_application(jsonb)` (public submissions — event gate, vendor upsert,
-  application insert, answers and attachments, all-or-nothing; failures surface as
-  ERRCODEs `P0001`–`P0004`), `create_event_with_default_questionnaire(jsonb)` (since 014 the
-  seed may carry ids and show-if rules, validated like the builder save) and
+  `submit_public_application(jsonb)` (public submissions — event gate, vendor upsert with
+  `product_links`, application insert, answers, all-or-nothing; v2 since 015: a signed-in
+  caller's account address wins and the account is tied in the same transaction; failures
+  surface as ERRCODEs `P0001`–`P0004`), `link_vendor_account()` (authenticated-only,
+  no-argument self-heal tie, spec 011), `save_event_questionnaire(uuid, jsonb, uuid)` (the
+  builder and template-seed write path, 012), `create_event_with_default_questionnaire(jsonb)`
+  (since 014 the seed may carry ids and show-if rules, validated like the builder save) and
   `ensure_event_questionnaire(uuid)` (organizer-only — `anon` EXECUTE revoked)
 - `updated_at` maintenance triggers; the `users_with_roles` admin view
 
@@ -161,8 +175,10 @@ Design choices that matter:
   template never mutates past events.
 - **Answers are immutable** (`ON DELETE RESTRICT` from questions, no UPDATE/DELETE
   policies) — review integrity by construction.
-- **Legacy events** are detected by the absence of an `event_questionnaires` row and fall
-  back to the original static form; `ensure_event_questionnaire()` upgrades them lazily.
+- **An event without a questionnaire** is shown on `/apply` as "This event is not accepting
+  applications right now." — the original static form was retired by spec 011, and every
+  event since spec 005 is created with a questionnaire; `ensure_event_questionnaire()` can
+  still give an old event one.
 
 Migration history note: `003`–`006` had duplicate-prefix files from an abandoned
 parallel role system; `007`/`008` tore it down and the dead files live in
@@ -177,8 +193,8 @@ How coupled are we, really? Coupling is concentrated in exactly one place.
 | Service surface | Where | Size | Swap cost |
 |---|---|---|---|
 | Email (Resend) | `src/lib/email/client.ts` behind `sendEmail()` | 1 file + 3 call sites | **Trivial** — cleanest seam in the app. Templates are plain TS; provider-agnostic. |
-| Storage | `src/lib/actions/upload.ts`, `attachments-list.tsx` | 5 calls, 2 files | **Small** — standard upload/signed-URL. Bucket + policies live in migration 011 (dashboard-only config until spec 006). |
-| DB queries (supabase-js) | 13 files in `src/lib/`, ~90 `.from()` + 3 `.rpc()` calls | Wide but shallow | **Tedious, not hard** — no DAL exists; you'd edit every action file, but there's no hidden logic in the client. |
+| Storage | `src/lib/actions/upload.ts`, `attachments-list.tsx`, `src/components/questionnaire/file-answer-link.tsx` | 3 files | **Small** — standard upload/signed-URL. Bucket + policies live in migration 011 (dashboard-only config until spec 006). |
+| DB queries (supabase-js) | 16 files in `src/lib/`, ~60 `.from()` + 4 `.rpc()` calls | Wide but shallow | **Tedious, not hard** — no DAL exists; you'd edit every action file, but there's no hidden logic in the client. |
 | Auth + session + RLS | `src/lib/supabase/{server,client}.ts`, `src/middleware.ts`, ~11 `auth.*` call sites, 3 FKs into `auth.users`, every RLS policy via `auth.uid()` | The whole security architecture | **Expensive** — this is the real lock-in. See §8. |
 
 Email behavior worth knowing: sends are awaited inline in the request, best-effort —
@@ -214,10 +230,13 @@ Every mutation follows this. Known drift, in order of importance:
 - **Three response shapes coexist:** `{success, error, data}`, discriminated unions,
   and bare `T | null`. Each action file redeclares its own response type; there is no
   shared `ActionResponse<T>`.
-- **No `requireVendor()` helper:** the vendor ownership-scoping block (getUser →
-  look up `vendor_id` → guard) is copy-pasted 5× across `vendor-dashboard.ts`/`vendors.ts`.
-- **`applications.ts` is a 1,037-line god-file** mixing public submission, organizer
-  queries, and status mutations, with hand-written row types that can drift from
+- **Vendor scoping goes through `resolveVendorId()`** (`src/lib/vendor/resolve-vendor-id.ts`,
+  spec 011): the four vendor-dashboard loaders and `updateVendorProfile` call it after
+  `getUser()` — profile `vendor_id`, else the `link_vendor_account()` self-heal. There is
+  still no `requireVendor()` that also does the `getUser()`, so each caller keeps its own
+  short guard.
+- **`applications.ts` is a 730-line file** mixing organizer queries and status mutations
+  (public submission moved to `answers.ts`; the fixed-form action was deleted by spec 011), with hand-written row types that can drift from
   `src/types/database.ts`.
 
 **Types:** `src/types/database.ts` is generated (`npm run db:types:dev`) — never edit.

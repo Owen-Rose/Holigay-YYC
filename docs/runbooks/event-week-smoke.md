@@ -137,6 +137,19 @@ Use a private window — signed in as an organizer you would be testing a differ
 `/apply` → pick the test event → fill the dynamic form with the test identity → attach the
 PDF → submit.
 
+The contact block has no phone field: under "Where can we view your products?" Link 1 is
+required and Links 2–3 are optional. Type Link 1 without `https://` (for example
+`etsy.com/shop/smoke`); the review page in 2.6 must show it as `https://etsy.com/shop/smoke`,
+opening in a new tab.
+
+### 2.4a Signed-in apply (optional, after a promotion that touches linking)
+
+Signed in as a vendor account whose address is the test identity's (invite it as Vendor from
+the Team page first), `/apply` shows that address in Email, read-only, with "Taken from your
+account. Applications are matched to this address." Submit, then `/vendor-dashboard` must list
+the application on the first load. Cleanup in section 3 also deletes that account
+(`DELETE FROM auth.users WHERE email = '<test identity>'`, last).
+
 *Creates:* one `vendors` row, one `applications` row, one `application_answers` row per
 answered question, one `attachments` row, and one object under `uploads/` in the
 `attachments` bucket.
@@ -319,7 +332,7 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
 | 3 | `vendors.email` is UNIQUE and the submission RPC upserts the vendor by address | A real address turns the test into a mutation of a real vendor record |
 | 4 | The UI refuses to delete an event that has applications, offering "Closed" instead (`src/lib/actions/events.ts`) | The cleanup is SQL by necessity, not preference |
 | 5 | The write policies on `event_questionnaires` and `event_questions` require the parent event to be `status = 'draft'`, and the draft → active transition fires `lock_event_questionnaire`. The UI's only transition out of active is closed | An event created straight to Active can never be given a questionnaire, and a published one cannot be edited or unpublished. Section 2 builds the questionnaire first and publishes second for this reason |
-| 6 | `/apply` renders the legacy static form for an event with no `event_questionnaires` row (`src/app/(public)/apply/page.tsx`); every event created before spec 005 is in that state, and new events get the default questions seeded | No questionnaire is a supported state, so the smoke check counts it in the PASS note rather than failing it. A questionnaire with zero questions is the fault, and it is reachable: the builder has no minimum and publishing does not count questions |
+| 6 | `/apply` shows "This event is not accepting applications right now." for an event with no `event_questionnaires` row (`src/app/(public)/apply/page.tsx`; until spec 011 it rendered the legacy static form); every event since spec 005 gets the default questions seeded | No questionnaire is a supported state, so the smoke check counts it in the PASS note rather than failing it. A questionnaire with zero questions is the fault, and it is reachable: the builder has no minimum and publishing does not count questions |
 | 7 | Deleting a `storage.objects` row by SQL orphans the bytes on hosted projects | Use the dashboard or `supabase storage rm`; SQL for reading only |
 | 8 | Attachment download links are signed URLs valid for 60 seconds, minted per click | A stale tab's expired link is not a failure; a 404 on a fresh click is |
 | 9 | `submit_public_application`'s event gate is its first executable statement, ahead of all other validation | The smoke check's nil-uuid probe reliably returns `P0002` without writing anything |
@@ -345,3 +358,12 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
   (`main` = `e342cf6`): 5/5, exit 0, `questionnaire-invariant` vacuous (0 active events — read
   the note, gotcha 11). Prod data 0 events / 0 vendors / 0 real bucket objects. Next run: before
   event week and after every promotion to `main`, per the top of this runbook.
+- **2026-11-03, production (backlog BL-17 / spec 011 T015).** After migrations `014` and `015`
+  reached prod and `main` fast-forwarded `5003918..b6ea7e5`: `npm run smoke` 5/5 before and after
+  (`questionnaire-invariant` vacuous both times). Click-through with a signed-in vendor (section
+  2.4a's shape, a throwaway `+011-prod` address instead of the smoke identity, no PDF — the
+  default questionnaire has no file question): new event seeded with the five booth spaces and
+  the corner acknowledgement, email locked on `/apply`, the application listed on the vendor
+  dashboard's first load, the product link on the review page, Approved → status mail, both
+  mails from the verified domain. Cleanup in one transaction plus the throwaway account; prod
+  back to 0 events / 0 vendors / 0 real bucket objects. Record: 011 quickstart row P2.
