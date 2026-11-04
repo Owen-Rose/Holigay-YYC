@@ -63,8 +63,9 @@ src/
 │   ├── admin/                 # Admin components (user-role-select)
 │   ├── auth/                  # Login/signup form components
 │   ├── dashboard/             # Dashboard components (tables, filters, export, role-badge)
-│   ├── forms/                 # Form components (event, vendor application, vendor profile)
+│   ├── forms/                 # Form components (event, questionnaire editors, product-links fields, vendor profile)
 │   ├── team/                  # Team invite form
+│   ├── vendor/                # Vendor-side shared components (no-vendor-profile empty state, product-links list)
 │   └── ui/                    # Reusable UI primitives (button, card, input, select, etc.)
 ├── lib/
 │   ├── actions/               # Server actions (auth, applications, events, vendors, etc.)
@@ -73,7 +74,8 @@ src/
 │   ├── context/               # React context providers (role-context)
 │   ├── email/                 # Email client + templates (application-received, status-update)
 │   ├── supabase/              # Supabase clients (client, server)
-│   ├── validations/           # Zod schemas (auth, application, event, vendor)
+│   ├── validations/           # Zod schemas (auth, application, event, product-links, questionnaire, team, vendor)
+│   ├── vendor/                # resolveVendorId() — the vendor loaders' account → vendor lookup + self-heal (spec 011)
 │   └── utils.ts               # Shared utilities (cn for class merging)
 ├── test/                       # Unit tests and setup
 │   └── security/              # RLS/RPC/storage suite — runs against a real local stack
@@ -84,7 +86,7 @@ src/
 ### Database Schema
 Core tables with RLS enabled:
 - `events` - Marketplace events with dates, location, status (`draft`/`active`/`closed`)
-- `vendors` - Business info (name, contact, description) + `user_id` link to auth.users
+- `vendors` - Business info (name, contact, description, `product_links` — up to three, spec 011) + `user_id` link to auth.users
 - `applications` - Vendor applications linking vendors to events
 - `attachments` - File uploads for applications (stored in Supabase Storage)
 - `user_profiles` - Links auth.users to roles (`vendor`/`organizer`/`admin`) with auto-creation trigger
@@ -92,7 +94,7 @@ Core tables with RLS enabled:
 Supporting objects:
 - `user_role` enum type
 - `get_user_role()` SQL function — no-arg, returns `user_role` (used in RLS policies). The earlier two-arg `get_user_role(uuid)` and `user_has_role(uuid, text)` were dropped by spec 004 (`007_role_system_cleanup.sql`).
-- `handle_new_user` trigger (auto-creates profile on signup, links existing vendors by email)
+- `handle_new_user` trigger (auto-creates profile on signup, links existing vendors by email). Since spec 011 two more paths tie an account to its vendor row: a signed-in submission ties inside `submit_public_application`, and `link_vendor_account()` self-heals on the vendor dashboard's first read
 - `users_with_roles` view (joins auth.users with profiles for admin queries)
 - `public.user_roles` table — superseded by `user_profiles` and dropped by `008_drop_user_roles.sql`.
 - `SECURITY DEFINER` RPCs for atomic multi-table writes: `submit_public_application(jsonb)` (the only public-submission write path — `anon`/`authenticated` may execute it), `save_event_questionnaire(uuid, jsonb, uuid)` (the only write path for the questionnaire builder and the template seed — migration 012), `create_event_with_default_questionnaire(jsonb)` and `ensure_event_questionnaire(uuid)`. The three organizer RPCs check `get_user_role()` inside the function (migration 012) in addition to having `anon` EXECUTE revoked (migration 011). Migration 014 lets the seed RPC take per-question `id` and `show_if` so the default corner acknowledgement (UAT2-4) is seeded with its show-if; `buildDefaultQuestionnaire()` in `src/lib/questionnaire/default-questions.ts` builds that payload. Migration 015 (spec 011) replaces `submit_public_application` in place (v2: `product_links` instead of phone/website, fixed-form keys ignored, a signed-in caller's account address wins and is tied to the vendor row) and adds `link_vendor_account()` — `authenticated`-only, no arguments, ties the caller to the untied vendor row matching their address — over the private `link_vendor_account_rows(uuid, uuid)` helper.
@@ -122,9 +124,10 @@ export async function actionName(data: ValidatedInput): Promise<ActionResponse> 
 
 Server action files:
 - `auth.ts` - signIn, signUp, signOut
-- `applications.ts` - status updates, notes, listing
+- `applications.ts` - status updates, notes, listing (no submission since spec 011)
+- `answers.ts` - `submitDynamicApplication`, the only public-submission action (calls `submit_public_application`; a signed-in caller's account address wins)
 - `events.ts` - CRUD, status transitions (draft→active→closed)
-- `vendors.ts` - vendor profile updates
+- `vendors.ts` - vendor profile updates (business details + product links)
 - `vendor-dashboard.ts` - vendor-specific data fetching
 - `team.ts` - organizer/vendor invitations over the contained admin client (`src/lib/supabase/admin.ts`, its only importer — spec 009/010)
 - `admin.ts` - admin operations
@@ -134,7 +137,8 @@ Server action files:
 ### Form Validation
 Zod schemas in `src/lib/validations/` define validation rules and infer TypeScript types:
 - `auth.ts` - Login/signup validation
-- `application.ts` - Vendor application with file upload validation (max 10MB, images/PDFs)
+- `application.ts` - `vendorInfoSchema` (the apply form's contact block) and the file rules for `file_upload` answers (max 10MB, images/PDFs)
+- `product-links.ts` - the one product-link rule (normalize to `https://`, validate, compact) shared by the apply and profile forms
 - `event.ts` - Event creation/editing validation
 - `vendor.ts` - Vendor profile validation
 
@@ -210,11 +214,11 @@ import { createServerClient } from '@/lib/supabase/server'
 
 ## Current Development Phase
 
-**Production is live.** `vendors.holigayeventsyyc.ca` runs `main` on Vercel against the prod Supabase project — `dev` was promoted on 2026-10-07 (`66fc1dd..94e6f6d`), the prod smoke check passed 5/5 with one live dynamic-form submission and both emails on 2026-10-08, and the test data was removed afterwards (0 events / 0 vendors / 0 bucket objects). Prod users are the maintainer's admin plus one rehearsal organizer; the real organizers are invited from the Team page under backlog BL-12. The training deployment `training.holigayeventsyyc.ca` (Vercel branch domain for `dev` since 2026-10-09 — BL-14; `uat-holigay-yyc.vercel.app` still resolves; dev Supabase project) has been invite-only since spec 010 (2026-09-27): dev sign-up off, `NEXT_PUBLIC_INVITE_ONLY=true` on Preview, vendors and organizers invited from the Team page; production keeps open vendor sign-up.
+**Production is live.** `vendors.holigayeventsyyc.ca` runs `main` on Vercel against the prod Supabase project — first promoted 2026-10-07 (`66fc1dd..94e6f6d`); the latest promotion is BL-17 on 2026-11-03 (`5003918..b6ea7e5`: the organizers' vendor-side UAT round — sign-off/footers, the booth default, spec 011), smoke 5/5 before and after a signed-in prod submission with both emails, test data removed afterwards (0 events / 0 vendors / 0 bucket objects). Prod users are the maintainer's admin plus one rehearsal organizer; the real organizers are invited from the Team page under backlog BL-12. The training deployment `training.holigayeventsyyc.ca` (Vercel branch domain for `dev` since 2026-10-09 — BL-14; `uat-holigay-yyc.vercel.app` still resolves; dev Supabase project) has been invite-only since spec 010 (2026-09-27): dev sign-up off, `NEXT_PUBLIC_INVITE_ONLY=true` on Preview, vendors and organizers invited from the Team page; production keeps open vendor sign-up.
 
-**Where the work is tracked.** Specs 001, 002, 004, 005, 006, 007, 009 and 010 are shipped (`specs/README.md`); spec 008 (self-hosting) is designed and deferred to post-launch. M3 (production-ready) closed 2026-10-08; M4 (live) is entered. The live order of remaining work is `docs/backlog/2026-10-06-uat-and-go-live.md` — Phase 4 (docs truth-up, prod clean slate, real organizer invites) is in progress. `main` = `dev` since the 2026-10-08 promotion (`e342cf6`); the prod clean-slate inventory (BL-08), the final smoke (BL-09, 5/5) and the `/forgot-password` live mail (BL-13) are done. Open: the spec 007 T008 seven-day dev-still-active check (2026-10-15) followed by the PR deleting the interim GitHub keep-alive workflow, and BL-12 (the real organizers' invites, Owen, UI).
+**Where the work is tracked.** Specs 001, 002, 004, 005, 006, 007, 009, 010 and 011 are shipped (`specs/README.md`); spec 008 (self-hosting) is designed and deferred to post-launch. M3 (production-ready) closed 2026-10-08; M4 (live) is entered. The live order of remaining work is `docs/backlog/2026-10-06-uat-and-go-live.md` — Phase 5 (the organizers' vendor-side UAT feedback, 2026-10-31) is promoted except UAT2-6 (email body copy, waiting on the organizers) and BL-18 (vendor invites carry the organizer invite copy), which go out in a later promotion. Also open: the spec 007 T008 seven-day dev-still-active check followed by the PR deleting the interim GitHub keep-alive workflow, and BL-12 (the real organizers' invites, Owen, UI).
 
-**Database state.** Migrations `009`–`013` are applied to both hosted projects (`011` on prod 2026-09-13, `012` 2026-09-14, `013` 2026-09-27). Migration `014` (UAT2-3/4 seed show-if) is in the repo and on the local stack; it goes to dev with the UAT2-3+4 PR and to prod in BL-17. Spec 005's T050 manual walkthrough was waived, not executed (reasoning in its `tasks.md`); its Phase 11 real-database suites retired the waiver's main gap. `docs/cleanup-roadmap.md` is historical — current planning lives in `docs/ROADMAP.md`.
+**Database state.** Migrations `009`–`015` are applied to both hosted projects, each recorded in `supabase_migrations.schema_migrations` (`011` on prod 2026-09-13, `012` 2026-09-14, `013` 2026-09-27; `014` on dev 2026-10-31 and `015` on dev 2026-11-02; both on prod 2026-11-03, before the BL-17 promotion). Spec 005's T050 manual walkthrough was waived, not executed (reasoning in its `tasks.md`); its Phase 11 real-database suites retired the waiver's main gap. `docs/cleanup-roadmap.md` is historical — current planning lives in `docs/ROADMAP.md`.
 
 ### Epic status snapshot
 - **Epic 1** (Complete): RBAC database layer
@@ -248,7 +252,7 @@ Historical Epic task detail lives in `docs/archive/TASKS.md`. New work is tracke
 
 ```
 /                           # Public landing page
-/apply                      # Public vendor application form
+/apply                      # Public vendor application form (signed in: email prefilled and locked to the account — spec 011)
 /login, /signup             # Auth (redirect if logged in)
 /auth/confirm               # Consumes emailed links (invite, signup, recovery) server-side via verifyOtp — spec 009
 /set-password               # Set a password after an invite or reset link (requires a session)
@@ -350,6 +354,7 @@ See `.specify/memory/constitution.md` for full governance rules.
 - Supabase PostgreSQL — migration `015_vendor_links_and_account_linking.sql` (one column + CHECK on `vendors`, one data `UPDATE`, two new functions, one replaced function). No new table, no policy, view, trigger or storage change; `attachments` bucket untouched. `src/types/database.ts` regenerated with `npm run db:types:local` (011-vendor-linking-and-contact-fields)
 
 ## Recent Changes
+- 011-vendor-linking-and-contact-fields (shipped 2026-11-03; PRs #70–#72, #74–#79; prod with the BL-17 promotion `5003918..b6ea7e5`): a vendor sees every application submitted with their account's address whichever came first — `link_vendor_account()` self-heals from every vendor loader through `resolveVendorId()`, a signed-in submission ties inside `submit_public_application` v2, and `/apply` locks the email to the account; the empty dashboard names the signed-in address. Phone is gone from the apply form, profile, review pages and export; "Where can we view your products?" asks for three links (Link 1 required) from one rule (`product-links.ts`), shown as link lists on both detail pages and as Link 1–3 in the eleven-column CSV. The fixed application form, `submitApplication` and `FileUpload` are deleted; an event without a questionnaire shows a not-accepting message. Migration `015`; constitution 1.1.3. Evidence: `specs/011-vendor-linking-and-contact-fields/quickstart.md` (D1–D9, P1–P2).
 - 007-production-readiness (M3; closed 2026-10-08): env contract keyed on `VERCEL_ENV` (production-only strictness, `resend.dev` refused — PR #10); email-warning parity for the dynamic form; `/api/keepalive` daily Vercel cron reading one row from both Supabase projects (first green run 2026-10-08); `npm run smoke` + the event-week and backup/restore runbooks; Resend sending domain verified 2026-09-20; organizer session 2026-10-06/07 with its fixes in PRs #55–#57; `dev` → `main` 2026-10-07; prod smoke + live submission 2026-10-08. Evidence: `specs/007-production-readiness/quickstart.md`.
 - 010-invite-only-uat (shipped 2026-09-28; prod checks 2026-10-07): the training deployment becomes invite-only — dev sign-up off, `NEXT_PUBLIC_INVITE_ONLY=true` on Preview hides the Login sign-up link, 404s `/signup` from the middleware and makes `signUp` refuse; the Team page invite form gains an Organizer/Vendor role picker (`inviteSchema.role`, default organizer). Production keeps open vendor sign-up; its sign-up copy fixes (#58, #59) have been on prod since the 2026-10-08 promotion. No migration, no packages.
 - 009-organizer-invites (shipped to `dev` 2026-09-27, prod configured 2026-10-07, first onboarding rehearsed 2026-10-08): real organizer invitations over a contained service-role client (`src/lib/supabase/admin.ts`, imported only by `src/lib/actions/team.ts` behind `requireRole('admin')`; `src/test/admin-client-containment.test.ts` asserts it); `GET /auth/confirm` consumes every emailed link via `verifyOtp`; `/set-password` and `/forgot-password` pages; Pending badge and Resend on the Team page; migration `013` adds `invite_pending` to `users_with_roles`. Constitution 1.1.2 drops the acknowledged `team.ts` stub.
