@@ -56,17 +56,13 @@ describe.runIf(stackUp)('organizer dashboard reads', () => {
         status,
         submitted_at,
         updated_at,
-        booth_preference,
-        product_categories,
-        special_requirements,
         organizer_notes,
         vendor:vendors (
           id,
           business_name,
           contact_name,
           email,
-          phone,
-          website,
+          product_links,
           description,
           user_id,
           created_at,
@@ -88,6 +84,7 @@ describe.runIf(stackUp)('organizer dashboard reads', () => {
     expect(row.vendor?.id).toBe(fx.seededVendorId);
     expect(row.vendor?.email).toBe(fx.seededVendorEmail);
     expect(row.vendor?.business_name).toBe(`SEC Vendor ${fx.suffix}`);
+    expect(row.vendor?.product_links).toEqual(['https://seeded.example']);
   });
 
   it('D1: the application detail query returns its attachments', async () => {

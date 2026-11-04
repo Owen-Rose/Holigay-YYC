@@ -39,17 +39,13 @@ export type ApplicationWithVendor = {
   status: string;
   submitted_at: string;
   updated_at: string;
-  booth_preference: string | null;
-  product_categories: string[] | null;
-  special_requirements: string | null;
   organizer_notes: string | null;
   vendor: {
     id: string;
     business_name: string;
     contact_name: string;
     email: string;
-    phone: string | null;
-    website: string | null;
+    product_links: string[];
     description: string | null;
     user_id: string | null;
     created_at: string;
@@ -132,17 +128,13 @@ export async function getApplications(
       status,
       submitted_at,
       updated_at,
-      booth_preference,
-      product_categories,
-      special_requirements,
       organizer_notes,
       vendor:vendors (
         id,
         business_name,
         contact_name,
         email,
-        phone,
-        website,
+        product_links,
         description,
         user_id,
         created_at,
@@ -236,9 +228,6 @@ export async function getApplications(
       status: app.status,
       submitted_at: app.submitted_at,
       updated_at: app.updated_at,
-      booth_preference: app.booth_preference,
-      product_categories: app.product_categories,
-      special_requirements: app.special_requirements,
       organizer_notes: app.organizer_notes,
       // Supabase returns the joined table as an object (not array) when the FK is unique per row
       vendor: app.vendor as ApplicationWithVendor['vendor'],
@@ -284,17 +273,13 @@ export type ApplicationDetail = {
   status: string;
   submitted_at: string;
   updated_at: string;
-  booth_preference: string | null;
-  product_categories: string[] | null;
-  special_requirements: string | null;
   organizer_notes: string | null;
   vendor: {
     id: string;
     business_name: string;
     contact_name: string;
     email: string;
-    phone: string | null;
-    website: string | null;
+    product_links: string[];
     description: string | null;
     user_id: string | null;
     created_at: string;
@@ -352,17 +337,13 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
       status,
       submitted_at,
       updated_at,
-      booth_preference,
-      product_categories,
-      special_requirements,
       organizer_notes,
       vendor:vendors (
         id,
         business_name,
         contact_name,
         email,
-        phone,
-        website,
+        product_links,
         description,
         user_id,
         created_at,
@@ -471,9 +452,6 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
       status: application.status,
       submitted_at: application.submitted_at,
       updated_at: application.updated_at,
-      booth_preference: application.booth_preference,
-      product_categories: application.product_categories,
-      special_requirements: application.special_requirements,
       organizer_notes: application.organizer_notes,
       vendor: application.vendor as ApplicationDetail['vendor'],
       event: application.event as ApplicationDetail['event'],

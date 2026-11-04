@@ -23,6 +23,29 @@ export type ExportCSVResponse = {
 };
 
 // =============================================================================
+// Constants
+// =============================================================================
+
+/**
+ * The export's columns (spec 011 FR-014), written once and used by both the
+ * empty-search branch and the main export. Not exported: a 'use server' module
+ * may only export async functions.
+ */
+const EXPORT_HEADERS = [
+  'Business Name',
+  'Contact Name',
+  'Email',
+  'Link 1',
+  'Link 2',
+  'Link 3',
+  'Status',
+  'Submitted Date',
+  'Event',
+  'Organizer Notes',
+  'Business Description',
+] as const;
+
+// =============================================================================
 // Helper Functions
 // =============================================================================
 
@@ -57,14 +80,6 @@ function escapeCSVValue(value: string | null | undefined): string {
  */
 function toCSVRow(values: (string | null | undefined)[]): string {
   return values.map(escapeCSVValue).join(',');
-}
-
-/**
- * Formats product categories array to a readable string
- */
-function formatCategories(categories: string[] | null): string {
-  if (!categories || categories.length === 0) return '';
-  return categories.join('; ');
 }
 
 // =============================================================================
@@ -107,17 +122,13 @@ export async function exportApplicationsCSV(
       status,
       submitted_at,
       updated_at,
-      booth_preference,
-      product_categories,
-      special_requirements,
       organizer_notes,
       vendor:vendors (
         id,
         business_name,
         contact_name,
         email,
-        phone,
-        website,
+        product_links,
         description
       ),
       event:events (
@@ -160,27 +171,11 @@ export async function exportApplicationsCSV(
     const vendorIds = matchingVendors?.map((v) => v.id) || [];
     if (vendorIds.length === 0) {
       // No matching vendors, return empty CSV with headers
-      const headers = [
-        'Business Name',
-        'Contact Name',
-        'Email',
-        'Phone',
-        'Website',
-        'Status',
-        'Submitted Date',
-        'Event',
-        'Booth Preference',
-        'Product Categories',
-        'Special Requirements',
-        'Organizer Notes',
-        'Business Description',
-      ];
-
       return {
         success: true,
         error: null,
         data: {
-          csv: toCSVRow(headers),
+          csv: toCSVRow([...EXPORT_HEADERS]),
           filename: `applications-export-${todayDateOnly()}.csv`,
           count: 0,
         },
@@ -205,25 +200,8 @@ export async function exportApplicationsCSV(
     };
   }
 
-  // Define CSV headers
-  const headers = [
-    'Business Name',
-    'Contact Name',
-    'Email',
-    'Phone',
-    'Website',
-    'Status',
-    'Submitted Date',
-    'Event',
-    'Booth Preference',
-    'Product Categories',
-    'Special Requirements',
-    'Organizer Notes',
-    'Business Description',
-  ];
-
   // Build CSV rows
-  const rows: string[] = [toCSVRow(headers)];
+  const rows: string[] = [toCSVRow([...EXPORT_HEADERS])];
 
   for (const app of applications || []) {
     // Skip if vendor data is missing
@@ -233,25 +211,23 @@ export async function exportApplicationsCSV(
       business_name: string;
       contact_name: string;
       email: string;
-      phone: string | null;
-      website: string | null;
+      product_links: string[];
       description: string | null;
     };
 
     const event = app.event as { name: string } | null;
 
+    // One row per EXPORT_HEADERS column; the links fill Link 1–3 in stored order
     const row = toCSVRow([
       vendor.business_name,
       vendor.contact_name,
       vendor.email,
-      vendor.phone,
-      vendor.website,
+      vendor.product_links[0] ?? '',
+      vendor.product_links[1] ?? '',
+      vendor.product_links[2] ?? '',
       app.status,
       formatDateTime(app.submitted_at, DATE_SHORT),
       event?.name || '',
-      app.booth_preference,
-      formatCategories(app.product_categories),
-      app.special_requirements,
       app.organizer_notes,
       vendor.description,
     ]);

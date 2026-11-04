@@ -245,16 +245,12 @@ export type VendorApplicationDetail = {
   status: string;
   submitted_at: string;
   updated_at: string;
-  booth_preference: string | null;
-  product_categories: string[] | null;
-  special_requirements: string | null;
   dynamicAnswers: import('@/lib/actions/applications').AnswerWithQuestion[] | null;
   vendor: {
     business_name: string;
     contact_name: string;
     email: string;
-    phone: string | null;
-    website: string | null;
+    product_links: string[];
     description: string | null;
   };
   event: {
@@ -317,15 +313,11 @@ export async function getVendorApplicationDetail(
       status,
       submitted_at,
       updated_at,
-      booth_preference,
-      product_categories,
-      special_requirements,
       vendor:vendors (
         business_name,
         contact_name,
         email,
-        phone,
-        website,
+        product_links,
         description
       ),
       event:events (
@@ -416,9 +408,6 @@ export async function getVendorApplicationDetail(
       status: application.status,
       submitted_at: application.submitted_at,
       updated_at: application.updated_at,
-      booth_preference: application.booth_preference,
-      product_categories: application.product_categories,
-      special_requirements: application.special_requirements,
       dynamicAnswers: mappedAnswers.length > 0 ? mappedAnswers : null,
       vendor: application.vendor as VendorApplicationDetail['vendor'],
       event: application.event as VendorApplicationDetail['event'],
