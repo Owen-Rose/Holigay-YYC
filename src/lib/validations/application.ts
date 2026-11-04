@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { productLinkFieldsSchema } from './product-links';
 
 // =============================================================================
 // Constants
@@ -25,22 +26,6 @@ export const FILE_TYPE_LABELS: Record<string, string> = {
 // File size limits
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 export const MAX_FILES = 5;
-
-// =============================================================================
-// Custom Validators
-// =============================================================================
-
-/**
- * Validates US phone number format
- * Accepts: (123) 456-7890, 123-456-7890, 123.456.7890, 1234567890
- */
-const phoneRegex = /^(\+1)?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
-
-/**
- * Validates URL format (optional protocol)
- */
-const websiteRegex =
-  /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
 
 // =============================================================================
 // File Validation Schema
@@ -73,36 +58,29 @@ export const filesSchema = z
 // =============================================================================
 
 /**
- * Schema for vendor business information
+ * Schema for vendor business information — the apply form's contact block.
+ * Spec 011: the product-link trio (Link 1 required) replaces phone and website.
  */
-export const vendorInfoSchema = z.object({
-  businessName: z
-    .string()
-    .min(2, 'Business name must be at least 2 characters')
-    .max(100, 'Business name must be less than 100 characters'),
-  contactName: z
-    .string()
-    .min(2, 'Contact name must be at least 2 characters')
-    .max(100, 'Contact name must be less than 100 characters'),
-  // Trimmed and lower-cased so the stored vendor row matches the GoTrue
-  // account (which is always lower-cased) and handle_new_user can link them.
-  email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
-  phone: z
-    .string()
-    .regex(phoneRegex, 'Please enter a valid phone number')
-    .optional()
-    .or(z.literal('')),
-  website: z
-    .string()
-    .regex(websiteRegex, 'Please enter a valid website URL')
-    .optional()
-    .or(z.literal('')),
-  description: z
-    .string()
-    .max(1000, 'Description must be less than 1000 characters')
-    .optional()
-    .or(z.literal('')),
-});
+export const vendorInfoSchema = z
+  .object({
+    businessName: z
+      .string()
+      .min(2, 'Business name must be at least 2 characters')
+      .max(100, 'Business name must be less than 100 characters'),
+    contactName: z
+      .string()
+      .min(2, 'Contact name must be at least 2 characters')
+      .max(100, 'Contact name must be less than 100 characters'),
+    // Trimmed and lower-cased so the stored vendor row matches the GoTrue
+    // account (which is always lower-cased) and handle_new_user can link them.
+    email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
+    description: z
+      .string()
+      .max(1000, 'Description must be less than 1000 characters')
+      .optional()
+      .or(z.literal('')),
+  })
+  .extend(productLinkFieldsSchema.shape);
 
 // =============================================================================
 // TypeScript Types

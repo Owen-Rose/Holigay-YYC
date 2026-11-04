@@ -35,8 +35,7 @@ const vendorRow = {
   business_name: 'Jane Crafts',
   contact_name: 'Jane Doe',
   email: 'jane@example.com',
-  phone: null,
-  website: null,
+  product_links: ['https://etsy.com/shop/x'],
   description: null,
 };
 

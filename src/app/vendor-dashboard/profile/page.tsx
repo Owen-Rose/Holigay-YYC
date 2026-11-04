@@ -1,6 +1,7 @@
 import { getVendorProfile } from '@/lib/actions/vendor-dashboard';
 import { VendorProfileForm } from '@/components/forms/vendor-profile-form';
 import { NoVendorProfile } from '@/components/vendor/no-vendor-profile';
+import { toProductLinkFields } from '@/lib/validations/product-links';
 
 // This page uses cookies (via Supabase auth) so it cannot be statically rendered
 export const dynamic = 'force-dynamic';
@@ -64,9 +65,8 @@ export default async function VendorProfilePage() {
           defaultValues={{
             businessName: vendor.business_name,
             contactName: vendor.contact_name,
-            phone: vendor.phone ?? '',
-            website: vendor.website ?? '',
             description: vendor.description ?? '',
+            ...toProductLinkFields(vendor.product_links),
           }}
         />
       </div>

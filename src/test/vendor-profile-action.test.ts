@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { updateVendorProfile } from '@/lib/actions/vendors';
 import { resolveVendorId } from '@/lib/vendor/resolve-vendor-id';
+import { PRODUCT_LINK_REQUIRED_MESSAGE } from '@/lib/validations/product-links';
 
-// spec 011 contracts/server-actions-and-ui.md §4 and §14 (US1 half)
+// spec 011 contracts/server-actions-and-ui.md §4 and §14 (US1 and US2 halves)
 
 const mockGetUser = vi.fn();
 const mockUpdate = vi.fn();
@@ -35,9 +36,10 @@ const resolveVendorIdMock = vi.mocked(resolveVendorId);
 const validInput = {
   businessName: 'Jane Crafts',
   contactName: 'Jane Doe',
-  phone: '',
-  website: '',
   description: '',
+  link1: 'instagram.com/janecrafts',
+  link2: '',
+  link3: 'https://etsy.com/shop/jane',
 };
 
 beforeEach(() => {
@@ -66,6 +68,30 @@ describe('updateVendorProfile', () => {
       expect.objectContaining({ business_name: 'Jane Crafts', contact_name: 'Jane Doe' })
     );
     expect(mockUpdateEq).toHaveBeenCalledWith('id', 'vendor-1');
+  });
+
+  it('writes the links compacted and normalized, and no phone or website (US2)', async () => {
+    resolveVendorIdMock.mockResolvedValue('vendor-1');
+
+    await updateVendorProfile(validInput);
+
+    const values = mockUpdate.mock.calls[0]![0] as Record<string, unknown>;
+    expect(values['product_links']).toEqual([
+      'https://instagram.com/janecrafts',
+      'https://etsy.com/shop/jane',
+    ]);
+    expect(values).not.toHaveProperty('phone');
+    expect(values).not.toHaveProperty('website');
+  });
+
+  it('refuses a blank Link 1 with the field message and writes nothing (US2)', async () => {
+    resolveVendorIdMock.mockResolvedValue('vendor-1');
+
+    const result = await updateVendorProfile({ ...validInput, link1: '  ' });
+
+    expect(result).toEqual({ success: false, error: PRODUCT_LINK_REQUIRED_MESSAGE });
+    expect(mockGetUser).not.toHaveBeenCalled();
+    expect(mockUpdate).not.toHaveBeenCalled();
   });
 
   it('refuses an unauthenticated caller before resolving', async () => {

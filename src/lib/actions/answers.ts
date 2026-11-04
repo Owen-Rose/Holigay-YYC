@@ -5,6 +5,7 @@ import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { vendorInfoSchema } from '@/lib/validations/application';
+import { compactProductLinks } from '@/lib/validations/product-links';
 import { answerValueSchema } from '@/lib/validations/questionnaire';
 import {
   buildAnswersSchema,
@@ -88,7 +89,7 @@ export async function submitDynamicApplication(
   }
 
   const { eventId, vendor, answers } = parsed.data;
-  const { businessName, contactName, email, phone, website, description } = vendor;
+  const { businessName, contactName, email, description } = vendor;
 
   const supabase = await createClient();
 
@@ -195,17 +196,19 @@ export async function submitDynamicApplication(
   // row happen inside submit_public_application. A failure at any step rolls
   // the whole thing back, so there is no orphan cleanup to do (FR-008).
   // -------------------------------------------------------------------------
+  //
+  // Payload v2 (spec 011, migration 015): the product links replace phone and
+  // website, stored compacted; the fixed-form `legacy` and `attachments` keys
+  // are gone (the RPC ignores them if an old client sends them).
   const payload = {
     event_id: eventId,
     vendor: {
       business_name: businessName,
       contact_name: contactName,
       email: vendorEmail,
-      phone: phone || null,
-      website: website || null,
       description: description || null,
+      product_links: compactProductLinks(vendor),
     },
-    legacy: null,
     answers: questions
       .filter((q) => {
         if (!visibleQuestionIds.has(q.id)) return false;
@@ -218,7 +221,6 @@ export async function submitDynamicApplication(
         event_question_id: q.id,
         value: coerceAnswerToJsonb(answerMap.get(q.id)!),
       })),
-    attachments: null,
   };
 
   const { data: submission, error: submissionError } = await supabase

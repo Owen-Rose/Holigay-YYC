@@ -8,6 +8,7 @@ import { updateVendorProfile } from '@/lib/actions/vendors';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { ProductLinksFields } from '@/components/forms/product-links-fields';
 
 // =============================================================================
 // Types
@@ -62,20 +63,7 @@ export function VendorProfileForm({ defaultValues, email }: VendorProfileFormPro
         {...register('contactName')}
       />
 
-      <Input
-        label="Phone"
-        type="tel"
-        placeholder="(123) 456-7890"
-        error={errors.phone?.message}
-        {...register('phone')}
-      />
-
-      <Input
-        label="Website"
-        placeholder="https://your-website.com"
-        error={errors.website?.message}
-        {...register('website')}
-      />
+      <ProductLinksFields register={register} errors={errors} />
 
       <Textarea
         label="Business Description"
