@@ -234,11 +234,16 @@ describe.runIf(stackUp)('vendor invitations against the real stack (spec 010)', 
     // address lower-cased, so the public form normalizes the typed address
     // before it reaches submit_public_application (research R8; UAT findings
     // item 11). The stored row here is whatever the form schema produces.
-    const { email: stored } = vendorInfoSchema.parse({
+    const { email: stored, link1 } = vendorInfoSchema.parse({
       businessName: `Biz ${tag}`,
       contactName: `Contact ${tag}`,
       email: mixedCaseTyped,
+      link1: 'shop.example',
+      link2: '',
+      link3: '',
     });
+    expect(stored).toBe(mixedCaseTyped.toLowerCase());
+    expect(link1).toBe('https://shop.example'); // the same schema normalizes the links (spec 011)
     const vendorId = await insertVendor(stored);
 
     const result = await inviteOrganizerCore(service, mixedCaseTyped, 'vendor', { sendInvite });

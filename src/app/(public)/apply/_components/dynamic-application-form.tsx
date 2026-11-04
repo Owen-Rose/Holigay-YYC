@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { QuestionInput } from '@/components/forms/question-input';
+import { ProductLinksFields } from '@/components/forms/product-links-fields';
 import { vendorInfoSchema } from '@/lib/validations/application';
 import { evaluateShowIf, type ShowIfRule } from '@/lib/questionnaire/show-if';
 import { submitDynamicApplication } from '@/lib/actions/answers';
@@ -54,7 +55,7 @@ export function DynamicApplicationForm({
     formState: { errors },
   } = useForm<VendorFields>({
     resolver: zodResolver(vendorInfoSchema),
-    defaultValues: { email: accountEmail ?? '' },
+    defaultValues: { email: accountEmail ?? '', link1: '', link2: '', link3: '' },
   });
   const emailLocked = accountEmail !== null;
 
@@ -252,26 +253,13 @@ export function DynamicApplicationForm({
           error={errors.email?.message}
           placeholder="you@example.com"
         />
-        <Input
-          label="Phone"
-          type="tel"
-          {...register('phone')}
-          error={errors.phone?.message}
-          placeholder="(555) 123-4567"
-        />
-        <Input
-          label="Website"
-          type="url"
-          {...register('website')}
-          error={errors.website?.message}
-          placeholder="https://yourbusiness.com"
-        />
         <Textarea
           label="Business Description"
           {...register('description')}
           error={errors.description?.message}
           placeholder="Tell us about your business..."
         />
+        <ProductLinksFields register={register} errors={errors} />
       </section>
 
       {/* Dynamic questions */}

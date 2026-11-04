@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { resolveVendorId } from '@/lib/vendor/resolve-vendor-id';
 import { vendorProfileSchema, type VendorProfileInput } from '@/lib/validations/vendor';
+import { compactProductLinks } from '@/lib/validations/product-links';
 
 // =============================================================================
 // Types
@@ -52,9 +53,9 @@ export async function updateVendorProfile(
     .update({
       business_name: parsed.data.businessName,
       contact_name: parsed.data.contactName,
-      phone: parsed.data.phone || null,
-      website: parsed.data.website || null,
       description: parsed.data.description || null,
+      // Spec 011: the links replace phone and website (both columns kept, no longer written)
+      product_links: compactProductLinks(parsed.data),
       updated_at: new Date().toISOString(),
     })
     .eq('id', vendorId);

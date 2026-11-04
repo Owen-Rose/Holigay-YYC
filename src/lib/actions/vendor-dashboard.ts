@@ -191,8 +191,7 @@ export type VendorProfile = {
   business_name: string;
   contact_name: string;
   email: string;
-  phone: string | null;
-  website: string | null;
+  product_links: string[];
   description: string | null;
 };
 
@@ -225,7 +224,7 @@ export async function getVendorProfile(): Promise<GetVendorProfileResult> {
 
   const { data: vendor, error } = await supabase
     .from('vendors')
-    .select('id, business_name, contact_name, email, phone, website, description')
+    .select('id, business_name, contact_name, email, product_links, description')
     .eq('id', vendorId)
     .single();
 

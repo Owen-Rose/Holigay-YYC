@@ -115,9 +115,11 @@ const VENDOR_INPUT = {
   businessName: 'Artisan Crafts',
   contactName: 'Jane Smith',
   email: 'jane@artisan.com',
-  phone: '',
-  website: '',
   description: '',
+  // Link 2 left blank: the action compacts the trio (spec 011 FR-012)
+  link1: 'instagram.com/artisan',
+  link2: '',
+  link3: 'https://etsy.com/shop/artisan',
 };
 
 /** The row shape `submit_public_application` returns (one row, via .single()). */
@@ -268,13 +270,16 @@ describe('submitDynamicApplication', () => {
 
     const payload = lastRpcPayload();
     expect(payload['event_id']).toBe(EVENT_UUID);
-    expect(payload['legacy']).toBeNull();
-    expect(payload['attachments']).toBeNull();
-    expect(payload['vendor']).toMatchObject({
+    // Payload v2 (spec 011 contracts/server-actions-and-ui.md §3 step 7):
+    // no legacy or attachments keys, links compacted, no phone or website.
+    expect(payload).not.toHaveProperty('legacy');
+    expect(payload).not.toHaveProperty('attachments');
+    expect(payload['vendor']).toEqual({
       business_name: 'Artisan Crafts',
       contact_name: 'Jane Smith',
       email: 'jane@artisan.com',
-      phone: null,
+      description: null,
+      product_links: ['https://instagram.com/artisan', 'https://etsy.com/shop/artisan'],
     });
     expect(payload['answers']).toEqual([
       { event_question_id: TEXT_Q_UUID, value: { kind: 'text', value: 'Handmade pottery' } },

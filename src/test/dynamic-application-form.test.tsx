@@ -7,6 +7,8 @@ import {
 } from '@/app/(public)/apply/_components/dynamic-application-form';
 import { toast } from 'sonner';
 import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
+import { PRODUCT_LINKS_HEADING } from '@/components/forms/product-links-fields';
+import { PRODUCT_LINK_REQUIRED_MESSAGE } from '@/lib/validations/product-links';
 import type { Database } from '@/types/database';
 
 type EventQuestion = Database['public']['Tables']['event_questions']['Row'];
@@ -64,6 +66,7 @@ async function fillVendorFields(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/business name/i), 'Artisan Crafts');
   await user.type(screen.getByLabelText(/contact name/i), 'Jane Smith');
   await user.type(screen.getByLabelText(/email/i), 'jane@artisan.com');
+  await user.type(screen.getByLabelText('Link 1 *'), 'etsy.com/shop/x');
 }
 
 // ---------------------------------------------------------------------------
@@ -689,6 +692,7 @@ describe('DynamicApplicationForm account email', () => {
 
     await user.type(screen.getByLabelText(/business name/i), 'Artisan Crafts');
     await user.type(screen.getByLabelText(/contact name/i), 'Jane Smith');
+    await user.type(screen.getByLabelText('Link 1 *'), 'etsy.com/shop/x');
     await user.type(screen.getByLabelText(/describe your products/i), 'Pottery');
     await user.click(screen.getByRole('button', { name: /submit application/i }));
 
@@ -699,5 +703,75 @@ describe('DynamicApplicationForm account email', () => {
         })
       );
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Product links (spec 011 US2, contracts/server-actions-and-ui.md §9–§10)
+// ---------------------------------------------------------------------------
+
+describe('DynamicApplicationForm product links', () => {
+  it('asks for three links under the heading and no phone or website', () => {
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[]}
+      />
+    );
+
+    expect(screen.getByRole('heading', { name: PRODUCT_LINKS_HEADING })).toBeInTheDocument();
+    expect(screen.getByLabelText('Link 1 *')).toHaveValue('');
+    expect(screen.getByLabelText('Link 2')).toHaveValue('');
+    expect(screen.getByLabelText('Link 3')).toHaveValue('');
+    expect(screen.queryByLabelText('Phone')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Website')).not.toBeInTheDocument();
+  });
+
+  it('refuses a blank Link 1 with the message and sends nothing', async () => {
+    const user = userEvent.setup();
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[]}
+      />
+    );
+
+    await user.type(screen.getByLabelText(/business name/i), 'Artisan Crafts');
+    await user.type(screen.getByLabelText(/contact name/i), 'Jane Smith');
+    await user.type(screen.getByLabelText(/email/i), 'jane@artisan.com');
+    await user.click(screen.getByRole('button', { name: /submit application/i }));
+
+    expect(await screen.findByText(PRODUCT_LINK_REQUIRED_MESSAGE)).toBeInTheDocument();
+    expect(mockSubmitDynamic).not.toHaveBeenCalled();
+  });
+
+  it('sends the three slots on vendor, normalized, blanks kept for the action to compact', async () => {
+    const user = userEvent.setup();
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Test Event"
+        questions={[]}
+      />
+    );
+
+    await fillVendorFields(user);
+    await user.type(screen.getByLabelText('Link 3'), 'https://instagram.com/x');
+    await user.click(screen.getByRole('button', { name: /submit application/i }));
+
+    await waitFor(() => expect(mockSubmitDynamic).toHaveBeenCalled());
+    const { vendor } = mockSubmitDynamic.mock.calls[0]![0] as { vendor: Record<string, unknown> };
+    expect(vendor).toMatchObject({
+      link1: 'https://etsy.com/shop/x',
+      link2: '',
+      link3: 'https://instagram.com/x',
+    });
+    expect(vendor).not.toHaveProperty('phone');
+    expect(vendor).not.toHaveProperty('website');
   });
 });
