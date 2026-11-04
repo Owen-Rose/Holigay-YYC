@@ -200,9 +200,9 @@ rewrite session.
   inline SVGs across layouts.
 - **Supabase free-tier pause guard** — **built by spec 007 T007**: `/api/keepalive` +
   a daily `vercel.json` cron reads one row from each project (daily, not weekly — a
-  weekly ping sits too close to the seven-day pause window). Live once T008 sets
-  `CRON_SECRET` / `KEEPALIVE_SUPABASE_TARGETS` on Vercel Production; T008a's GitHub
-  Actions ping covers the gap until then.
+  weekly ping sits too close to the seven-day pause window). Live on Vercel Production
+  since 2026-10-08 (T008); T008a's interim GitHub Actions ping covered the gap before that
+  and was removed on 2026-11-03, once dev's logs showed the cron reaching it every day.
 
 ---
 
@@ -319,8 +319,9 @@ items there and here together.
       seasonal app). **Decided (M3-PLAN): stay free; daily keep-alive cron instead of a
       paid tier** — `/api/keepalive` built by spec 007 T007 (PR #13). ✅ First Production
       cron run green 2026-10-08 12:33Z on both projects (T008); the interim GitHub Actions
-      schedule (T008a, PR #14) covered 2026-09-17 → 2026-10-08. Residual: the seven-day
-      dev-still-active check due 2026-10-15, then the PR deleting the interim workflow.
+      schedule (T008a, PR #14) covered 2026-09-17 → 2026-10-08. The seven-day dev check passed
+      (recorded 2026-11-03: the cron reached dev on all 27 days since 2026-10-08) and the
+      interim workflow and its four repo secrets were removed on 2026-11-03.
       **This has now happened: on 2026-08-22 both the dev and prod projects were found
       paused** — subdomains NXDOMAIN, empty API-key lists — blocking the spec 006
       dev rollout until Holigay-Dev was manually restored. Note the security angle:
