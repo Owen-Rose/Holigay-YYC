@@ -43,7 +43,7 @@ merged as one unit.
 
 ## Queued work (no spec yet)
 
-Production has been live since 2026-10-07. The ordered list of what remains is `docs/backlog/2026-10-06-uat-and-go-live.md` (Phase 4: real organizer invites; Phase 5: UAT2-6 email copy and BL-18 invite wording); its completed Phases 0–3 are archived in `docs/archive/backlog-2026-10-06-phases-0-3.md`. Spec 008 (self-hosting) is the post-launch track. Spec 011, from the organizers' October 2026 vendor-side UAT (`docs/handoffs/2026-10-31-vendor-uat-findings.md`), shipped on 2026-11-03. Beyond that, see `docs/ROADMAP.md` Tier 3 (foundation hardening) and Tier 4. `docs/cleanup-roadmap.md` is historical — all five of its workstreams are complete and its leftover items were folded into Tier 3.
+Production has been live since 2026-10-07. The ordered list of what remains is `docs/backlog/2026-10-06-uat-and-go-live.md` (Phase 4: real organizer invites; Phase 5: UAT2-6 email copy); its completed Phases 0–3 are archived in `docs/archive/backlog-2026-10-06-phases-0-3.md`. Spec 008 (self-hosting) is the post-launch track. Spec 011, from the organizers' October 2026 vendor-side UAT (`docs/handoffs/2026-10-31-vendor-uat-findings.md`), shipped on 2026-11-03. Beyond that, see `docs/ROADMAP.md` Tier 3 (foundation hardening) and Tier 4. `docs/cleanup-roadmap.md` is historical — all five of its workstreams are complete and its leftover items were folded into Tier 3.
 
 ## Conventions
 

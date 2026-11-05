@@ -8,7 +8,7 @@ deployment and (b) going live on production with a clean environment.
 **Status 2026-11-03:** (b) is done — production has been live since 2026-10-07. Phases 0–3
 are complete and archived (see below); Phase 4 has BL-12 open; Phase 5 (the organizers'
 vendor-side UAT feedback, triaged 2026-10-31) reached prod in BL-17 on 2026-11-03 — UAT2-6
-(email copy) and BL-18 (vendor invite wording) remain for a later promotion.
+(email copy) remains for a later promotion.
 
 Decisions this list is built on (Owen, 2026-10-06):
 
@@ -190,7 +190,7 @@ as it merges.
       organizers and brings back their wording; the PR lands once settled. Auth emails (confirm,
       invite, reset) are dashboard templates on each project, changed by hand if wanted.
       Owner: joint · Shape: copy, then PR · Blocked by: organizer feedback.
-- [ ] **BL-18** `[P]` (added 2026-11-03; seen in spec 011's training walkthrough, row D2) — Vendor
+- [x] **BL-18** `[P]` (added 2026-11-03; seen in spec 011's training walkthrough, row D2; closed 2026-11-04 with no change) — Vendor
       invites carry organizer copy. The Supabase "Invite user" template (spec 009
       `contracts/email-templates.md` §1, the same on dev and prod) says "An admin has invited you to
       help run the Holigay Vendor Market", but since spec 010 the Team page also invites vendors, and
@@ -202,6 +202,10 @@ as it merges.
       Owner: joint (Owen picks the wording and edits both dashboards; agent for (b)'s PR) · Shape:
       copy + dashboard, optionally a PR · Blocked by: nothing; fits UAT2-6's copy pass · Done when: a
       Vendor invite on the training site reads as a vendor invitation and prod's template matches.
+      **Closed (Owen, 2026-11-04): not needed.** On prod, vendors create their own accounts; on the
+      training site, a vendor invite goes to someone helping with UAT, so the wording doesn't matter.
+      If an admin does pick Vendor on prod's Team page, the email reads oddly but the link works and
+      the role is right. The Invite user template stays as spec 009's contract has it.
 - [x] **BL-16** `[P]` (PR #70 merged 2026-11-02; `specs/README.md` lists 011) — Write spec 011 (`specs/011-vendor-linking-and-contact-fields/`:
       `spec.md`, `plan.md`, `tasks.md`) from the outline in the handoff: story 1 account ↔ vendor
       linking (UAT2-5), story 2 contact block (UAT2-1, UAT2-2), story 3 legacy form retirement;
@@ -212,7 +216,7 @@ as it merges.
       invite; invite then apply) → migration to prod in default mode with the inventory → confirm
       → write → verify sequence.
       Owner: agent; Owen for prod · Shape: PRs + SQL · Blocked by: BL-16.
-- [x] **BL-17** (run 2026-11-03 as spec 011 T015; UAT2-6 and BL-18 go out in a later promotion — Owen's call) — Promotion `dev` → `main` after the round; `npm run smoke` against prod; a new
+- [x] **BL-17** (run 2026-11-03 as spec 011 T015; UAT2-6 goes out in a later promotion — Owen's call) — Promotion `dev` → `main` after the round; `npm run smoke` against prod; a new
       event on prod shows the new default questionnaire; record in the event-week runbook.
       Owner: joint · Shape: promotion · Blocked by: everything above.
       **Record (2026-11-03, default mode, Owen present).** Migrations `014` and `015` applied to prod
