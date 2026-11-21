@@ -116,6 +116,11 @@ export async function getApplications(
   filters: ApplicationFilters = {},
   pagination: PaginationParams = {}
 ): Promise<GetApplicationsResponse> {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role', data: null };
+  }
+
   const supabase = await createClient();
 
   // Pagination defaults
@@ -328,6 +333,11 @@ export type GetApplicationByIdResponse = {
  * @returns GetApplicationByIdResponse with full application details or error
  */
 export async function getApplicationById(id: string): Promise<GetApplicationByIdResponse> {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role', data: null };
+  }
+
   const supabase = await createClient();
 
   // Fetch the application with vendor and event data
@@ -480,6 +490,11 @@ export async function getApplicationCounts(eventId?: string): Promise<{
   waitlisted: number;
   total: number;
 }> {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { pending: 0, approved: 0, rejected: 0, waitlisted: 0, total: 0 };
+  }
+
   const supabase = await createClient();
 
   let query = supabase.from('applications').select('status');

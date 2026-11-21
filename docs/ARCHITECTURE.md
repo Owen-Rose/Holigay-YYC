@@ -225,8 +225,8 @@ export async function doThing(input: unknown): Promise<Response> {
 
 Every mutation follows this. Known drift, in order of importance:
 
-- **Reads are inconsistent:** `templates.ts` reads call `requireRole`;
-  `applications.ts`/`events.ts` reads rely on RLS alone.
+- ~~**Reads are inconsistent**~~ ✅ **Closed by BL-21** — the organizer reads in
+  `applications.ts`/`events.ts` now call `requireRole('organizer')`, as `templates.ts` does.
 - **Three response shapes coexist:** `{success, error, data}`, discriminated unions,
   and bare `T | null`. Each action file redeclares its own response type; there is no
   shared `ActionResponse<T>`.

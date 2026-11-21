@@ -37,8 +37,14 @@ export type GetEventsResponse = {
 
 /**
  * Fetches all events with application counts, ordered by event_date descending.
+ * Requires organizer or admin role.
  */
 export async function getEvents(): Promise<GetEventsResponse> {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role', data: null };
+  }
+
   const supabase = await createClient();
 
   // Fetch all events
@@ -146,10 +152,16 @@ export type EventRow = {
 
 /**
  * Fetches a single event by ID.
+ * Requires organizer or admin role.
  */
 export async function getEventById(
   id: string
 ): Promise<{ success: boolean; error: string | null; data: EventRow | null }> {
+  const auth = await requireRole('organizer');
+  if (!auth.success) {
+    return { success: false, error: auth.error ?? 'Unauthorized: insufficient role', data: null };
+  }
+
   const supabase = await createClient();
 
   const { data: event, error } = await supabase.from('events').select('*').eq('id', id).single();
