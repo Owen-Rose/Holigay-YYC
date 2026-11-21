@@ -64,7 +64,7 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 
 1. ✅ **BL-19** (PR #82, merged 2026-11-21) — commit this plan and register Phase 6 in the backlog (docs PR).
 2. ✅ **BL-20** (PR #83, merged 2026-11-21) — deadline-less events. Owen chose "list them": a blank deadline means open until the organizers close the event.
-3. **BL-21** — read authorization.
+3. ✅ **BL-21** (PR #84, merged 2026-11-21) — read authorization.
 4. **BL-22** — tests and casts.
 5. **BL-23** — inline submission error.
 6. **BL-24** — promotion `dev` → `main` (joint, Owen's go).
@@ -383,6 +383,7 @@ gh pr create --base dev --title "fix(apply): list active events that have no dea
 - Create: `src/test/organizer-read-auth.test.ts`
 - Modify: `src/test/applications-readers.test.ts` (roles mock; header comment)
 - Modify: `docs/ROADMAP.md` (Tier 3: strike "Read-auth consistency" and "`requireVendor()` helper")
+- Added by Step 9 (PR #84): `docs/ARCHITECTURE.md` — its grep showed the "Reads are inconsistent" drift bullet false; struck and marked closed. Already in Step 10's `git add`.
 
 **Interfaces:**
 - Consumes: `requireRole(minimumRole: Role): Promise<RoleResponse>` from `@/lib/auth/roles`; on refusal it returns `{ success: false, error: 'Requires organizer role or higher', data: null }` (or `'Not authenticated'`).
@@ -390,13 +391,13 @@ gh pr create --base dev --title "fix(apply): list active events that have no dea
 
 Do **not** add caching, a wrapper, or a shared helper for the guard. Five explicit four-line guards is the repo's pattern.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout dev && git pull --ff-only && git checkout -b bl-21-organizer-read-auth
 ```
 
-- [ ] **Step 2: Write the tests** — create `src/test/organizer-read-auth.test.ts`:
+- [x] **Step 2: Write the tests** — create `src/test/organizer-read-auth.test.ts`:
 
 ```ts
 // @vitest-environment node
@@ -592,12 +593,12 @@ describe('organizer reads answer an organizer', () => {
 });
 ```
 
-- [ ] **Step 3: Run it**
+- [x] **Step 3: Run it**
 
 Run: `npx vitest run src/test/organizer-read-auth.test.ts`
 Expected: the five tests under "refuse a caller below organizer" FAIL (the readers return data and never call `requireRole`). The four under "answer an organizer" PASS — they describe behaviour that must not change.
 
-- [ ] **Step 4: Add the guard to the three readers in `src/lib/actions/applications.ts`**
+- [x] **Step 4: Add the guard to the three readers in `src/lib/actions/applications.ts`**
 
 `getApplications` — insert as the first statements of the body, above `const supabase = await createClient();`:
 
@@ -623,7 +624,7 @@ Expected: the five tests under "refuse a caller below organizer" FAIL (the reade
 
 `requireRole` is already imported in this file.
 
-- [ ] **Step 5: Add the guard to the two readers in `src/lib/actions/events.ts`**
+- [x] **Step 5: Add the guard to the two readers in `src/lib/actions/events.ts`**
 
 `getEvents` and `getEventById` — insert as the first statements of each body:
 
@@ -637,7 +638,7 @@ Expected: the five tests under "refuse a caller below organizer" FAIL (the reade
 
 Update each function's docstring by appending `Requires organizer or admin role.` `requireRole` is already imported in this file.
 
-- [ ] **Step 6: Keep the existing reader test honest** — in `src/test/applications-readers.test.ts`:
+- [x] **Step 6: Keep the existing reader test honest** — in `src/test/applications-readers.test.ts`:
 
 Add to the imports: `import { requireRole } from '@/lib/auth/roles';`
 
@@ -666,7 +667,7 @@ Add as the last statement of the existing `beforeEach`:
   });
 ```
 
-- [ ] **Step 7: Run both files, then the whole unit suite**
+- [x] **Step 7: Run both files, then the whole unit suite**
 
 Run: `npx vitest run src/test/organizer-read-auth.test.ts src/test/applications-readers.test.ts`
 Expected: all pass (9 + 4).
@@ -674,9 +675,9 @@ Expected: all pass (9 + 4).
 Run: `npm test`
 Expected: all pass. If a page or component test now fails because it renders something that calls one of the five readers unmocked, stop and report the file name — do not edit it without asking.
 
-- [ ] **Step 8: Check the dashboard still loads** — `npx supabase start`, `npm run dev`, sign in as a local organizer or admin (`scripts/seed-role.sql` sets a role), open `/dashboard`, `/dashboard/applications`, `/dashboard/events` and one event's edit page. Expected: each renders its data as before. Record this in the PR.
+- [x] **Step 8: Check the dashboard still loads** — `npx supabase start`, `npm run dev`, sign in as a local organizer or admin (`scripts/seed-role.sql` sets a role), open `/dashboard`, `/dashboard/applications`, `/dashboard/events` and one event's edit page. Expected: each renders its data as before. Record this in the PR.
 
-- [ ] **Step 9: ROADMAP** — in `docs/ROADMAP.md` Tier 3, strike through (`~~…~~`) the bold lead of the "Read-auth consistency" bullet and of the "`requireVendor()` helper" bullet, and append to each, respectively:
+- [x] **Step 9: ROADMAP** — in `docs/ROADMAP.md` Tier 3, strike through (`~~…~~`) the bold lead of the "Read-auth consistency" bullet and of the "`requireVendor()` helper" bullet, and append to each, respectively:
 
 ```markdown
 ✅ **Shipped as BL-21** — the five readers call `requireRole('organizer')`; `src/test/organizer-read-auth.test.ts`.
@@ -688,7 +689,7 @@ Expected: all pass. If a page or component test now fails because it renders som
 
 Then run `grep -n "no requireRole\|RLS alone\|organizer-facing reads" docs/ARCHITECTURE.md docs/ROADMAP.md` and correct any sentence this PR makes false; change nothing else.
 
-- [ ] **Step 10: Gate, commit, PR**
+- [x] **Step 10: Gate, commit, PR**
 
 ```bash
 npm run format:check && npm run lint && npm test && npm run build

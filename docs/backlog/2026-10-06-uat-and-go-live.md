@@ -243,7 +243,7 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
 - [x] **BL-20** (PR #83 merged 2026-11-21) — Active events with a blank deadline are listed on `/` and `/apply`; the
       deadline is compared as an Edmonton calendar day.
       Owner: agent · Shape: PR · Owen chose "list them"; review also fixed the organizer list's past-deadline colour.
-- [ ] **BL-21** — `requireRole('organizer')` on the five organizer reads in
+- [x] **BL-21** (PR #84 merged 2026-11-21) — `requireRole('organizer')` on the five organizer reads in
       `applications.ts` and `events.ts`.
       Owner: agent · Shape: PR · Blocked by: nothing.
 - [ ] **BL-22** — Action tests for `updateUserRole` and `updateEventStatus`; the three
