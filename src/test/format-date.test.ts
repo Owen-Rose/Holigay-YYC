@@ -7,6 +7,7 @@ import {
   DATE_WEEKDAY,
   formatDateOnly,
   formatDateTime,
+  isPastDateOnly,
   todayDateOnly,
 } from '@/lib/format-date';
 
@@ -86,12 +87,29 @@ describe('formatDateOnly — Postgres date values never shift a day', () => {
   });
 });
 
-describe('todayDateOnly — YYYY-MM-DD in Edmonton for file names', () => {
+describe('todayDateOnly — YYYY-MM-DD in Edmonton for file names and the deadline filter', () => {
   it('matches the ISO date format', () => {
     expect(todayDateOnly()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it('uses the Edmonton calendar day for a given instant', () => {
     expect(todayDateOnly(new Date('2026-10-07T03:30:00Z'))).toBe('2026-10-06');
+  });
+});
+
+describe('isPastDateOnly — a date column is past once its Edmonton day ends (BL-20)', () => {
+  it('is not past on the evening before, when UTC has already reached the day', () => {
+    // 01:00 UTC on the 21st is 18:00 on the 20th in Edmonton (MST, UTC-7).
+    expect(isPastDateOnly('2026-11-21', new Date('2026-11-21T01:00:00Z'))).toBe(false);
+  });
+
+  it('is not past during the day itself, even after UTC has moved on', () => {
+    // 01:30 UTC on the 22nd is 18:30 on the 21st in Edmonton.
+    expect(isPastDateOnly('2026-11-21', new Date('2026-11-22T01:30:00Z'))).toBe(false);
+  });
+
+  it('is past once the Edmonton day has ended', () => {
+    // 07:30 UTC on the 22nd is 00:30 on the 22nd in Edmonton.
+    expect(isPastDateOnly('2026-11-21', new Date('2026-11-22T07:30:00Z'))).toBe(true);
   });
 });
