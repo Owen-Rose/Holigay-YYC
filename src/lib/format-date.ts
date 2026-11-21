@@ -90,7 +90,11 @@ export function formatDateTime(
   return instant.toLocaleString(LOCALE, { ...options, timeZone: APP_TIME_ZONE });
 }
 
-/** Today's Edmonton calendar day as `YYYY-MM-DD` (export file names). */
+/**
+ * Today's Edmonton calendar day as `YYYY-MM-DD`. Used for export file names
+ * and for the public deadline filter in `getActiveEvents` (BL-20), whose
+ * PostgREST filter string depends on this exact format.
+ */
 export function todayDateOnly(now: Date = new Date()): string {
   // en-CA renders numeric dates as YYYY-MM-DD.
   return now.toLocaleDateString('en-CA', {
@@ -99,4 +103,12 @@ export function todayDateOnly(now: Date = new Date()): string {
     month: '2-digit',
     day: '2-digit',
   });
+}
+
+/**
+ * True once a `date` column's day has ended in Edmonton. The day itself is
+ * still open, the same rule as the public listing in `getActiveEvents` (BL-20).
+ */
+export function isPastDateOnly(value: string, now: Date = new Date()): boolean {
+  return value < todayDateOnly(now);
 }

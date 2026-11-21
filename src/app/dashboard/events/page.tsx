@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { formatDateOnly } from '@/lib/format-date';
+import { formatDateOnly, isPastDateOnly } from '@/lib/format-date';
 import { getEvents, type EventWithCount } from '@/lib/actions/events';
 import { Badge } from '@/components/ui/badge';
 import { EventStatusActions } from './event-status-actions';
@@ -121,8 +121,9 @@ function EmptyState() {
 // =============================================================================
 
 function EventRow({ event }: { event: EventWithCount }) {
-  const isPastDeadline =
-    event.application_deadline && new Date(event.application_deadline) < new Date();
+  const isPastDeadline = event.application_deadline
+    ? isPastDateOnly(event.application_deadline)
+    : false;
 
   return (
     <Link
