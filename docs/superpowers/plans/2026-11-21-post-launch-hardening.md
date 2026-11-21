@@ -58,6 +58,8 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 - `signIn` (`src/lib/actions/auth.ts`) treats any role-lookup error other than PGRST116 as `vendor`, so a transient failure sends an organizer to `/vendor-dashboard` after login; `getCurrentUserRole` already returns an error in that case. Found by `/code-review high 85` (BL-22); pre-existing.
 - `src/app/layout.tsx:31-34` still inlines three hex colours in the Toaster options (constitution `TODO(layout-toaster-tokens)`).
 - `application_deadline` was compared with a UTC timestamp, which hides an event from the evening of its deadline day in Calgary. BL-20 fixes this as part of the same line; review of PR #83 found the same mistake in the organizer events list, fixed in the same PR.
+- The apply form (`src/app/(public)/apply/_components/dynamic-application-form.tsx`) has no try/catch around `uploadFile` or `submitDynamicApplication`, so a rejected server-action call (dropped connection, server error) leaves the button stuck on "Submitting…" with no message, and the vendor must reload and lose what they entered. Small Track A candidate: catch in `onSubmit`, call `fail()`, one test with a rejecting action. Found by `/code-review high 86` (BL-23); pre-existing.
+- The apply form uploads each pending file before `submitDynamicApplication` runs, so a refused submission (duplicate, closed event) leaves its files in the `attachments` bucket with no answer pointing at them, and each retry uploads them again. Low impact while the default questionnaire has no file question; spec 012 keeps orphan cleanup out of scope. Found by `/code-review high 86` (BL-23); pre-existing.
 
 ---
 
