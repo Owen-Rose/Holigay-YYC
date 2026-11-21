@@ -238,7 +238,7 @@ as it merges.
 Source: the 2026-11-21 status review. Plan, triage and per-task steps:
 `docs/superpowers/plans/2026-11-21-post-launch-hardening.md`. One task per PR, on Owen's go.
 
-- [ ] **BL-19** — This record: the plan file and this phase.
+- [x] **BL-19** (PR #82 merged 2026-11-21) — This record: the plan file and this phase.
       Owner: agent · Shape: docs PR · Blocked by: nothing.
 - [ ] **BL-20** — Active events with a blank deadline are listed on `/` and `/apply`; the
       deadline is compared as an Edmonton calendar day.

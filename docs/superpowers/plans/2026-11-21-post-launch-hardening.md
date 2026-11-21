@@ -62,7 +62,7 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 
 ## Order of work
 
-1. **BL-19** — commit this plan and register Phase 6 in the backlog (docs PR).
+1. ✅ **BL-19** (PR #82, merged 2026-11-21) — commit this plan and register Phase 6 in the backlog (docs PR).
 2. **BL-20** — deadline-less events. Needs Owen's decision first (see the task).
 3. **BL-21** — read authorization.
 4. **BL-22** — tests and casts.
@@ -128,13 +128,13 @@ Every task implicitly includes all of these.
 - Consumes: nothing.
 - Produces: backlog IDs BL-19 to BL-27 that later commits cite.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout dev && git pull --ff-only && git checkout -b bl-19-hardening-plan
 ```
 
-- [ ] **Step 2: Add Phase 6 to the backlog** — insert this block immediately above the line `## Deferred — listed, not prioritized`:
+- [x] **Step 2: Add Phase 6 to the backlog** — insert this block immediately above the line `## Deferred — listed, not prioritized`:
 
 ```markdown
 ## Phase 6 — Post-launch hardening (November 2026)
@@ -168,9 +168,9 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
 
 ```
 
-- [ ] **Step 3: Point the Deferred entries at their new homes** — in the Deferred section: append ` → **BL-20**.` to the "Deadline-less events never reach `/apply`" bullet; append ` → **spec 012**.` to the "UAT-10" bullet; in the "ROADMAP Tier 3 leftovers" bullet append ` Read-auth, the tests and the cast are BL-21/BL-22; cross-vendor isolation is spec 012; the rest is parked with reasons in the 2026-11-21 plan.`
+- [x] **Step 3: Point the Deferred entries at their new homes** — in the Deferred section: append ` → **BL-20**.` to the "Deadline-less events never reach `/apply`" bullet; append ` → **spec 012**.` to the "UAT-10" bullet; in the "ROADMAP Tier 3 leftovers" bullet append ` Read-auth, the tests and the cast are BL-21/BL-22; cross-vendor isolation is spec 012; the rest is parked with reasons in the 2026-11-21 plan.`
 
-- [ ] **Step 4: Gate, commit, PR**
+- [x] **Step 4: Gate, commit, PR**
 
 ```bash
 npm run format:check && npm run lint && npm test && npm run build
