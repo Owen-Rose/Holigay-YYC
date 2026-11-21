@@ -367,3 +367,19 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
   dashboard's first load, the product link on the review page, Approved → status mail, both
   mails from the verified domain. Cleanup in one transaction plus the throwaway account; prod
   back to 0 events / 0 vendors / 0 real bucket objects. Record: 011 quickstart row P2.
+- **2026-11-21, production (backlog BL-24).** `main` fast-forwarded `1f171b4..6c6a9cc` (BL-19–BL-23,
+  no migration; Vercel Production deployment `7970874842` success). `npm run smoke` 5/5 before the
+  push, after the deploy and after cleanup (`questionnaire-invariant` vacuous each time). Click-through
+  signed out, smoke identity on a Gmail `+smoke-2026-11-21` alias: event created as a draft with the
+  **deadline blank**, default questions plus one optional `file_upload`, published (locked). BL-20:
+  the event was listed on `/` and `/apply`. Submitted with a 608-byte PDF → confirmation mail. BL-23: a
+  second submission with the same address (no file) was refused, and "You have already submitted an
+  application for this event" stayed on screen as an inline alert after the toast had gone; no second
+  application, no second bucket object. Review page showed every answer and Link 1 as `https://…`
+  (new tab); a fresh click on the file served the PDF from a signed URL; Approved → status mail. Both
+  mails from `noreply@holigayeventsyyc.ca`. Timer 9 min 27 s, inside SC-004's ten minutes. Cleanup: the
+  object through the dashboard, then 3.3 in one Management API request (3 answers, 0 attachments, 1
+  application, 1 vendor, 1 event); 3.4 all 0; prod back to 0 events / 0 vendors / 0 real bucket
+  objects. **Gap in 3.1:** it reads the object path from `attachments.file_path`, but the dynamic form
+  writes no `attachments` row — the path is in the file answer (`application_answers.value->>'path'`),
+  so 3.1 as written returns a null path and the object would be missed.

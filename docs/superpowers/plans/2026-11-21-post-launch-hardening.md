@@ -70,7 +70,7 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 3. ✅ **BL-21** (PR #84, merged 2026-11-21) — read authorization.
 4. ✅ **BL-22** (PR #85, merged 2026-11-21) — tests and casts.
 5. ✅ **BL-23** (PR #86, merged 2026-11-21) — inline submission error.
-6. **BL-24** — promotion `dev` → `main` (joint, Owen's go).
+6. ✅ **BL-24** (`main` `1f171b4..6c6a9cc`, 2026-11-21) — promotion `dev` → `main` (joint, Owen's go).
 7. **Spec 012** — specify → clarify → plan → tasks → analyze → implement task by task. Can start any time after BL-19; it does not depend on BL-20–23. Do BL-21 first if both are in flight, because both touch `applications.ts` readers.
 8. **BL-25, BL-26, BL-27** — only when there is appetite.
 
@@ -1160,6 +1160,8 @@ gh pr create --base dev --title "fix(apply): keep a refused submission on screen
 ### Task BL-24: Promote Track A to production (joint — Owen's go)
 
 Not an agent-alone task. With Owen present: follow `docs/runbooks/event-week-smoke.md` exactly as the BL-17 promotion did (fast-forward `dev` → `main`, wait for the Vercel Production deploy, `npm run smoke` against prod before and after the click-through, clean up test data, add the dated entry to the runbook). There is no migration in Track A. Two extra checks for this promotion, both on prod with a throwaway event that is deleted afterwards: an active event saved with a blank deadline appears on `/apply` (BL-20); a second submission with the same email leaves the inline message on screen (BL-23).
+
+**Done 2026-11-21.** Both extra checks passed on prod; smoke 5/5 before the push, after the deploy and after cleanup; prod back to 0 rows. Record: the 2026-11-21 entry under "Rehearsals" in `docs/runbooks/event-week-smoke.md`.
 
 ---
 

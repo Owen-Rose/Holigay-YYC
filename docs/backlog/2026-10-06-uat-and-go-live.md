@@ -251,7 +251,7 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
       Owner: agent · Shape: PR · Blocked by: BL-21 (both edit ROADMAP Tier 3).
 - [x] **BL-23** (PR #86 merged 2026-11-21) — A refused submission stays on screen as an inline alert (F-005).
       Owner: agent · Shape: PR · Blocked by: nothing.
-- [ ] **BL-24** — Promotion `dev` → `main` after BL-20–BL-23; event-week smoke runbook.
+- [x] **BL-24** (`main` `1f171b4..6c6a9cc` 2026-11-21) — Promotion `dev` → `main` after BL-20–BL-23; event-week smoke runbook.
       Owner: joint · Shape: promotion · Blocked by: BL-20–BL-23.
 - [ ] **Spec 012** — Vendor data isolation: attachment read/delete rules, the
       `users_with_roles` read, organizer notes, the submission deadline check (Owen, 2026-11-21), and a
