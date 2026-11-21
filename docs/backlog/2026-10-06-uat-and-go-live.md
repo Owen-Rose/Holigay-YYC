@@ -240,9 +240,9 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
 
 - [x] **BL-19** (PR #82 merged 2026-11-21) — This record: the plan file and this phase.
       Owner: agent · Shape: docs PR · Blocked by: nothing.
-- [ ] **BL-20** — Active events with a blank deadline are listed on `/` and `/apply`; the
+- [x] **BL-20** (PR #83 merged 2026-11-21) — Active events with a blank deadline are listed on `/` and `/apply`; the
       deadline is compared as an Edmonton calendar day.
-      Owner: agent · Shape: PR · Blocked by: Owen's choice (list them, or require a deadline).
+      Owner: agent · Shape: PR · Owen chose "list them"; review also fixed the organizer list's past-deadline colour.
 - [ ] **BL-21** — `requireRole('organizer')` on the five organizer reads in
       `applications.ts` and `events.ts`.
       Owner: agent · Shape: PR · Blocked by: nothing.
@@ -254,7 +254,8 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
 - [ ] **BL-24** — Promotion `dev` → `main` after BL-20–BL-23; event-week smoke runbook.
       Owner: joint · Shape: promotion · Blocked by: BL-20–BL-23.
 - [ ] **Spec 012** — Vendor data isolation: attachment read/delete rules, the
-      `users_with_roles` read, organizer notes, and a cross-vendor isolation suite. Migration `016`.
+      `users_with_roles` read, organizer notes, the submission deadline check (Owen, 2026-11-21), and a
+      cross-vendor isolation suite. Migration `016`.
       Owner: agent; Owen for dev/prod · Shape: Speckit spec · Blocked by: nothing.
 - [ ] **BL-25** `[optional]` — Mobile pass at 375 px (Epic 6.10).
 - [ ] **BL-26** `[optional]` — File previews on the apply form (Epic 6.9).

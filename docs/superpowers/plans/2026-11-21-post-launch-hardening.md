@@ -53,17 +53,17 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 
 **Noticed while planning, not planned** (decide later; do not fold into the tasks below):
 
-- `submit_public_application` checks event status but not the deadline, so the deadline is a listing rule only. A late submission needs a hand-built request; organizers can reject it.
+- `submit_public_application` checks event status but not the deadline, so the deadline is a listing rule only. A late submission needs a hand-built request or a form left open past the deadline; organizers can reject it. → **spec 012** (Owen, 2026-11-21): migration `016` carries the check.
 - `updateUserRole` reports success when the update matches no row, and its docstring says "upsert" where the code does an update.
 - `src/app/layout.tsx:31-34` still inlines three hex colours in the Toaster options (constitution `TODO(layout-toaster-tokens)`).
-- `application_deadline` was compared with a UTC timestamp, which hides an event from the evening of its deadline day in Calgary. BL-20 fixes this as part of the same line.
+- `application_deadline` was compared with a UTC timestamp, which hides an event from the evening of its deadline day in Calgary. BL-20 fixes this as part of the same line; review of PR #83 found the same mistake in the organizer events list, fixed in the same PR.
 
 ---
 
 ## Order of work
 
 1. ✅ **BL-19** (PR #82, merged 2026-11-21) — commit this plan and register Phase 6 in the backlog (docs PR).
-2. **BL-20** — deadline-less events. Needs Owen's decision first (see the task).
+2. ✅ **BL-20** (PR #83, merged 2026-11-21) — deadline-less events. Owen chose "list them": a blank deadline means open until the organizers close the event.
 3. **BL-21** — read authorization.
 4. **BL-22** — tests and casts.
 5. **BL-23** — inline submission error.
@@ -184,7 +184,7 @@ gh pr create --base dev --title "docs(backlog): Phase 6 post-launch hardening pl
 
 ### Task BL-20: List active events that have no deadline
 
-**Decision needed from Owen before this starts.** Recommended and written below: **a blank deadline means "open until the organizers close the event"**. The alternative — make the deadline required on the event form — is a different task (form schema, form test, and a decision about events already saved without one); if Owen chooses it, stop and ask for that task to be written instead of adapting this one.
+**Decision needed from Owen before this starts.** Recommended and written below: **a blank deadline means "open until the organizers close the event"**. The alternative — make the deadline required on the event form — is a different task (form schema, form test, and a decision about events already saved without one); if Owen chooses it, stop and ask for that task to be written instead of adapting this one. **Decided 2026-11-21: list them.**
 
 **The bug.** `getActiveEvents` filters with `.gte('application_deadline', new Date().toISOString())`. A `NULL` deadline never satisfies `>=`, so an active event saved with the optional deadline blank is invisible on `/` and `/apply`, and `/apply?event_id=…` says "Event not found". Separately, `application_deadline` is a `DATE` and the right-hand side is a UTC instant, so from 5 or 6 pm Calgary time on deadline day the UTC date is already tomorrow and the event disappears early.
 
@@ -192,18 +192,19 @@ gh pr create --base dev --title "docs(backlog): Phase 6 post-launch hardening pl
 - Modify: `src/lib/actions/applications.ts` (the import on line 4; `getActiveEvents`, lines 77–98)
 - Create: `src/test/active-events.test.ts`
 - Modify: `docs/backlog/2026-10-06-uat-and-go-live.md` (the Deferred "Deadline-less events" bullet: wrap it in `~~…~~` and append `Fixed by BL-20.`)
+- Added in review (`/code-review high 83`; second commit `2c5319d`): `src/lib/format-date.ts` (new `isPastDateOnly`; `todayDateOnly` docstring), `src/test/format-date.test.ts`, `src/app/dashboard/events/page.tsx` — the organizer events list marked a deadline past from about 5 pm the day before; it now uses the same Edmonton-day rule.
 
 **Interfaces:**
 - Consumes: `todayDateOnly(now?: Date): string` from `@/lib/format-date` — today's `America/Edmonton` calendar day as `YYYY-MM-DD`. Already exists; do not change it.
 - Produces: `getActiveEvents()` keeps its signature and return type. Callers (`src/app/(public)/page.tsx`, `src/app/(public)/apply/page.tsx`) are not edited.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout dev && git pull --ff-only && git checkout -b bl-20-deadline-less-events
 ```
 
-- [ ] **Step 2: Write the failing test** — create `src/test/active-events.test.ts`:
+- [x] **Step 2: Write the failing test** — create `src/test/active-events.test.ts`:
 
 ```ts
 // @vitest-environment node
@@ -294,12 +295,12 @@ describe('getActiveEvents', () => {
 });
 ```
 
-- [ ] **Step 3: Run it and see the first test fail**
+- [x] **Step 3: Run it and see the first test fail**
 
 Run: `npx vitest run src/test/active-events.test.ts`
 Expected: the first test FAILS — `calls.or` is `[]` and `calls.gte` holds one call. The other two pass.
 
-- [ ] **Step 4: Implement** — in `src/lib/actions/applications.ts`:
+- [x] **Step 4: Implement** — in `src/lib/actions/applications.ts`:
 
 Line 4 becomes:
 
@@ -331,12 +332,12 @@ export async function getActiveEvents() {
 
 Leave the error branch and the `return events || [];` line as they are.
 
-- [ ] **Step 5: Run the test again**
+- [x] **Step 5: Run the test again**
 
 Run: `npx vitest run src/test/active-events.test.ts`
 Expected: 3 passed.
 
-- [ ] **Step 6: Prove the filter against a real database** — a mocked chain cannot tell you PostgREST accepts the filter string.
+- [x] **Step 6: Prove the filter against a real database** — a mocked chain cannot tell you PostgREST accepts the filter string.
 
 ```bash
 npx supabase start
@@ -358,7 +359,7 @@ psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -c "delete from eve
 
 Record the three observations in the PR's Verification section.
 
-- [ ] **Step 7: Backlog note, gate, commit, PR**
+- [x] **Step 7: Backlog note, gate, commit, PR**
 
 ```bash
 npm run format:check && npm run lint && npm test && npm run build
@@ -1169,6 +1170,7 @@ Not an agent-alone task. With Owen present: follow `docs/runbooks/event-week-smo
 | Read any file | `011_close_public_data_exposure.sql:301` | `attachments_authenticated_select` is `USING (bucket_id = 'attachments')` for every `authenticated` user |
 | Delete any file | `011_close_public_data_exposure.sql:305` | `attachments_authenticated_delete` has the same condition; no app code deletes objects |
 | List all accounts | `013_users_with_roles_invite_pending.sql:28-30` | only `anon` was revoked; `authenticated` keeps `SELECT`, and the view runs as its owner |
+| Late submission | `015_vendor_links_and_account_linking.sql:237` | `submit_public_application` refuses an event that is not `active` but never reads `application_deadline`; folded in by Owen on 2026-11-21 so one migration carries it |
 | Organizer notes | `005_rbac_rls_policies.sql:142` | `authenticated_select_applications` lets a vendor read their own row, and `organizer_notes` is a column on that row; `vendor-dashboard.ts` leaves it out of its select, but PostgREST will return it to the vendor's own token |
 
 **Consumers the spec must not break.**
@@ -1195,27 +1197,27 @@ Not an agent-alone task. With Owen present: follow `docs/runbooks/event-week-smo
 - [ ] **B1 — Specify.** New session, on `dev`. Run `/speckit-specify` with this seed (lean on purpose: what and why, consumers, scope, constraints; the how belongs to the plan):
 
 ```text
-Vendor data isolation. A signed-in vendor account can reach data that belongs to other vendors or to the organizers, and production has open vendor sign-up, so anyone can make such an account. Four gaps, found by reading the policies on 2026-11-21: any signed-in account can read or mint a link to any file in the attachments bucket; any signed-in account can delete any file in that bucket; any signed-in account can list every account's email address and role through the users_with_roles view; a vendor can read the organizers' private notes on their own applications by querying the API directly, because the notes are a column on a row the vendor may read. Nothing automated proves vendors are isolated from each other.
+Vendor data isolation. A signed-in vendor account can reach data that belongs to other vendors or to the organizers, and production has open vendor sign-up, so anyone can make such an account. Four gaps, found by reading the policies on 2026-11-21: any signed-in account can read or mint a link to any file in the attachments bucket; any signed-in account can delete any file in that bucket; any signed-in account can list every account's email address and role through the users_with_roles view; a vendor can read the organizers' private notes on their own applications by querying the API directly, because the notes are a column on a row the vendor may read. Nothing automated proves vendors are isolated from each other. Separately, the public submission function checks that an event is active but not that its application deadline has passed, so a form left open past the deadline still submits; it rides in the same migration.
 
-What it should do: a vendor reads only their own vendor record, applications, answers and uploaded files, never another vendor's, never organizer notes, never the account list. Organizers and admins keep everything they have today. An automated suite against a real database proves each statement for two vendors, an organizer, an admin and an anonymous caller.
+What it should do: a vendor reads only their own vendor record, applications, answers and uploaded files, never another vendor's, never organizer notes, never the account list. Organizers and admins keep everything they have today. A submission to an event whose deadline day has ended in Edmonton is refused; the deadline day itself stays open, the same rule the public listing uses. An automated suite against a real database proves each statement for two vendors, an organizer, an admin and an anonymous caller.
 
 Who relies on the current behaviour and must keep working: anonymous upload on the apply form, which happens before any vendor or application row exists and names files without an owner; organizers opening files from the review page through short-lived signed links; a vendor opening their own files from their application page; the admin Team page listing accounts with the pending-invite flag; the template list showing organizers who created each template; the invite flow reading the account view with the service role; the organizer review page and the CSV export reading organizer notes; the hosted-project reset runbook removing bucket objects.
 
-In scope: read and delete rules for the attachments bucket; who can read users_with_roles; keeping organizer notes from vendors at the database; a cross-vendor isolation suite under src/test/security; rolling the migration out to local, dev and prod; bringing the docs up to date.
+In scope: read and delete rules for the attachments bucket; who can read users_with_roles; keeping organizer notes from vendors at the database; refusing a submission past the deadline inside the submission function; a cross-vendor isolation suite under src/test/security; rolling the migration out to local, dev and prod; bringing the docs up to date.
 
-Out of scope: how uploads are named or when they happen; the anonymous upload rule; cleaning up orphaned uploads; role in JWT claims; any interface change a tightened rule does not force; deadline enforcement inside the submission function; making template updates atomic.
+Out of scope: how uploads are named or when they happen; the anonymous upload rule; cleaning up orphaned uploads; role in JWT claims; any interface change a tightened rule does not force; making template updates atomic.
 
 Constraints: one append-only migration numbered 016; no new packages; the service-role client stays contained to the existing admin module; row level security stays the authority and application code never stands in for it; every rule ships with a real-database test that fails before the migration and passes after; the existing security suites keep passing, changed only where a test asserted the old broad behaviour; constitution 1.1.3.
 ```
 
 - [ ] **B2 — Clarify.** `/speckit-clarify`. Give it the four design questions above. Owen answers; the answers land in the spec's Clarifications section.
-- [ ] **B3 — Plan.** `/speckit-plan`. The plan must (a) quote the four facts and the consumer list above and say how each consumer still works, (b) name the one migration `016_…sql`, (c) list the new security-suite cases by ID, each stated as "caller X does Y → sees Z", (d) include a rollback statement for the migration.
+- [ ] **B3 — Plan.** `/speckit-plan`. The plan must (a) quote the five facts and the consumer list above and say how each consumer still works, (b) name the one migration `016_…sql`, (c) list the new security-suite cases by ID, each stated as "caller X does Y → sees Z", (d) include a rollback statement for the migration.
 - [ ] **B4 — Tasks.** `/speckit-tasks`. One task = one PR. The first implementation task writes the isolation suite cases **red** against the current schema; the migration task turns them green. A task that changes `src/types/database.ts` regenerates it with `npm run db:types:local`, never by hand.
 - [ ] **B5 — Analyze.** `/speckit-analyze`. Fix every finding in the spec documents before any code.
 - [ ] **B6 — Spec docs PR.** Open the spec, plan and tasks as one docs PR to `dev`; Owen reads and merges it. **No implementation starts before that merge and Owen's go** (standing rule).
 - [ ] **B7 — Implement task by task.** One session per task, on Opus, with the spec's own `tasks.md` as the instructions (`/speckit-implement` for the named task, or the Track A session prompt pointed at the spec task). Each PR: local stack up, `npm run test:security` green, then the usual gate.
 - [ ] **B8 — Review each PR.** `/security-review` and `/code-review high <PR>` in a fresh session. Ask the reviewer to verify claims by running the suite, not by reading the PR body.
-- [ ] **B9 — Roll out (Owen present, default mode).** Migration `016` to the dev project → probe with two throwaway vendor accounts on the training site (vendor A cannot open vendor B's file, cannot list accounts, cannot read notes; an organizer can do all of their usual work) → migration to prod with the inventory → confirm → write → verify sequence used for `014`/`015` → promotion → smoke runbook.
+- [ ] **B9 — Roll out (Owen present, default mode).** Migration `016` to the dev project → probe with two throwaway vendor accounts on the training site (vendor A cannot open vendor B's file, cannot list accounts, cannot read notes; a submission to a past-deadline event is refused; an organizer can do all of their usual work) → migration to prod with the inventory → confirm → write → verify sequence used for `014`/`015` → promotion → smoke runbook.
 - [ ] **B10 — Close out.** `specs/README.md` row, `CLAUDE.md` (migration list, database state, recent changes), `docs/ARCHITECTURE.md` §10, `docs/ROADMAP.md` Tier 3 (strike the `users_with_roles` and cross-vendor items), the backlog's UAT-10 bullet, `supabase/migrations/README.md`.
 
 **Guard rails for the spec's implementer.** No policy is loosened to make a consumer work — if a consumer breaks, the answer is a narrower read path for that consumer, written down in the plan first. No `SECURITY DEFINER` function takes a caller-supplied identity. No service-role use in a page or a loader. If a clean design for question 1 or 4 needs more than one migration or a table change, stop and bring it back to Owen rather than widening the spec.
