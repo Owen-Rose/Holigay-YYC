@@ -132,6 +132,28 @@ describe('updateEventStatus', () => {
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/Cannot change status from "closed"/);
   });
+
+  it('refuses a caller below organizer without revalidating', async () => {
+    vi.mocked(requireRole).mockResolvedValue({
+      success: false,
+      error: 'Requires organizer role or higher',
+      data: null,
+    });
+
+    const result = await updateEventStatus(EVENT_ID, 'active');
+
+    expect(result).toEqual({ success: false, error: 'Requires organizer role or higher' });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('answers not found when the event row is missing', async () => {
+    enqueue(null, { code: 'PGRST116', message: 'No rows' });
+
+    const result = await updateEventStatus(EVENT_ID, 'active');
+
+    expect(result).toEqual({ success: false, error: 'Event not found' });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
 });
 
 // =============================================================================

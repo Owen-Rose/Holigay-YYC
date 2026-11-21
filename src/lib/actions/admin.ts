@@ -102,7 +102,7 @@ export async function getUsers(): Promise<GetUsersResponse> {
     .map((user) => ({
       id: user.id!,
       email: user.email!,
-      role: user.role as Role,
+      role: user.role ?? 'vendor',
       createdAt: user.created_at!,
       roleUpdatedAt: user.role_updated_at,
       invitePending: user.invite_pending === true,

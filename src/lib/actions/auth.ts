@@ -87,8 +87,7 @@ export async function signIn(data: LoginInput): Promise<SignInResponse> {
 
     // If user has organizer or admin role, redirect to dashboard
     // Default to 'vendor' if no role found (PGRST116 = no rows)
-    const userRole: Role =
-      roleError?.code === 'PGRST116' || !roleData ? 'vendor' : (roleData.role as Role);
+    const userRole: Role = roleError?.code === 'PGRST116' || !roleData ? 'vendor' : roleData.role;
 
     if (hasMinimumRole(userRole, 'organizer')) {
       redirectTo = '/dashboard';
