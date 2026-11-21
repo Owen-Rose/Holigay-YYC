@@ -67,7 +67,7 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 2. ✅ **BL-20** (PR #83, merged 2026-11-21) — deadline-less events. Owen chose "list them": a blank deadline means open until the organizers close the event.
 3. ✅ **BL-21** (PR #84, merged 2026-11-21) — read authorization.
 4. ✅ **BL-22** (PR #85, merged 2026-11-21) — tests and casts.
-5. **BL-23** — inline submission error.
+5. ✅ **BL-23** (PR #86, merged 2026-11-21) — inline submission error.
 6. **BL-24** — promotion `dev` → `main` (joint, Owen's go).
 7. **Spec 012** — specify → clarify → plan → tasks → analyze → implement task by task. Can start any time after BL-19; it does not depend on BL-20–23. Do BL-21 first if both are in flight, because both touch `applications.ts` readers.
 8. **BL-25, BL-26, BL-27** — only when there is appetite.
@@ -1000,13 +1000,13 @@ gh pr create --base dev --title "test(admin): cover role changes and status refu
 
 Do not add a new component, change the toast, or restyle the form.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout dev && git pull --ff-only && git checkout -b bl-23-inline-submit-error
 ```
 
-- [ ] **Step 2: Write the failing tests** — in `src/test/dynamic-application-form.test.tsx` add the import:
+- [x] **Step 2: Write the failing tests** — in `src/test/dynamic-application-form.test.tsx` add the import:
 
 ```ts
 import { DUPLICATE_APPLICATION_MESSAGE } from '@/lib/submission/errors';
@@ -1069,12 +1069,12 @@ and add inside `describe('DynamicApplicationForm submission', …)`:
   });
 ```
 
-- [ ] **Step 3: Run and see them fail**
+- [x] **Step 3: Run and see them fail**
 
 Run: `npx vitest run src/test/dynamic-application-form.test.tsx -t "refus"`
 Expected: the two new tests FAIL — no element with role `alert` is found. (An existing test, "refuses a blank Link 1…", also matches the filter and passes.)
 
-- [ ] **Step 4: Implement** — in `src/app/(public)/apply/_components/dynamic-application-form.tsx`:
+- [x] **Step 4: Implement** — in `src/app/(public)/apply/_components/dynamic-application-form.tsx`:
 
 Add one state hook after the `answerErrors` hook:
 
@@ -1134,14 +1134,14 @@ Directly above the submit `<Button …>` add:
 
 (`text-sm text-red-400` with `role="alert"` is what the `Input` primitive uses for field errors.)
 
-- [ ] **Step 5: Run the whole form test file**
+- [x] **Step 5: Run the whole form test file**
 
 Run: `npx vitest run src/test/dynamic-application-form.test.tsx`
 Expected: all pass, the two new tests included.
 
-- [ ] **Step 6: See it** — `npx supabase start`, `npm run dev`, publish a local event with the default questionnaire, submit an application at `/apply`, then submit a second one with the same email. Expected: the red line "You have already submitted an application for this event" stays above the button after the toast has gone. Record it in the PR.
+- [x] **Step 6: See it** — `npx supabase start`, `npm run dev`, publish a local event with the default questionnaire, submit an application at `/apply`, then submit a second one with the same email. Expected: the red line "You have already submitted an application for this event" stays above the button after the toast has gone. Record it in the PR.
 
-- [ ] **Step 7: Backlog note, gate, commit, PR** — in `docs/backlog/2026-10-06-uat-and-go-live.md`, in the "Organizer judgement calls" bullet, change `(F-005) — "later"` to `(F-005) — "later"; fixed by BL-23`. Add that file to the commit.
+- [x] **Step 7: Backlog note, gate, commit, PR** — in `docs/backlog/2026-10-06-uat-and-go-live.md`, in the "Organizer judgement calls" bullet, change `(F-005) — "later"` to `(F-005) — "later"; fixed by BL-23`. Add that file to the commit.
 
 ```bash
 npm run format:check && npm run lint && npm test && npm run build

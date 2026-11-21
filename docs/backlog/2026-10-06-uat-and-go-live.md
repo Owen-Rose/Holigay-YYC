@@ -249,7 +249,7 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
 - [x] **BL-22** (PR #85 merged 2026-11-21) — Action tests for `updateUserRole` and `updateEventStatus`; the three
       `as Role` casts removed.
       Owner: agent · Shape: PR · Blocked by: BL-21 (both edit ROADMAP Tier 3).
-- [ ] **BL-23** — A refused submission stays on screen as an inline alert (F-005).
+- [x] **BL-23** (PR #86 merged 2026-11-21) — A refused submission stays on screen as an inline alert (F-005).
       Owner: agent · Shape: PR · Blocked by: nothing.
 - [ ] **BL-24** — Promotion `dev` → `main` after BL-20–BL-23; event-week smoke runbook.
       Owner: joint · Shape: promotion · Blocked by: BL-20–BL-23.
