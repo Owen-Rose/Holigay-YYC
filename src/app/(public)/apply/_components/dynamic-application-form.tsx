@@ -48,6 +48,7 @@ export function DynamicApplicationForm({
   const [answers, setAnswers] = React.useState<Record<string, AnswerValue | undefined>>({});
   const [pendingFiles, setPendingFiles] = React.useState<Record<string, File>>({});
   const [answerErrors, setAnswerErrors] = React.useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   const {
     register,
@@ -104,6 +105,13 @@ export function DynamicApplicationForm({
     });
   };
 
+  // A refusal stays on screen: the toast alone is gone in a few seconds (F-005).
+  const fail = (message: string) => {
+    toast.error(message);
+    setSubmitError(message);
+    setState({ status: 'idle' });
+  };
+
   const onSubmit = async (vendor: VendorFields) => {
     // Required check on visible questions — present-but-empty is not an
     // answer (spec 006, FR-009 / research.md R10). File questions key off the
@@ -124,6 +132,7 @@ export function DynamicApplicationForm({
       return;
     }
 
+    setSubmitError(null);
     setState({ status: 'submitting' });
 
     // Upload pending files and build final answers
@@ -137,16 +146,14 @@ export function DynamicApplicationForm({
       if (ans.kind === 'file') {
         const file = pendingFiles[q.id];
         if (!file) {
-          toast.error(`File missing for "${q.label}"`);
-          setState({ status: 'idle' });
+          fail(`File missing for "${q.label}"`);
           return;
         }
         const formData = new FormData();
         formData.append('file', file);
         const uploadResult = await uploadFile(formData);
         if (!uploadResult.success || !uploadResult.data) {
-          toast.error(uploadResult.error ?? `Failed to upload file for "${q.label}"`);
-          setState({ status: 'idle' });
+          fail(uploadResult.error ?? `Failed to upload file for "${q.label}"`);
           return;
         }
         finalAnswers[q.id] = {
@@ -169,8 +176,7 @@ export function DynamicApplicationForm({
     const result = await submitDynamicApplication({ eventId, vendor, answers: answersPayload });
 
     if (!result.success) {
-      toast.error(result.error ?? 'Failed to submit application');
-      setState({ status: 'idle' });
+      fail(result.error ?? 'Failed to submit application');
       return;
     }
 
@@ -279,6 +285,12 @@ export function DynamicApplicationForm({
               />
             ))}
         </section>
+      )}
+
+      {submitError && (
+        <p className="text-sm text-red-400" role="alert">
+          {submitError}
+        </p>
       )}
 
       <Button type="submit" disabled={state.status === 'submitting'} className="w-full">

@@ -297,7 +297,7 @@ Not needed for UAT or go-live on the current stack.
   the rehearsal log): CSV export lacks questionnaire answers (F-001) — "backlog"; its blank
   legacy Booth/Categories/Requirements columns were dropped by spec 011's eleven-column export; the
   duplicate-application refusal is a four-second toast with no inline message (F-005) —
-  "later"; closed events cannot be reopened (F-003) — "backlog with the close copy change"
+  "later"; fixed by BL-23; closed events cannot be reopened (F-003) — "backlog with the close copy change"
   (copy shipped in #55; reopen itself waits on the organizers). Unsaved-notes-in-email
   (F-002) and the missing event filter (F-006) were fixed in Phase 2.
 

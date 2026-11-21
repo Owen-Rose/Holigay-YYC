@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { EMAIL_SEND_FAILED_WARNING } from '@/lib/constants/email';
 import { PRODUCT_LINKS_HEADING } from '@/components/forms/product-links-fields';
 import { PRODUCT_LINK_REQUIRED_MESSAGE } from '@/lib/validations/product-links';
+import { DUPLICATE_APPLICATION_MESSAGE } from '@/lib/submission/errors';
 import type { Database } from '@/types/database';
 
 type EventQuestion = Database['public']['Tables']['event_questions']['Row'];
@@ -607,6 +608,59 @@ describe('DynamicApplicationForm submission', () => {
           ]),
         })
       );
+    });
+  });
+
+  it('keeps a refused submission on screen as an inline alert (F-005)', async () => {
+    mockSubmitDynamic.mockResolvedValue({
+      success: false,
+      error: DUPLICATE_APPLICATION_MESSAGE,
+      data: null,
+    });
+
+    const user = userEvent.setup();
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Holiday Market"
+        questions={[ONE_TEXT_QUESTION]}
+      />
+    );
+
+    await fillVendorFields(user);
+    await user.type(screen.getByLabelText(/describe your products/i), 'Handmade pottery');
+    await user.click(screen.getByRole('button', { name: /submit application/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(DUPLICATE_APPLICATION_MESSAGE);
+    expect(vi.mocked(toast.error)).toHaveBeenCalledWith(DUPLICATE_APPLICATION_MESSAGE);
+    expect(screen.getByRole('button', { name: /submit application/i })).toBeEnabled();
+  });
+
+  it('lets the vendor submit again after a refusal', async () => {
+    mockSubmitDynamic
+      .mockResolvedValueOnce({ success: false, error: 'Failed to create application', data: null })
+      .mockResolvedValueOnce({ success: true, error: null, data: { applicationId: 'app-1' } });
+
+    const user = userEvent.setup();
+    render(
+      <DynamicApplicationForm
+        accountEmail={null}
+        eventId="event-1"
+        eventName="Holiday Market"
+        questions={[ONE_TEXT_QUESTION]}
+      />
+    );
+
+    await fillVendorFields(user);
+    await user.type(screen.getByLabelText(/describe your products/i), 'Handmade pottery');
+    await user.click(screen.getByRole('button', { name: /submit application/i }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Failed to create application');
+
+    await user.click(screen.getByRole('button', { name: /submit application/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/application submitted/i)).toBeInTheDocument();
     });
   });
 });
