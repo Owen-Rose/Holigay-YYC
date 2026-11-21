@@ -55,6 +55,7 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 
 - `submit_public_application` checks event status but not the deadline, so the deadline is a listing rule only. A late submission needs a hand-built request or a form left open past the deadline; organizers can reject it. → **spec 012** (Owen, 2026-11-21): migration `016` carries the check.
 - `updateUserRole` reports success when the update matches no row, and its docstring says "upsert" where the code does an update.
+- `signIn` (`src/lib/actions/auth.ts`) treats any role-lookup error other than PGRST116 as `vendor`, so a transient failure sends an organizer to `/vendor-dashboard` after login; `getCurrentUserRole` already returns an error in that case. Found by `/code-review high 85` (BL-22); pre-existing.
 - `src/app/layout.tsx:31-34` still inlines three hex colours in the Toaster options (constitution `TODO(layout-toaster-tokens)`).
 - `application_deadline` was compared with a UTC timestamp, which hides an event from the evening of its deadline day in Calgary. BL-20 fixes this as part of the same line; review of PR #83 found the same mistake in the organizer events list, fixed in the same PR.
 
@@ -65,7 +66,7 @@ Track B (the spec) uses the Speckit skills in order instead of step 2 — see "T
 1. ✅ **BL-19** (PR #82, merged 2026-11-21) — commit this plan and register Phase 6 in the backlog (docs PR).
 2. ✅ **BL-20** (PR #83, merged 2026-11-21) — deadline-less events. Owen chose "list them": a blank deadline means open until the organizers close the event.
 3. ✅ **BL-21** (PR #84, merged 2026-11-21) — read authorization.
-4. **BL-22** — tests and casts.
+4. ✅ **BL-22** (PR #85, merged 2026-11-21) — tests and casts.
 5. **BL-23** — inline submission error.
 6. **BL-24** — promotion `dev` → `main` (joint, Owen's go).
 7. **Spec 012** — specify → clarify → plan → tasks → analyze → implement task by task. Can start any time after BL-19; it does not depend on BL-20–23. Do BL-21 first if both are in flight, because both touch `applications.ts` readers.
@@ -723,13 +724,13 @@ Most of these tests describe behaviour that already exists, so they pass on firs
 
 Leave `src/components/admin/user-role-select.tsx:62` (`e.target.value as Role`) alone — it narrows a DOM string, a different problem.
 
-- [ ] **Step 1: Branch**
+- [x] **Step 1: Branch**
 
 ```bash
 git checkout dev && git pull --ff-only && git checkout -b bl-22-role-and-status-tests
 ```
 
-- [ ] **Step 2: Extend the admin mock** — in `src/test/admin-actions.test.ts`:
+- [x] **Step 2: Extend the admin mock** — in `src/test/admin-actions.test.ts`:
 
 Change the first import line's source list and add two imports:
 
@@ -784,7 +785,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 Leave the existing `vi.mock('@/lib/auth/roles', …)` block as it is (admin, user id `99999999-9999-4999-8999-999999999999`).
 
-- [ ] **Step 3: Add the null-role test (fails first)** — inside the existing `describe('getUsers', …)`:
+- [x] **Step 3: Add the null-role test (fails first)** — inside the existing `describe('getUsers', …)`:
 
 ```ts
   it('treats a null role from the view as vendor', async () => {
@@ -802,7 +803,7 @@ Leave the existing `vi.mock('@/lib/auth/roles', …)` block as it is (admin, use
 Run: `npx vitest run src/test/admin-actions.test.ts -t "null role"`
 Expected: FAIL — received `null`.
 
-- [ ] **Step 4: Remove the three casts**
+- [x] **Step 4: Remove the three casts**
 
 `src/lib/actions/admin.ts` line 105:
 
@@ -829,7 +830,7 @@ Expected: no errors. If the compiler objects to any of the three, restore that o
 Run: `npx vitest run src/test/admin-actions.test.ts src/test/auth-roles.test.ts`
 Expected: all pass, including the null-role test.
 
-- [ ] **Step 5: Add the `updateUserRole` tests** — append to `src/test/admin-actions.test.ts`:
+- [x] **Step 5: Add the `updateUserRole` tests** — append to `src/test/admin-actions.test.ts`:
 
 ```ts
 // =============================================================================
@@ -931,7 +932,7 @@ Expected: all pass (3 `getUsers` + 6 `updateUserRole`).
 
 **Mutation check:** in `src/lib/actions/admin.ts`, temporarily change `if (auth.data?.userId === userId && newRole !== 'admin')` to `if (false)`. Re-run: "refuses an admin demoting themselves" must FAIL. Restore the line by hand; `git diff src/lib/actions/admin.ts` must then show only the line-105 change from Step 4.
 
-- [ ] **Step 6: Add the two `updateEventStatus` tests** — inside the existing `describe('updateEventStatus', …)` in `src/test/lock-on-publish.test.ts`, after its last `it`:
+- [x] **Step 6: Add the two `updateEventStatus` tests** — inside the existing `describe('updateEventStatus', …)` in `src/test/lock-on-publish.test.ts`, after its last `it`:
 
 ```ts
   it('refuses a caller below organizer without revalidating', async () => {
@@ -962,7 +963,7 @@ Expected: all pass.
 
 **Mutation check:** in `src/lib/actions/events.ts` `updateEventStatus`, temporarily change `if (!auth.success)` to `if (false)`. Re-run: the refusal test must FAIL. Restore, and confirm `git diff src/lib/actions/events.ts` is empty.
 
-- [ ] **Step 7: ROADMAP** — in `docs/ROADMAP.md` Tier 3, replace the whole "Leftovers absorbed from cleanup-roadmap.md" bullet with:
+- [x] **Step 7: ROADMAP** — in `docs/ROADMAP.md` Tier 3, replace the whole "Leftovers absorbed from cleanup-roadmap.md" bullet with:
 
 ```markdown
 - ~~Leftovers absorbed from cleanup-roadmap.md~~ ✅ **Closed by BL-22** — the `as Role` casts in
@@ -971,7 +972,7 @@ Expected: all pass.
   with the legacy form (spec 011).
 ```
 
-- [ ] **Step 8: Gate, commit, PR**
+- [x] **Step 8: Gate, commit, PR**
 
 ```bash
 npm run format:check && npm run lint && npm test && npm run build

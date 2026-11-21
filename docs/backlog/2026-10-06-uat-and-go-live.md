@@ -246,7 +246,7 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
 - [x] **BL-21** (PR #84 merged 2026-11-21) — `requireRole('organizer')` on the five organizer reads in
       `applications.ts` and `events.ts`.
       Owner: agent · Shape: PR · Blocked by: nothing.
-- [ ] **BL-22** — Action tests for `updateUserRole` and `updateEventStatus`; the three
+- [x] **BL-22** (PR #85 merged 2026-11-21) — Action tests for `updateUserRole` and `updateEventStatus`; the three
       `as Role` casts removed.
       Owner: agent · Shape: PR · Blocked by: BL-21 (both edit ROADMAP Tier 3).
 - [ ] **BL-23** — A refused submission stays on screen as an inline alert (F-005).
