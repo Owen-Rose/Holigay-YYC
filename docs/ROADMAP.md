@@ -147,15 +147,15 @@ rewrite session.
 
 - **Shared `ActionResponse<T>`** in `src/lib/actions/types.ts`; migrate files as you
   touch them. Kills the three-coexisting-shapes drift and per-file response types.
-- **`requireVendor()` helper** next to `requireRole()` — replaces the ownership-scoping
-  block copy-pasted 5× in `vendor-dashboard.ts`/`vendors.ts`.
+- ~~**`requireVendor()` helper**~~ next to `requireRole()` — replaces the ownership-scoping
+  block copy-pasted 5× in `vendor-dashboard.ts`/`vendors.ts`. ✅ **Met by spec 011** — `resolveVendorId()` in `src/lib/vendor/` is the one vendor lookup every loader uses.
 - **`users_with_roles` is readable by any authenticated JWT** (migration `013` closed the
   `anon` read — spec 009 research R20). Consider `security_invoker` plus an admin-only
   policy, or an admin-only RPC, so a signed-in vendor cannot list every account's email
   and role.
-- **Read-auth consistency**: add `requireRole('organizer')` to organizer-facing reads in
+- ~~**Read-auth consistency**~~: add `requireRole('organizer')` to organizer-facing reads in
   `applications.ts`/`events.ts` (as `templates.ts` already does). RLS remains the
-  authority; this restores the two-layer convention and makes intent legible.
+  authority; this restores the two-layer convention and makes intent legible. ✅ **Shipped as BL-21** — the five readers call `requireRole('organizer')`; `src/test/organizer-read-auth.test.ts`.
 - ~~**Env validation module**~~ ✅ **Shipped by spec 007 T004** — `src/lib/env-public.ts`
   and `src/lib/env.ts`, Zod-parsed at import, replaced every `process.env.X!` read.
   Production strictness keys on `VERCEL_ENV`; contract in

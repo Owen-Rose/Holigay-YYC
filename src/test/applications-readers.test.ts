@@ -4,13 +4,15 @@
 // refuses to load where `window` exists.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getApplicationById } from '@/lib/actions/applications';
+import { requireRole } from '@/lib/auth/roles';
 
 // spec 011 contracts/server-actions-and-ui.md §6 and §14 (constitution II for
-// the modified getApplicationById). The reader has no requireRole() call — RLS
-// and the /dashboard middleware scope it — so its failure case is the one it
-// has: the row is not visible (PGRST116) or the read errors.
+// the modified getApplicationById). The role gate is covered by
+// organizer-read-auth.test.ts (BL-21); here the caller is always an organizer
+// and the failure cases are the row not being visible (PGRST116) or a read error.
 
 vi.mock('@/lib/email/client', () => ({ sendEmail: vi.fn() }));
+vi.mock('@/lib/auth/roles', () => ({ requireRole: vi.fn() }));
 
 type Result = { data: unknown; error: unknown };
 
@@ -78,6 +80,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   for (const key of Object.keys(selects)) delete selects[key];
   applicationResult = { data: APPLICATION_ROW, error: null };
+  vi.mocked(requireRole).mockResolvedValue({
+    success: true,
+    error: null,
+    data: { role: 'organizer', userId: 'user-1' },
+  });
 });
 
 describe('getApplicationById', () => {
