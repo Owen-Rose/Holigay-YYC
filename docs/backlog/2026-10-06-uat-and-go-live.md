@@ -233,6 +233,35 @@ as it merges.
 
 ---
 
+## Phase 6 — Post-launch hardening (November 2026)
+
+Source: the 2026-11-21 status review. Plan, triage and per-task steps:
+`docs/superpowers/plans/2026-11-21-post-launch-hardening.md`. One task per PR, on Owen's go.
+
+- [ ] **BL-19** — This record: the plan file and this phase.
+      Owner: agent · Shape: docs PR · Blocked by: nothing.
+- [ ] **BL-20** — Active events with a blank deadline are listed on `/` and `/apply`; the
+      deadline is compared as an Edmonton calendar day.
+      Owner: agent · Shape: PR · Blocked by: Owen's choice (list them, or require a deadline).
+- [ ] **BL-21** — `requireRole('organizer')` on the five organizer reads in
+      `applications.ts` and `events.ts`.
+      Owner: agent · Shape: PR · Blocked by: nothing.
+- [ ] **BL-22** — Action tests for `updateUserRole` and `updateEventStatus`; the three
+      `as Role` casts removed.
+      Owner: agent · Shape: PR · Blocked by: BL-21 (both edit ROADMAP Tier 3).
+- [ ] **BL-23** — A refused submission stays on screen as an inline alert (F-005).
+      Owner: agent · Shape: PR · Blocked by: nothing.
+- [ ] **BL-24** — Promotion `dev` → `main` after BL-20–BL-23; event-week smoke runbook.
+      Owner: joint · Shape: promotion · Blocked by: BL-20–BL-23.
+- [ ] **Spec 012** — Vendor data isolation: attachment read/delete rules, the
+      `users_with_roles` read, organizer notes, and a cross-vendor isolation suite. Migration `016`.
+      Owner: agent; Owen for dev/prod · Shape: Speckit spec · Blocked by: nothing.
+- [ ] **BL-25** `[optional]` — Mobile pass at 375 px (Epic 6.10).
+- [ ] **BL-26** `[optional]` — File previews on the apply form (Epic 6.9).
+- [ ] **BL-27** `[optional]` — Questionnaire answers in the CSV export (F-001).
+
+---
+
 ## Deferred — listed, not prioritized
 
 Not needed for UAT or go-live on the current stack.
@@ -250,16 +279,16 @@ Not needed for UAT or go-live on the current stack.
   `getActiveEvents` in `src/lib/actions/applications.ts` requires `application_deadline` to be
   in the future, so an active event saved with the optional deadline blank is invisible to
   vendors and `/apply?event_id=` says "Event not found". Decide between listing deadline-less
-  events and making the deadline required on the event form.
+  events and making the deadline required on the event form. → **BL-20**.
 - **UAT-10** — `attachments_authenticated_select` (migration 011) lets any signed-in
   user read or sign any object in the bucket. Scoping reads to organizers plus the
-  owning vendor is an RLS change, so it needs a spec (ROADMAP Tier 3 candidate).
+  owning vendor is an RLS change, so it needs a spec (ROADMAP Tier 3 candidate). → **spec 012**.
 - **ROADMAP Tier 3 leftovers:** shared `ActionResponse<T>`; `requireVendor()` helper;
   `requireRole('organizer')` on organizer-facing reads in `applications.ts`/`events.ts`;
   split `applications.ts`; atomic `updateTemplate`; cross-vendor isolation security
   suite; tests for `admin.ts` role changes and `updateEventStatus`; the `as Role` cast
   in `admin.ts`. (`requireVendor()` is partly met by spec 011's `resolveVendorId()`; the
-  legacy-submit attachment orphaning went with the legacy form.)
+  legacy-submit attachment orphaning went with the legacy form.) Read-auth, the tests and the cast are BL-21/BL-22; cross-vendor isolation is spec 012; the rest is parked with reasons in the 2026-11-21 plan.
 - **ROADMAP Tier 4:** ~~retire the legacy form~~ (spec 011, 2026-11-03); role in JWT claims; email via `after()`;
   structured logging; Epic 6.9 file previews; Epic 6.10 mobile polish (375 px pass,
   44 px touch targets); shared icon module.
