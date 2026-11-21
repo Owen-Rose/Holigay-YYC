@@ -48,7 +48,7 @@ export async function getCurrentUserRole(): Promise<RoleResponse> {
     };
   }
 
-  const role = (roleData?.role as Role) || 'vendor';
+  const role: Role = roleData?.role ?? 'vendor';
 
   return {
     success: true,

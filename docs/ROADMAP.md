@@ -174,9 +174,10 @@ rewrite session.
   PostgREST calls (`templates.ts`); the questionnaire save shows the shape of the fix (a
   small `SECURITY DEFINER` RPC). Low stakes — templates are organizer-only and cheap to
   recreate — so fold it into the next PR that touches templates.
-- Leftovers absorbed from cleanup-roadmap.md: `as Role` cast in `admin.ts:103`;
-  ~~attachment orphaning on failed legacy submits~~ (gone with the legacy form, spec 011);
-  tests for `admin.ts` role changes and `updateEventStatus`.
+- ~~Leftovers absorbed from cleanup-roadmap.md~~ ✅ **Closed by BL-22** — the `as Role` casts in
+  `admin.ts`, `auth.ts` and `roles.ts` are gone; `updateUserRole` and `updateEventStatus` have
+  action tests (`admin-actions.test.ts`, `lock-on-publish.test.ts`); attachment orphaning went
+  with the legacy form (spec 011).
 
 ---
 
