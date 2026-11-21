@@ -275,11 +275,11 @@ Not needed for UAT or go-live on the current stack.
   CRM sync (easy to call, but a second copy of vendor data outside Supabase, and anything
   beyond transactional mail needs consent under Canada's anti-spam law). Scope the first two
   tiers as a spec when asked.
-- **Deadline-less events never reach `/apply`** (observed 2026-10-31 while checking UAT2-3):
+- ~~**Deadline-less events never reach `/apply`** (observed 2026-10-31 while checking UAT2-3):
   `getActiveEvents` in `src/lib/actions/applications.ts` requires `application_deadline` to be
   in the future, so an active event saved with the optional deadline blank is invisible to
   vendors and `/apply?event_id=` says "Event not found". Decide between listing deadline-less
-  events and making the deadline required on the event form. → **BL-20**.
+  events and making the deadline required on the event form. → **BL-20**.~~ Fixed by BL-20.
 - **UAT-10** — `attachments_authenticated_select` (migration 011) lets any signed-in
   user read or sign any object in the bucket. Scoping reads to organizers plus the
   owning vendor is an RLS change, so it needs a spec (ROADMAP Tier 3 candidate). → **spec 012**.

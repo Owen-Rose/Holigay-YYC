@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { DATE_LONG, formatDateOnly } from '@/lib/format-date';
+import { DATE_LONG, formatDateOnly, todayDateOnly } from '@/lib/format-date';
 import type { Json } from '@/types/database';
 import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/application-status';
 import { sendEmail } from '@/lib/email/client';
@@ -75,17 +75,21 @@ export type GetApplicationsResponse = {
 // =============================================================================
 
 /**
- * Fetches events visible to the public: status='active' and deadline not yet passed.
+ * Fetches events visible to the public: status='active' and still open.
+ * An event is open when it has no application deadline, or its deadline is
+ * today or later. `application_deadline` is a DATE, so it is compared with
+ * today's Edmonton calendar day rather than a UTC instant (BL-20).
  * Draft and closed events are excluded.
  */
 export async function getActiveEvents() {
   const supabase = await createClient();
+  const today = todayDateOnly();
 
   const { data: events, error } = await supabase
     .from('events')
     .select('id, name, event_date, location, description, application_deadline')
     .eq('status', 'active')
-    .gte('application_deadline', new Date().toISOString())
+    .or(`application_deadline.is.null,application_deadline.gte.${today}`)
     .order('event_date', { ascending: true });
 
   if (error) {
