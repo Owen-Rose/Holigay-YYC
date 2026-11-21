@@ -129,6 +129,7 @@ describe('updateUserRole', () => {
     mockUpdate.mockClear();
     mockUpdateEq.mockClear();
     mockUpdateError.value = null;
+    vi.mocked(requireRole).mockClear();
     vi.mocked(requireRole).mockResolvedValue({
       success: true,
       error: null,
@@ -200,11 +201,14 @@ describe('updateUserRole', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockUpdateError.value = { message: 'boom' };
 
-    // Act
-    const result = await updateUserRole(OTHER_ID, 'organizer');
+    try {
+      // Act
+      const result = await updateUserRole(OTHER_ID, 'organizer');
 
-    // Assert
-    expect(result).toEqual({ success: false, error: 'Failed to update user role' });
-    consoleError.mockRestore();
+      // Assert
+      expect(result).toEqual({ success: false, error: 'Failed to update user role' });
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 });
