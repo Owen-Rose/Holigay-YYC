@@ -383,3 +383,20 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
   objects. **Gap in 3.1:** it reads the object path from `attachments.file_path`, but the dynamic form
   writes no `attachments` row — the path is in the file answer (`application_answers.value->>'path'`),
   so 3.1 as written returns a null path and the object would be missed.
+- **2026-11-22, production (spec 012 T012).** Migration `016` reached prod first (012 quickstart row
+  P1), then `main` fast-forwarded `6c6a9cc..4027ce7` (Vercel Production deployment `7986069147`
+  success). `npm run smoke` 5/5 before the push, after the deploy and after cleanup
+  (`questionnaire-invariant` vacuous each time; `submit-rpc-event-gate` still `P0002`, ahead of
+  `016`'s deadline and file-claim gates). Click-through in section 2.4a's signed-in shape with a
+  throwaway `+012-prod` vendor invited from the Team page: draft event with the default questions plus
+  one optional `file_upload`, published; signed-in apply with a 605-byte PDF; **the vendor opened their
+  own file** from `/vendor-dashboard/applications/[id]` (signed URL, new tab), and the organizer opened
+  it from the review page; **a note** saved without a reload, still there after one, and carried in the
+  Approved mail's "Note from the Organizer" block. Both mails from `noreply@holigayeventsyyc.ca`. Timer
+  5 min 41 s. The invite link's session was used as is: no password is typed on prod. Cleanup: object
+  path read from `application_answers.value->>'path'` (section 3.1's gap, above), object through the
+  dashboard, rows in one Management API transaction (3 answers, 0 attachments, 1 `application_notes`,
+  1 application, 1 vendor, 1 event, the throwaway account); prod back to 0 events / 0 vendors / 0 real
+  bucket objects, admin + organizer only. Since `016`, 3.3 should also delete `application_notes`
+  before the application (it cascades, but the explicit step gives the count). Record: 012 quickstart
+  row P2.
