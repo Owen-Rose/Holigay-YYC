@@ -179,7 +179,8 @@ describe('listTemplates', () => {
     expect(result.data![0].questionCount).toBe(1);
   });
 
-  it('leaves createdByEmail null and still succeeds when the creator read fails', async () => {
+  it('leaves createdByEmail null, logs, and still succeeds when the creator read fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     ok([{ ...TEMPLATE, template_questions: [] }]);
     enqueue(null, { code: '42501', message: 'Organizer role required' });
 
@@ -189,6 +190,11 @@ describe('listTemplates', () => {
     expect(result.success).toBe(true);
     expect(result.data![0].createdBy).toBe(USER_ID);
     expect(result.data![0].createdByEmail).toBeNull();
+    expect(consoleError).toHaveBeenCalledWith(
+      'Error loading template creator emails:',
+      expect.objectContaining({ code: '42501' })
+    );
+    consoleError.mockRestore();
   });
 
   it('returns null createdByEmail and skips user query for orphaned templates', async () => {

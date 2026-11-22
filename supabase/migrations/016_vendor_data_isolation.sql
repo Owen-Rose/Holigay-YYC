@@ -22,8 +22,10 @@
 --   §5 template_creator_emails(): organizer/admin-only creator id + address
 --      for the template list (FR-010).
 --   §6 replaces submit_public_application(jsonb) from 015 in place: same
---      signature, return type and grants, plus a deadline gate (P0001) and a
---      file-claim gate (P0005) (FR-002, FR-018 to FR-020).
+--      signature, return type and grants, plus a deadline gate (P0001), a
+--      file-claim gate (P0005) behind one transaction lock, and a refusal of more
+--      file answers than the form has file questions (P0004) (FR-002, FR-018 to
+--      FR-020).
 --
 -- Append-only: no earlier migration is edited. Contracts:
 -- contracts/migration-016.md, contracts/submit-public-application-v3.md.
@@ -70,19 +72,26 @@ CREATE POLICY "organizer_delete_application_notes"
   ON public.application_notes FOR DELETE TO authenticated
   USING (public.get_user_role() IN ('organizer', 'admin'));
 
--- Carry every existing note over (FR-013). The note keeps the application's timestamp.
-INSERT INTO public.application_notes (application_id, notes, updated_at)
-SELECT a.id, a.organizer_notes, a.updated_at
-FROM public.applications a
-WHERE a.organizer_notes IS NOT NULL
-  AND a.organizer_notes <> '';
-
--- None lost: abort the whole migration if the copy is not exact.
+-- Carry every note over, empty the old column and lock it, as one statement. A DO block is
+-- one transaction however the file is applied (the Supabase CLI sends a migration statement
+-- by statement), so the table lock holds from the copy to the CHECK: a note saved by the
+-- old code in between cannot be lost (review of #89).
 DO $$
 DECLARE
   v_source bigint;
   v_copied bigint;
 BEGIN
+  -- Hold off every concurrent write to applications until this commits (reads still run).
+  LOCK TABLE public.applications IN SHARE ROW EXCLUSIVE MODE;
+
+  -- Carry every existing note over (FR-013). The note keeps the application's timestamp.
+  INSERT INTO public.application_notes (application_id, notes, updated_at)
+  SELECT a.id, a.organizer_notes, a.updated_at
+  FROM public.applications a
+  WHERE a.organizer_notes IS NOT NULL
+    AND a.organizer_notes <> '';
+
+  -- None lost: abort the whole migration if the copy is not exact.
   SELECT count(*) INTO v_source
   FROM public.applications
   WHERE organizer_notes IS NOT NULL AND organizer_notes <> '';
@@ -95,15 +104,15 @@ BEGIN
   IF v_source <> v_copied THEN
     RAISE EXCEPTION '016: % notes to carry over, % copied', v_source, v_copied;
   END IF;
+
+  -- Empty the old column without moving anyone's "Last Updated".
+  ALTER TABLE public.applications DISABLE TRIGGER update_applications_updated_at;
+  UPDATE public.applications SET organizer_notes = NULL WHERE organizer_notes IS NOT NULL;
+  ALTER TABLE public.applications ENABLE TRIGGER update_applications_updated_at;
+
+  ALTER TABLE public.applications
+    ADD CONSTRAINT applications_organizer_notes_retired CHECK (organizer_notes IS NULL);
 END $$;
-
--- Empty the old column without moving anyone's "Last Updated".
-ALTER TABLE public.applications DISABLE TRIGGER update_applications_updated_at;
-UPDATE public.applications SET organizer_notes = NULL WHERE organizer_notes IS NOT NULL;
-ALTER TABLE public.applications ENABLE TRIGGER update_applications_updated_at;
-
-ALTER TABLE public.applications
-  ADD CONSTRAINT applications_organizer_notes_retired CHECK (organizer_notes IS NULL);
 
 COMMENT ON COLUMN public.applications.organizer_notes IS
   'Retired by spec 012 (migration 016): notes live in application_notes. Always NULL (CHECK).';
@@ -279,7 +288,6 @@ DECLARE
   v_vendor_created    boolean;
   v_application_id    uuid;
   v_file_paths        text[];
-  v_path              text;
 BEGIN
   -- 1. Event gate (006 FR-007) + deadline day (012 FR-018)
   SELECT e.name, e.event_date, e.status, e.application_deadline
@@ -300,7 +308,7 @@ BEGIN
     RAISE EXCEPTION 'Event is not accepting applications' USING ERRCODE = 'P0001';
   END IF;
 
-  -- 2. Answer-ownership gate (006 R11): unchanged
+  -- 2. Answer-ownership gate (006 R11), plus the file-answer cap (012)
   IF jsonb_array_length(v_answers) > 0 THEN
     SELECT eq.id INTO v_questionnaire_id
     FROM event_questionnaires eq
@@ -321,6 +329,22 @@ BEGIN
       )
     ) THEN
       RAISE EXCEPTION 'Answer references a question outside this event''s questionnaire'
+        USING ERRCODE = 'P0004';
+    END IF;
+
+    -- No more file answers than the form has file questions (012). Checked here, before any
+    -- write or lock, so a payload cannot carry an unbounded number of file paths.
+    IF (
+      SELECT count(*)
+      FROM jsonb_array_elements(v_answers) AS a
+      WHERE a.value->'value'->>'kind' = 'file'
+    ) > (
+      SELECT count(*)
+      FROM event_questions q
+      WHERE q.event_questionnaire_id = v_questionnaire_id
+        AND q.type = 'file_upload'
+    ) THEN
+      RAISE EXCEPTION 'More file answers than the form has file questions'
         USING ERRCODE = 'P0004';
     END IF;
   END IF;
@@ -392,7 +416,7 @@ BEGIN
   -- 7. File-claim gate (012 FR-002): a file another application refers to cannot be named.
   --    After the duplicate gate, so a resubmission still answers P0003. The new application
   --    has no answers yet, so any reference found is another application's.
-  SELECT array_agg(DISTINCT f.path ORDER BY f.path)
+  SELECT array_agg(DISTINCT f.path)
     INTO v_file_paths
   FROM (
     SELECT a.value->'value'->>'path' AS path
@@ -403,10 +427,10 @@ BEGIN
     AND f.path <> '';
 
   IF v_file_paths IS NOT NULL THEN
-    -- Serialize concurrent claims of the same file; sorted, so two submissions cannot deadlock.
-    FOREACH v_path IN ARRAY v_file_paths LOOP
-      PERFORM pg_advisory_xact_lock(hashtextextended(v_path, 0));
-    END LOOP;
+    -- Serialize every file claim behind one transaction lock: a second submission naming the
+    -- same file waits for the first to commit, then sees its row. One lock per call whatever
+    -- the payload, so no call can exhaust the shared lock table.
+    PERFORM pg_advisory_xact_lock(hashtextextended('submit_public_application:file_claim', 0));
 
     IF EXISTS (
          SELECT 1 FROM application_answers aa
@@ -448,5 +472,5 @@ COMMENT ON FUNCTION public.submit_public_application(jsonb) IS
   'has ended in Edmonton is refused like a non-active one, and a file another application '
   'already refers to cannot be named. Anonymously callable by design; trusts nothing from its '
   'caller. Errors: P0002 event not found, P0001 event not active or past its deadline, '
-  'P0003 duplicate, P0004 foreign answer, P0005 file already attached elsewhere, '
+  'P0003 duplicate, P0004 foreign answer or too many files, P0005 file already attached elsewhere, '
   '22023 bad email or product links.';

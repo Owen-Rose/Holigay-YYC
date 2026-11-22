@@ -6,7 +6,8 @@
 
 Same name, argument, return type, `SECURITY DEFINER`, `search_path = public` and grants
 (`anon`, `authenticated`). The payload is unchanged: no caller sends anything new. Two gates are
-added; every other check, its order and its error are as in v2 (FR-020).
+added, and the answer gate also caps the number of file answers (review of #89, `research.md`
+"Review of the migration PR"); every other check, its order and its error are as in v2 (FR-020).
 
 ## Order of checks
 
@@ -15,7 +16,7 @@ added; every other check, its order and its error are as in v2 (FR-020).
 | 1 | Event exists | `P0002` Event not found | |
 | 1a | Event is `active` | `P0001` Event is not accepting applications | |
 | **1b** | **Deadline day has not ended in Edmonton** | **`P0001` Event is not accepting applications** | **new** |
-| 2 | Every answer's question belongs to the event's questionnaire | `P0004` | |
+| 2 | Every answer's question belongs to the event's questionnaire; **no more file answers than the form has file questions** | `P0004` | **file cap new** |
 | 3 | Contact identity (a signed-in caller's account address wins) | `22023` | |
 | 4 | Product links | `22023` | |
 | 5 | Vendor upsert by email | | |
@@ -62,13 +63,38 @@ without the function knowing about them. `mapSubmissionError` already maps `P000
 event is not currently accepting applications"; the form shows it inline and keeps what the
 vendor typed (BL-23). A caller cannot tell a late submission from a closed event.
 
+## 2 — the file-answer cap (review of #89)
+
+```sql
+IF (
+  SELECT count(*)
+  FROM jsonb_array_elements(v_answers) AS a
+  WHERE a.value->'value'->>'kind' = 'file'
+) > (
+  SELECT count(*)
+  FROM event_questions q
+  WHERE q.event_questionnaire_id = v_questionnaire_id
+    AND q.type = 'file_upload'
+) THEN
+  RAISE EXCEPTION 'More file answers than the form has file questions'
+    USING ERRCODE = 'P0004';
+END IF;
+```
+
+Runs inside the answer gate, after the foreign-question check and before any write or lock, so
+a payload names at most as many files as the form has file questions. The app sends at most
+one answer per question, so it never trips this; `mapSubmissionError` maps `P0004` to its
+existing invalid-answers message. A question answered twice with non-file values still fails
+late at step 9 (`23505`, the `UNIQUE (application_id, event_question_id)` from 009), rolled
+back whole, as `submission-rpc.test.ts` S8 expects.
+
 ## 7 — the file-claim gate (FR-002)
 
 Runs after the application insert has succeeded, so the new application exists and has no
 answers yet: any reference found belongs to another application.
 
 ```sql
-SELECT array_agg(DISTINCT f.path ORDER BY f.path)
+SELECT array_agg(DISTINCT f.path)
   INTO v_file_paths
 FROM (
   SELECT a.value->'value'->>'path' AS path
@@ -79,10 +105,10 @@ WHERE f.path IS NOT NULL
   AND f.path <> '';
 
 IF v_file_paths IS NOT NULL THEN
-  -- Serialize concurrent claims of the same file; sorted, so two submissions cannot deadlock.
-  FOREACH v_path IN ARRAY v_file_paths LOOP
-    PERFORM pg_advisory_xact_lock(hashtextextended(v_path, 0));
-  END LOOP;
+  -- Serialize every file claim behind one transaction lock: a second submission naming the
+  -- same file waits for the first to commit, then sees its row. One lock per call whatever
+  -- the payload, so no call can exhaust the shared lock table.
+  PERFORM pg_advisory_xact_lock(hashtextextended('submit_public_application:file_claim', 0));
 
   IF EXISTS (
        SELECT 1 FROM application_answers aa
@@ -99,15 +125,23 @@ IF v_file_paths IS NOT NULL THEN
 END IF;
 ```
 
-New locals: `v_event_deadline date`, `v_file_paths text[]`, `v_path text`.
+New locals: `v_event_deadline date`, `v_file_paths text[]`.
+
+**One lock, not one per path** (review of #89). The first draft took one advisory lock per
+distinct path, sorted. Nothing bounded the number of paths, so one anonymous call naming
+thousands of them exhausted Postgres's shared lock table, failing writes in every other
+session until it ended. One fixed key serializes every file-bearing submission for the rest of
+its transaction instead. At this app's volume the wait is nothing, and the per-call lock count
+is one whatever the payload. The step-2 file-answer cap bounds the payload as well.
 
 | Situation | Result |
 |---|---|
 | File named by nobody | accepted; the file is now this application's |
 | File named by another application's file answer | `P0005`, nothing stored |
 | File named by another application's `attachments` row | `P0005`, nothing stored |
-| Same file named twice in this one payload | accepted (one application) |
-| Two submissions name the same new file at the same moment | the second waits on the lock, then sees the first's row: `P0005` |
+| Same file named by two different questions in this one payload | accepted (one application) |
+| More file answers than the form has file questions | `P0004` at step 2, nothing stored, no lock taken |
+| Two submissions name a file at the same moment | the second waits on the lock; if it names the first's file it then sees the first's row: `P0005` |
 | Vendor resubmits to the same event with the same files | `P0003` at step 6, as today; the claim gate is never reached |
 | A refused submission (any code) named the file, then the vendor retries | accepted; the refused one left no reference |
 | Payload has no file answers | gate skipped |
@@ -125,7 +159,7 @@ COMMENT ON FUNCTION public.submit_public_application(jsonb) IS
   'has ended in Edmonton is refused like a non-active one, and a file another application '
   'already refers to cannot be named. Anonymously callable by design; trusts nothing from its '
   'caller. Errors: P0002 event not found, P0001 event not active or past its deadline, '
-  'P0003 duplicate, P0004 foreign answer, P0005 file already attached elsewhere, '
+  'P0003 duplicate, P0004 foreign answer or too many files, P0005 file already attached elsewhere, '
   '22023 bad email or product links.';
 ```
 
@@ -137,11 +171,13 @@ COMMENT ON FUNCTION public.submit_public_application(jsonb) IS
 - The apply page lists only events the gate would accept (`getActiveEvents`), so the gate is
   reached only from a form opened before the deadline or a kept link (story 4 scenario 4).
 
-## Full body (the text that passed the 2026-11-22 dry run)
+## Full body
 
 The migration file carries this function verbatim, followed by the comment above. It is the
-015 body with the two gates, three new locals and renumbered step comments; nothing else
-differs.
+015 body with the two gates, the file-answer cap, two new locals and renumbered step
+comments; nothing else differs. The 2026-11-22 dry run passed the first draft (one lock per
+path, no file-answer cap). This text replaced it after the review of #89 and is proven by the
+security suite (I17–I20, I35–I38) rather than by the dry run.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.submit_public_application(p_submission jsonb)
@@ -182,7 +218,6 @@ DECLARE
   v_vendor_created    boolean;
   v_application_id    uuid;
   v_file_paths        text[];
-  v_path              text;
 BEGIN
   -- 1. Event gate (006 FR-007) + deadline day (012 FR-018)
   SELECT e.name, e.event_date, e.status, e.application_deadline
@@ -203,7 +238,7 @@ BEGIN
     RAISE EXCEPTION 'Event is not accepting applications' USING ERRCODE = 'P0001';
   END IF;
 
-  -- 2. Answer-ownership gate (006 R11): unchanged
+  -- 2. Answer-ownership gate (006 R11), plus the file-answer cap (012)
   IF jsonb_array_length(v_answers) > 0 THEN
     SELECT eq.id INTO v_questionnaire_id
     FROM event_questionnaires eq
@@ -224,6 +259,22 @@ BEGIN
       )
     ) THEN
       RAISE EXCEPTION 'Answer references a question outside this event''s questionnaire'
+        USING ERRCODE = 'P0004';
+    END IF;
+
+    -- No more file answers than the form has file questions (012). Checked here, before any
+    -- write or lock, so a payload cannot carry an unbounded number of file paths.
+    IF (
+      SELECT count(*)
+      FROM jsonb_array_elements(v_answers) AS a
+      WHERE a.value->'value'->>'kind' = 'file'
+    ) > (
+      SELECT count(*)
+      FROM event_questions q
+      WHERE q.event_questionnaire_id = v_questionnaire_id
+        AND q.type = 'file_upload'
+    ) THEN
+      RAISE EXCEPTION 'More file answers than the form has file questions'
         USING ERRCODE = 'P0004';
     END IF;
   END IF;
@@ -295,7 +346,7 @@ BEGIN
   -- 7. File-claim gate (012 FR-002): a file another application refers to cannot be named.
   --    After the duplicate gate, so a resubmission still answers P0003. The new application
   --    has no answers yet, so any reference found is another application's.
-  SELECT array_agg(DISTINCT f.path ORDER BY f.path)
+  SELECT array_agg(DISTINCT f.path)
     INTO v_file_paths
   FROM (
     SELECT a.value->'value'->>'path' AS path
@@ -306,10 +357,10 @@ BEGIN
     AND f.path <> '';
 
   IF v_file_paths IS NOT NULL THEN
-    -- Serialize concurrent claims of the same file; sorted, so two submissions cannot deadlock.
-    FOREACH v_path IN ARRAY v_file_paths LOOP
-      PERFORM pg_advisory_xact_lock(hashtextextended(v_path, 0));
-    END LOOP;
+    -- Serialize every file claim behind one transaction lock: a second submission naming the
+    -- same file waits for the first to commit, then sees its row. One lock per call whatever
+    -- the payload, so no call can exhaust the shared lock table.
+    PERFORM pg_advisory_xact_lock(hashtextextended('submit_public_application:file_claim', 0));
 
     IF EXISTS (
          SELECT 1 FROM application_answers aa

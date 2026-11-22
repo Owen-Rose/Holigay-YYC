@@ -85,6 +85,7 @@ throughout, there to prove existing isolation and to catch a later loosening.
 | I20 | **A** uploads `a-new`, submits to the draft event naming it, then submits to F naming it; downloads it | `P0001`; then success; the body | holds | Edge case "A refused or failed submission", story 1 sc. 12 |
 | I21 | **A** inserts directly: an `attachments` row on A's own application with `file_path` = `b-answer`; an `application_answers` row on **B's** application; an `applications` row for A's vendor on the past-deadline event | `error.code === '42501'` each time; service finds none of the three rows; A still cannot download `b-answer` | red | FR-030, FR-019 |
 | I22 | **ORG** inserts an `attachments` row on B's application | success (service removes it afterwards) | holds | FR-017, FR-030 |
+| I38 | **anon** (a fresh address) submits to F with 300 file answers, all on F's one file question, each naming a different path | `error.code === 'P0004'`; no vendor row exists for the fresh address | red on the first draft of 016 (`23505` after one lock per path); added in the migration PR after its review | review of #89 (lock-table exhaustion; the file-answer cap), FR-002 |
 
 ### Organizer notes (FR-012, FR-013, FR-015)
 

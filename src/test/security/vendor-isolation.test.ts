@@ -1,5 +1,5 @@
 // =============================================================================
-// I1–I37 — cross-vendor isolation (spec 012, migration 016)
+// I1–I38 — cross-vendor isolation (spec 012, migration 016)
 //
 // A signed-in vendor reads only what is theirs: their own vendor record,
 // applications, answers and uploaded files. They cannot open, link to, delete
@@ -21,7 +21,8 @@
 // records the failing assertion of each). The migration PR (T003) turned each
 // into a plain `it(...)` with its body unchanged (row L2). The 16 cases that
 // already held were plain `it(...)` throughout, there to catch a later
-// loosening.
+// loosening. I38 came from the review of the migration PR (#89): seen failing
+// on the first draft of 016 (23505 after one lock per path), then passing.
 //
 // On 015 several red cases really do what they attempt (remove a file, store a
 // submission, write a note or a role). Each puts back only what it changed, in
@@ -59,6 +60,7 @@ const BUCKET = 'attachments';
 const PERMISSION_DENIED = '42501';
 const CHECK_VIOLATION = '23514';
 const FILE_CLAIMED = 'P0005';
+const INVALID_ANSWERS = 'P0004';
 const NOT_ACCEPTING = { code: 'P0001', message: 'Event is not accepting applications' };
 const NOTE_A = 'NOTE-A';
 const NOTE_B = 'NOTE-B';
@@ -785,6 +787,28 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
       expect(data ?? []).toHaveLength(1);
     } finally {
       await service.from('attachments').delete().eq('file_path', path);
+    }
+  });
+
+  // Review of #89: one call naming thousands of file paths took one lock per
+  // path and could exhaust Postgres's shared lock table for every session. Now
+  // a payload may name no more files than the form has file questions (F has
+  // one), refused before any write or lock, and the claim takes one lock.
+  it('I38: a submission naming more files than the form has file questions is refused', async () => {
+    const fresh = freshEmail('i38');
+    const answers = Array.from({ length: 300 }, (_, i) =>
+      fileAnswer(eventFFileQuestionId, `i38-${i}`)
+    );
+    let created: string | undefined;
+    try {
+      const { data, error } = await submit(anon, payload(eventFId, fresh, answers));
+      created = data?.application_id;
+      expect(error?.code).toBe(INVALID_ANSWERS);
+
+      const { data: vendors } = await service.from('vendors').select('id').eq('email', fresh);
+      expect(vendors ?? []).toEqual([]);
+    } finally {
+      await deleteApplications([created]);
     }
   });
 

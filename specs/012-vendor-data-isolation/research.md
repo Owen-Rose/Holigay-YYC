@@ -368,6 +368,32 @@ storage-api (signed URLs, downloads, the Storage API's delete) or PostgREST (the
 error codes as the client sees them). A storage trigger refuses a direct SQL `DELETE` on
 `storage.objects` for every role, so the delete rule can only be observed through the API.
 
+## Review of the migration PR (#89, 2026-11-22)
+
+`/code-review high 89`, run in a fresh session, found one blocker, two older gaps and five
+minor items. Owen chose to fix the blocker and two minor items in the PR and to record the
+rest. The SQL changed after the dry run, so the contracts were updated to match the migration,
+and this text is proven by the security suite rather than by the dry run.
+
+- **Blocker: lock-table exhaustion (fixed).** The first draft of step 7 took one
+  `pg_advisory_xact_lock` per distinct file path, and nothing bounded how many paths a
+  submission could carry. The reviewer called the RPC signed out with 20,000 paths inside a
+  rolled-back transaction, and Postgres ran out of shared lock space. Until such a call ends,
+  every session's writes fail. Fix: one fixed-key lock per call, and the answer gate refuses
+  more file answers than the form has file questions (`P0004`), the reviewer's own suggestion,
+  so a payload holds at most as many paths as the form has file questions. A first fix refused
+  any question answered twice. That broke `submission-rpc.test.ts` S8, which proves a late
+  `23505` rolls back whole, and would have been a sixth edited existing case beyond FR-023's
+  five, so Owen chose the file cap. Case **I38** was seen failing on the first draft (`23505`
+  after 300 locks) and passes on the fix.
+- **A note saved by the old code during the apply could be lost (fixed).** The copy and the
+  clear were separate statements, and the Supabase CLI sends a migration statement by
+  statement, not as one transaction: a top-level `LOCK TABLE` there fails with `25P01`. §1's
+  lock, copy, check, clear and CHECK are now one `DO` block, which is atomic under the CLI and
+  inside the hosted single-transaction apply.
+- **`listTemplates` discarded the RPC error (fixed).** It is now logged.
+- The two older gaps are recorded below, and the three minor items accepted as they are.
+
 ## Rejected or deferred
 
 - **Stopping the status email from carrying notes**: an interface change this spec does not
@@ -397,3 +423,26 @@ error codes as the client sees them). A storage trigger refuses a direct SQL `DE
   `revalidatePath` (constitution IV). `/speckit-analyze` raised the same gap on
   `updateApplicationNotes`, which this spec rewrites and now fixes; the status action's write
   is not touched here, so it is recorded for ROADMAP rather than changed.
+
+Found by the review of #89 and left alone (Owen, 2026-11-22):
+
+- **Vendor details can be overwritten knowing only the email (since 011).**
+  `submit_public_application` upserts the vendor row by email. Signed out, anyone who knows a
+  vendor's address can replace its business name, description and links, and add a pending
+  application to that vendor's dashboard. This contradicts spec 012's aim, but fixing it widens
+  T003, so it is recorded in the hardening plan's "Noticed while planning" list.
+- **The file rule depends on email confirmation.** A vendor reads files through the account
+  tied to their record, and `handle_new_user` makes the tie by matching the address at
+  sign-up. Without confirmation, whoever signs up first with a vendor's address would get that
+  vendor's applications and now files. Checked 2026-11-22 through the Management API
+  (`GET /v1/projects/<ref>/config/auth`). On prod, `mailer_autoconfirm` is `false`
+  (confirmation required) and sign-up is open. On dev, `mailer_autoconfirm` is `false` and
+  sign-up is disabled. Keep confirmation on in both.
+- **Accepted gaps.**
+  - Saving a note still moves `applications.updated_at`, which the vendor sees as "Last
+    Updated". They learn *when* a note was saved, never its text; the contract keeps the bump
+    on purpose (`server-actions.md` §1 step 5).
+  - Organizers and admins can insert `application_answers` and `attachments` rows directly
+    and skip the claim gate. They are trusted, and the app never does this.
+  - A file uploaded before `016` that no application refers to can be claimed by anyone who
+    already knows its path.

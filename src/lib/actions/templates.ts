@@ -90,7 +90,10 @@ export async function listTemplates(): Promise<{
   // refused call leaves every creator null, which the list renders as "—".
   const emailMap = new Map<string, string>();
   if (creatorIds.length > 0) {
-    const { data: creators } = await supabase.rpc('template_creator_emails');
+    const { data: creators, error: creatorsError } = await supabase.rpc('template_creator_emails');
+    if (creatorsError) {
+      console.error('Error loading template creator emails:', creatorsError);
+    }
     (creators ?? []).forEach((c) => emailMap.set(c.creator_id, c.email));
   }
 

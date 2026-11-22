@@ -5,9 +5,11 @@
 **Reasoning**: `research.md` R1–R9, R12. **Function body detail**:
 `submit-public-application-v3.md`.
 
-One file, six sections, applied as one transaction. No earlier migration is edited. One new
-table (`application_notes`, approved in the spec's Clarifications); no other table gains or
-loses a column.
+One file, six sections. On a hosted project it is applied as one transaction (one Management
+API body, T004/T011). The Supabase CLI (`db reset`) sends it statement by statement instead,
+so the part that must be atomic, §1's copy-and-lock, is one `DO` block (review of #89). No
+earlier migration is edited. One new table (`application_notes`, approved in the spec's
+Clarifications); no other table gains or loses a column.
 
 | § | Does | Requirements |
 |---|---|---|
@@ -58,19 +60,26 @@ CREATE POLICY "organizer_delete_application_notes"
   ON public.application_notes FOR DELETE TO authenticated
   USING (public.get_user_role() IN ('organizer', 'admin'));
 
--- Carry every existing note over (FR-013). The note keeps the application's timestamp.
-INSERT INTO public.application_notes (application_id, notes, updated_at)
-SELECT a.id, a.organizer_notes, a.updated_at
-FROM public.applications a
-WHERE a.organizer_notes IS NOT NULL
-  AND a.organizer_notes <> '';
-
--- None lost: abort the whole migration if the copy is not exact.
+-- Carry every note over, empty the old column and lock it, as one statement. A DO block is
+-- one transaction however the file is applied (the Supabase CLI sends a migration statement
+-- by statement), so the table lock holds from the copy to the CHECK: a note saved by the
+-- old code in between cannot be lost (review of #89).
 DO $$
 DECLARE
   v_source bigint;
   v_copied bigint;
 BEGIN
+  -- Hold off every concurrent write to applications until this commits (reads still run).
+  LOCK TABLE public.applications IN SHARE ROW EXCLUSIVE MODE;
+
+  -- Carry every existing note over (FR-013). The note keeps the application's timestamp.
+  INSERT INTO public.application_notes (application_id, notes, updated_at)
+  SELECT a.id, a.organizer_notes, a.updated_at
+  FROM public.applications a
+  WHERE a.organizer_notes IS NOT NULL
+    AND a.organizer_notes <> '';
+
+  -- None lost: abort the whole migration if the copy is not exact.
   SELECT count(*) INTO v_source
   FROM public.applications
   WHERE organizer_notes IS NOT NULL AND organizer_notes <> '';
@@ -83,15 +92,15 @@ BEGIN
   IF v_source <> v_copied THEN
     RAISE EXCEPTION '016: % notes to carry over, % copied', v_source, v_copied;
   END IF;
+
+  -- Empty the old column without moving anyone's "Last Updated".
+  ALTER TABLE public.applications DISABLE TRIGGER update_applications_updated_at;
+  UPDATE public.applications SET organizer_notes = NULL WHERE organizer_notes IS NOT NULL;
+  ALTER TABLE public.applications ENABLE TRIGGER update_applications_updated_at;
+
+  ALTER TABLE public.applications
+    ADD CONSTRAINT applications_organizer_notes_retired CHECK (organizer_notes IS NULL);
 END $$;
-
--- Empty the old column without moving anyone's "Last Updated".
-ALTER TABLE public.applications DISABLE TRIGGER update_applications_updated_at;
-UPDATE public.applications SET organizer_notes = NULL WHERE organizer_notes IS NOT NULL;
-ALTER TABLE public.applications ENABLE TRIGGER update_applications_updated_at;
-
-ALTER TABLE public.applications
-  ADD CONSTRAINT applications_organizer_notes_retired CHECK (organizer_notes IS NULL);
 
 COMMENT ON COLUMN public.applications.organizer_notes IS
   'Retired by spec 012 (migration 016): notes live in application_notes. Always NULL (CHECK).';
@@ -102,6 +111,7 @@ COMMENT ON COLUMN public.applications.organizer_notes IS
 | `applications.organizer_notes` holds the note; a vendor may read their own row | column is NULL on every row and cannot be set; the note is a row of `application_notes` |
 | organizers write notes with `UPDATE applications` | organizers upsert or delete the `application_notes` row |
 | a vendor's `UPDATE` of the column: zero rows (policy) | unchanged, and the CHECK refuses any role that tries, service role included |
+| (old code, during the apply) an organizer saves a note between the copy and the clear | waits on the table lock, then fails the CHECK; nothing is lost (review of #89) |
 
 ## §2 Storage rules
 
@@ -266,7 +276,7 @@ Full text and behaviour: `submit-public-application-v3.md`.
 | `P0001` | submit RPC | event not active, **or its deadline day has ended in Edmonton** | widened |
 | `P0002` | submit RPC | event not found | |
 | `P0003` | submit RPC | duplicate application | |
-| `P0004` | submit RPC | answer for a question outside the event's questionnaire, or no questionnaire | |
+| `P0004` | submit RPC | answer for a question outside the event's questionnaire, or no questionnaire, **or more file answers than the form has file questions** | widened |
 | `P0005` | submit RPC | a named file is already referred to by another application | yes |
 | `22023` | submit RPC | bad email or product links | |
 | `42501` | `template_creator_emails()` | caller is not an organizer or admin | yes |
