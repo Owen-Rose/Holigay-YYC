@@ -1200,7 +1200,7 @@ Not an agent-alone task. With Owen present: follow `docs/runbooks/event-week-smo
 
 ### Steps
 
-- [ ] **B1 — Specify.** New session, on `dev`. Run `/speckit-specify` with this seed (lean on purpose: what and why, consumers, scope, constraints; the how belongs to the plan):
+- [x] **B1 — Specify.** New session, on `dev`. Run `/speckit-specify` with this seed (lean on purpose: what and why, consumers, scope, constraints; the how belongs to the plan):
 
 ```text
 Vendor data isolation. A signed-in vendor account can reach data that belongs to other vendors or to the organizers, and production has open vendor sign-up, so anyone can make such an account. Four gaps, found by reading the policies on 2026-11-21: any signed-in account can read or mint a link to any file in the attachments bucket; any signed-in account can delete any file in that bucket; any signed-in account can list every account's email address and role through the users_with_roles view; a vendor can read the organizers' private notes on their own applications by querying the API directly, because the notes are a column on a row the vendor may read. Nothing automated proves vendors are isolated from each other. Separately, the public submission function checks that an event is active but not that its application deadline has passed, so a form left open past the deadline still submits; it rides in the same migration.
@@ -1216,10 +1216,10 @@ Out of scope: how uploads are named or when they happen; the anonymous upload ru
 Constraints: one append-only migration numbered 016; no new packages; the service-role client stays contained to the existing admin module; row level security stays the authority and application code never stands in for it; every rule ships with a real-database test that fails before the migration and passes after; the existing security suites keep passing, changed only where a test asserted the old broad behaviour; constitution 1.1.3.
 ```
 
-- [ ] **B2 — Clarify.** `/speckit-clarify`. Give it the four design questions above. Owen answers; the answers land in the spec's Clarifications section.
-- [ ] **B3 — Plan.** `/speckit-plan`. The plan must (a) quote the five facts and the consumer list above and say how each consumer still works, (b) name the one migration `016_…sql`, (c) list the new security-suite cases by ID, each stated as "caller X does Y → sees Z", (d) include a rollback statement for the migration.
-- [ ] **B4 — Tasks.** `/speckit-tasks`. One task = one PR. The first implementation task writes the isolation suite cases **red** against the current schema; the migration task turns them green. A task that changes `src/types/database.ts` regenerates it with `npm run db:types:local`, never by hand.
-- [ ] **B5 — Analyze.** `/speckit-analyze`. Fix every finding in the spec documents before any code.
+- [x] **B2 — Clarify.** `/speckit-clarify`. Give it the four design questions above. Owen answers; the answers land in the spec's Clarifications section.
+- [x] **B3 — Plan.** `/speckit-plan`. The plan must (a) quote the five facts and the consumer list above and say how each consumer still works, (b) name the one migration `016_…sql`, (c) list the new security-suite cases by ID, each stated as "caller X does Y → sees Z", (d) include a rollback statement for the migration.
+- [x] **B4 — Tasks.** `/speckit-tasks`. One task = one PR. The first implementation task writes the isolation suite cases **red** against the current schema; the migration task turns them green. A task that changes `src/types/database.ts` regenerates it with `npm run db:types:local`, never by hand.
+- [x] **B5 — Analyze.** `/speckit-analyze`. Fix every finding in the spec documents before any code.
 - [ ] **B6 — Spec docs PR.** Open the spec, plan and tasks as one docs PR to `dev`; Owen reads and merges it. **No implementation starts before that merge and Owen's go** (standing rule).
 - [ ] **B7 — Implement task by task.** One session per task, on Opus, with the spec's own `tasks.md` as the instructions (`/speckit-implement` for the named task, or the Track A session prompt pointed at the spec task). Each PR: local stack up, `npm run test:security` green, then the usual gate.
 - [ ] **B8 — Review each PR.** `/security-review` and `/code-review high <PR>` in a fresh session. Ask the reviewer to verify claims by running the suite, not by reading the PR body.
