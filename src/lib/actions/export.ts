@@ -122,7 +122,7 @@ export async function exportApplicationsCSV(
       status,
       submitted_at,
       updated_at,
-      organizer_notes,
+      application_notes ( notes ),
       vendor:vendors (
         id,
         business_name,
@@ -228,7 +228,7 @@ export async function exportApplicationsCSV(
       app.status,
       formatDateTime(app.submitted_at, DATE_SHORT),
       event?.name || '',
-      app.organizer_notes,
+      app.application_notes?.notes ?? null,
       vendor.description,
     ]);
 

@@ -151,11 +151,11 @@ describe.runIf(stackUp)('anon writes', () => {
 
     const { data } = await service
       .from('applications')
-      .select('status, organizer_notes')
+      .select('status, application_notes ( notes )')
       .eq('id', fx.seededApplicationId)
       .single();
     expect(data?.status).toBe('pending');
-    expect(data?.organizer_notes).toBe(SEEDED_NOTE);
+    expect(data?.application_notes?.notes).toBe(SEEDED_NOTE);
   });
 
   it('W2: anon delete against the four private tables removes nothing', async () => {

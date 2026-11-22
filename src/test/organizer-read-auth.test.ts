@@ -76,7 +76,7 @@ const APPLICATION = {
   status: 'pending',
   submitted_at: '2026-11-03T18:00:00Z',
   updated_at: '2026-11-03T18:00:00Z',
-  organizer_notes: null,
+  application_notes: null,
   vendor: {
     id: 'vendor-1',
     business_name: 'Jane Crafts',

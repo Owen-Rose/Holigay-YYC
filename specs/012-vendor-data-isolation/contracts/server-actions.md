@@ -82,10 +82,15 @@ The read of `users_with_roles` (lines 89–98) becomes:
 ```ts
 const emailMap = new Map<string, string>();
 if (creatorIds.length > 0) {
-  const { data: creators } = await supabase.rpc('template_creator_emails');
+  const { data: creators, error: creatorsError } = await supabase.rpc('template_creator_emails');
+  if (creatorsError) {
+    console.error('Error loading template creator emails:', creatorsError);
+  }
   (creators ?? []).forEach((c) => emailMap.set(c.creator_id, c.email));
 }
 ```
+
+The error is logged, not returned (review of #89).
 
 The `UsersWithRolesRow` type alias in this file goes with it. The response shape
 (`createdByEmail: string | null`) is unchanged; a failed or refused call leaves every creator

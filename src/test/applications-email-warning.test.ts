@@ -92,12 +92,23 @@ vi.mock('@/lib/auth/roles', () => ({
   requireRole: vi.fn(),
 }));
 
+vi.mock('@/lib/email/templates', async (importOriginal) => {
+  // Spy on statusUpdateEmail while keeping the real template output.
+  const actual = await importOriginal<typeof import('@/lib/email/templates')>();
+  return {
+    ...actual,
+    statusUpdateEmail: vi.fn(actual.statusUpdateEmail),
+  };
+});
+
 // Imports after mocks
 import { updateApplicationStatus } from '@/lib/actions/applications';
 import { sendEmail } from '@/lib/email/client';
+import { statusUpdateEmail } from '@/lib/email/templates';
 import { requireRole } from '@/lib/auth/roles';
 
 const sendEmailMock = vi.mocked(sendEmail);
+const statusUpdateEmailMock = vi.mocked(statusUpdateEmail);
 const requireRoleMock = vi.mocked(requireRole);
 
 beforeEach(() => {
@@ -110,13 +121,13 @@ beforeEach(() => {
 // =============================================================================
 
 describe('updateApplicationStatus — email failure propagation (Workstream 2c)', () => {
-  function queueStatusUpdateHappyPath() {
-    // Step 1: fetch application with vendor + event
+  function queueStatusUpdateHappyPath(applicationNotes: { notes: string } | null = null) {
+    // Step 1: fetch application with vendor + event (and the note, spec 012)
     queue('applications', 'select', {
       data: {
         id: 'app-1',
         status: 'pending',
-        organizer_notes: null,
+        application_notes: applicationNotes,
         vendor: {
           contact_name: 'Alex Example',
           business_name: 'Glitter Goods',
@@ -168,5 +179,42 @@ describe('updateApplicationStatus — email failure propagation (Workstream 2c)'
 
     expect(result.success).toBe(true);
     expect(result.warning).toBeUndefined();
+  });
+
+  it('carries a saved note into the status email as organizerNotes (spec 012)', async () => {
+    requireRoleMock.mockResolvedValue({
+      success: true,
+      error: null,
+      data: { role: 'organizer', userId: 'org-1' },
+    });
+    queueStatusUpdateHappyPath({ notes: 'Bring your own table' });
+    sendEmailMock.mockResolvedValue({ success: true, messageId: 'msg-1', error: null });
+
+    const result = await updateApplicationStatus('app-1', 'approved');
+
+    expect(result.success).toBe(true);
+    expect(statusUpdateEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({ organizerNotes: 'Bring your own table' })
+    );
+    const sent = sendEmailMock.mock.calls[0]![0];
+    expect(sent.text).toContain('Bring your own table');
+    expect(sent.html).toContain('Note from the Organizer');
+  });
+
+  it('sends no note block when the application has no note', async () => {
+    requireRoleMock.mockResolvedValue({
+      success: true,
+      error: null,
+      data: { role: 'organizer', userId: 'org-1' },
+    });
+    queueStatusUpdateHappyPath(null);
+    sendEmailMock.mockResolvedValue({ success: true, messageId: 'msg-1', error: null });
+
+    await updateApplicationStatus('app-1', 'approved');
+
+    expect(statusUpdateEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({ organizerNotes: null })
+    );
+    expect(sendEmailMock.mock.calls[0]![0].html).not.toContain('Note from the Organizer');
   });
 });

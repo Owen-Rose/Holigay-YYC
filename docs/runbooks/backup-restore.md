@@ -124,16 +124,29 @@ grep -oE 'COPY "[a-z_]+"\."[a-z_]+"' "$OUT/data.sql" | sort -u   # tables captur
 
 ## 3. Restore drill (dev dump → local stack)
 
-### 3.1 Reset the local stack
+### 3.1 Reset the local stack to the dump's migration level
+
+A data-only dump restores onto the schema it was taken from: the newest migration in
+`supabase/migrations/` when the backup was made. Restoring onto a newer schema can fail.
+Migration `016` (spec 012) moved organizer notes into `application_notes` and locked
+`applications.organizer_notes` with a CHECK. The dump's `session_replication_role = replica`
+turns off triggers and foreign keys but **not** CHECKs, so any application in an older dump
+that carries a note fails the CHECK, and `--single-transaction` rolls the whole restore back.
+
+Pick the reset by the dump's age:
 
 ```bash
-npx supabase db reset
+if grep -q 'COPY "public"."application_notes"' "$OUT/data.sql"; then
+  npx supabase db reset                    # taken at 016 or later: every migration
+else
+  npx supabase db reset --version 015      # taken before 016: stop at 015, then 3.3a
+fi
 # If auth health returns 502 afterwards:
 docker restart supabase_kong_Holigay
 ```
 
-This applies every migration through `012`. `supabase/seed.sql` is intentionally empty, so
-nothing is seeded that could collide with the restore.
+`supabase/seed.sql` is intentionally empty, so nothing is seeded that could collide with the
+restore.
 
 ### 3.2 Filter the dump, and take the source row counts from it
 
@@ -176,6 +189,19 @@ restore that hits an error rolls back completely instead of leaving the database
 half-populated. (Verified twice — a deliberately bad restore and the unfiltered hosted dump
 both left the row counts untouched.)
 
+### 3.3a Older dump only: apply the rest of the migrations
+
+Skip this for a dump taken at `016` or later. For an older one, restored onto `015` in 3.1:
+
+```bash
+npx supabase migration up --local
+docker exec supabase_db_Holigay psql -U postgres -d postgres -Atc \
+  "SELECT max(version) FROM supabase_migrations.schema_migrations;"   # 016
+```
+
+`016` carries every note into `application_notes`, empties the old column, adds its CHECK and
+records itself in the migration history, as it did on the hosted projects.
+
 ### 3.4 Restore the bucket
 
 ```bash
@@ -212,7 +238,9 @@ diff <(grep -v '^#' /tmp/counts-source.txt | sort) <(sort /tmp/counts-restored.t
 The only lines that may differ are the tables the script skipped (present in the dump, absent
 locally), `auth.schema_migrations` (excluded from the dump; belongs to the local stack) and
 `auth.audit_log_entries` (GoTrue appends to it on every sign-in, so any use of the restored
-stack grows it). Everything else must match exactly.
+stack grows it). For a dump taken before `016`, `public.application_notes` also appears only on
+the restored side, with one row per non-empty `organizer_notes` in the dump (3.3a moved them).
+Everything else must match exactly.
 
 **Object paths** — compare the paths, not just the count. A misplaced upload (3.4) keeps the
 count right while breaking every link:
@@ -275,6 +303,7 @@ Re-check these if the CLI is upgraded; several contradict what `research.md` R7 
 | 10 | Restoring a `--schema '*'` data dump fails twice: `buckets_pkey` duplicate, then `permission denied for table buckets_vectors` | The reason 2.2 uses `-s auth,public` |
 | 11 | `supabase/seed.sql` is intentionally empty | Nothing seeded collides with a restore |
 | 12 | The hosted `auth` schema is **ahead** of CLI 2.65.6's local stack (extra tables; `one_time_tokens.expires_at`) | A hosted dump will not restore into local unmodified — filter it (3.2). On 2026-09-17 five empty objects were skipped and no rows lost |
+| 13 | CHECK constraints are enforced under `session_replication_role = replica` (2026-11-22) | A dump restores only onto the migration level it was taken at. A pre-`016` dump with a note fails `applications_organizer_notes_retired` on a full reset; restore it onto `015` and run `migration up --local` (3.1, 3.3a). `db reset --version 015` and `migration up --local` both work on CLI 2.65.6 |
 
 ## Rehearsals
 
@@ -288,3 +317,12 @@ Re-check these if the CLI is upgraded; several contradict what `research.md` R7 
   restore aborted on the `auth` skew (row 12); after filtering, 31/31 tables matched, the
   signed-URL download of the bucket's one object was byte-identical, and anon was still blocked
   on all four private tables. Evidence rows: `specs/007-production-readiness/quickstart.md`.
+- **2026-11-22, synthetic fixture, the migration-level paths (spec 012, review of #89).**
+  Local stack at `015`, one event, vendor and application with a note, dumped with 2.2's flags
+  (`--local`).
+  - **Full reset to `016`, then restore:** failed with `23514` on
+    `applications_organizer_notes_retired` and restored nothing.
+  - **`db reset --version 015`, restore, `migration up --local`:** the application restored,
+    the note sat in `application_notes`, the old column was empty, and max version was `016`.
+  - **That state dumped again (it holds `COPY "public"."application_notes"`), full reset,
+    restore:** the application and its note were both back.
