@@ -1,0 +1,160 @@
+# Quickstart: Vendor Data Isolation
+
+**Feature**: 012-vendor-data-isolation
+
+This file is the **ops and evidence record** for spec 012 (the 009/010/011 pattern). Every
+`[manual]` task in `tasks.md` is ticked only when its row below is filled in with what was
+actually observed. Reasoning lives in `research.md`; exact SQL in `contracts/`.
+
+## Local development loop
+
+```bash
+# Full local stack; applies 001 → 016 from scratch
+npx supabase db reset
+# If auth health returns 502 after a reset:
+docker restart supabase_kong_Holigay
+
+# Regenerate the types (commit the result in the migration PR, never edit by hand)
+npm run db:types:local
+
+# The constitution's gate before every PR
+npm run format:check && npm run lint && npm test && npm run build
+npm run test:security          # vendor-isolation.test.ts + the five edited cases
+```
+
+Sign-ins: with `vendor-isolation.test.ts` a full `npm run test:security` run makes 20 (15
+before this spec) and the local GoTrue allows 30 per 5 minutes. Leave about five minutes
+between full runs, or run the one file in between. A run that hits the limit fails with
+"sign-in failed", not with an assertion.
+
+### Seeing the suite red, then green (FR-022, SC-007)
+
+```bash
+# Red: on a stack at 015 (the suite PR's branch has no 016 file)
+npx supabase db reset
+npx vitest run --project security src/test/security/vendor-isolation.test.ts
+#   every `it.fails` case passes (its body fails on 015); every plain case passes.
+#   To see the failures themselves, for row L1: temporarily change `it.fails` to `it`
+#   in the working tree, run, copy the failing assertion per case, and discard the edit.
+
+# Green: on the migration PR's branch
+npx supabase db reset                      # now applies 016
+npm run test:security                      # all cases plain `it`, all passing
+```
+
+### In the browser against the local stack
+
+`npm run dev`, then:
+
+1. As an organizer, save a note on an application; reload: it is there. Export the CSV: the
+   Organizer Notes column carries it. Change the status: the mail in Mailpit
+   (`http://127.0.0.1:54324`) has the "Note from the Organizer" block.
+2. `/dashboard/templates` as an organizer: the creator's address shows.
+3. `/dashboard/admin` and `/dashboard/team` as the admin: every account listed.
+4. As a vendor, open an application with a file answer: the file opens.
+
+## Applying `016` to a hosted project
+
+Through the Management API from a terminal, as `docs/runbooks/reset-hosted-project.md` §7
+describes (one `POST https://api.supabase.com/v1/projects/<ref>/database/query` with the whole
+file as the body, plus the `016` row for `supabase_migrations.schema_migrations`, in one
+transaction), or as one SQL Editor block pasted by Owen. Dev writes are fine in either
+permission mode; **prod needs the session in default mode** and the inventory → confirm →
+write → verify sequence.
+
+**Order on each project (research R11): `016` first, then the code.** On dev: apply `016`
+immediately before merging the migration PR, from that PR's head commit (record the SHA; if
+the SQL changes after it was applied, stop and tell Owen). On prod: apply `016` immediately
+before the promotion. In between, the old code shows blank notes, cannot save a note, and shows
+`—` for template creators; nothing is lost and nothing is exposed.
+
+Inventory before (both projects):
+
+```sql
+SELECT count(*) AS applications,
+       count(*) FILTER (WHERE organizer_notes IS NOT NULL AND organizer_notes <> '') AS with_notes
+FROM public.applications;
+
+-- files that two applications already refer to (016 does not fail on these; decide with Owen)
+SELECT path, count(*) FROM (
+  SELECT value->>'path' AS path FROM public.application_answers WHERE value->>'kind' = 'file'
+  UNION ALL SELECT file_path FROM public.attachments
+) refs GROUP BY path HAVING count(*) > 1;
+
+SELECT count(*) FROM storage.objects WHERE bucket_id = 'attachments';
+SELECT policyname, cmd FROM pg_policies WHERE schemaname = 'storage' ORDER BY 1;
+SELECT count(*) FROM public.questionnaire_templates WHERE created_by IS NOT NULL;
+SELECT max(version) FROM supabase_migrations.schema_migrations;                   -- 015
+```
+
+Verify after: the "Read-back checks" block in `contracts/migration-016.md`. The first line
+(`count(*) FROM application_notes`) must equal `with_notes` from the inventory.
+
+Rollback, if a rollout goes wrong: the block at the end of `contracts/migration-016.md`, code
+reverted first, on Owen's go.
+
+## Probing a deployment as a vendor
+
+The four gaps are not reachable from the app's pages, so the probe asks the API directly. Use
+a throwaway script kept **outside the repository** (session scratch directory): it creates a
+`@supabase/supabase-js` client with the project's URL and anon key, signs in as a throwaway
+vendor with the password set at `/set-password`, runs the calls, and prints the error code or
+row count of each. No key, password or real address is written into this file.
+
+## Evidence record
+
+The rows run in FR-028's order: local, then dev, then the training probe, then prod, then the
+promotion. "Evidence" is what was observed: the read-back value, the error code, the row count,
+the text on screen. Dates ISO. Throwaways are `<maintainer>+012-a@…` and `<maintainer>+012-b@…`, invited
+as Vendor from the Team page and deleted afterwards (row D8). Each row ends with the task in
+`tasks.md` that owns it (T002–T012).
+
+### Local
+
+| Row | Item | Where | Date | Evidence | Done |
+|---|---|---|---|---|---|
+| L0 | Plan-time dry run: the contract SQL applied and probed per caller in one rolled-back transaction | local stack | 2026-11-22 | `research.md` "Dry run": applied cleanly over 015; every probe in its table as designed; database unchanged afterwards (no `application_notes`, the three 011 storage policies, no fixture rows) | ☑ |
+| L1 | **Red.** The isolation suite on a stack at 015: the 21 red cases fail, each for the rule it states; the 16 others pass — **T002** | local stack | | | ☐ |
+| L2 | **Green.** After `016`: all 37 cases pass as plain `it`; every earlier suite passes; the five edited cases are the only edits to existing cases (`git diff --stat` on `src/test/security/`) — **T003** | local stack + CI | | | ☐ |
+
+### Dev project and the training deployment
+
+Prerequisite on dev: two active events, each with a questionnaire that has a file question
+(the vendors apply to the first; D3's claim attempt goes to the second, and its file answer
+must use that event's own file question, or the answer gate replies `P0004` before the claim
+gate is reached); one template created by the organizer account; and, **before D1**, at least
+one application with a saved organizer note (D5 checks that it survives the migration).
+
+| Row | Item | Where | Date | Evidence | Done |
+|---|---|---|---|---|---|
+| D1 | `016` applied to dev (ref `kcokcufmzyckbodelqpb`) from the migration PR's head, before that PR merges: inventory, apply, read-back; `with_notes` before = `application_notes` rows after; `schema_migrations` max `016` — **T004** | Management API | | | ☐ |
+| D2 | **Files.** `+012-a` and `+012-b` each apply with a file. As A, by direct API: download B's file, sign it, remove it → all refused, B's file still opens for B and for an organizer. A opens their own file from `/vendor-dashboard/applications/[id]`. A removes their own file → refused — **T005** | training site + probe script | | | ☐ |
+| D3 | **Claim.** As A, submit to the second event, answering its file question with B's stored file path → refused (`P0005`), no application created; A still cannot open the file. A direct insert of an `attachments` row naming it → refused — **T005** | probe script + Management API read | | | ☐ |
+| D4 | **Accounts.** As A: `users_with_roles` → no rows. As the organizer by direct API: no rows; `template_creator_emails` → the creator's address only — **T006** | probe script | | | ☐ |
+| D5 | **Notes.** An organizer saves a note on A's application. As A by direct API: the application with every field, and `application_notes` → no note. A note that existed before D1 is still on the review page and in the CSV — **T007** | probe script + training site | | | ☐ |
+| D6 | **Deadline.** An active event with yesterday's deadline: a direct submission is refused with the not-accepting code; with today's deadline it succeeds. From a form opened on an event whose deadline is then moved to yesterday: the inline not-accepting message, the entries kept, and no confirmation mail — **T008** | probe script + training site | | | ☐ |
+| D7 | **The eight consumers** (SC-005), each once on the training site: (1) signed-out upload on `/apply`; (2) organizer opens a file from the review page; (3) vendor opens their own file; (4) admin Team page lists accounts with the Pending badge; (5) template list shows the creator; (6) invite a new address and re-send a pending one; (7) review page shows and saves a note, the CSV carries it, the status mail carries it; (8) the reset runbook's object removal (done as D8's cleanup) — **T009** | training site + mailbox | | | ☐ |
+| D8 | Throwaways removed: the two accounts and the address invited for D7 (6), their vendor rows, applications, answers and notes; their bucket objects through the dashboard; the probe events; read-back counts — **T010** | Management API + dashboard | | | ☐ |
+
+### Production
+
+| Row | Item | Where | Date | Evidence | Done |
+|---|---|---|---|---|---|
+| P1 | `016` applied to prod (ref `hgmfjvjlxrhdojwlkgap`) in default mode: inventory → Owen's confirm → write → read-back; `with_notes` before = `application_notes` rows after — **T011** | Management API, Owen present | | | ☐ |
+| P2 | `dev` → `main` promotion straight after P1; `npm run smoke` against prod 5/5 before and after (the script is unchanged); the event-week click-through, including a note saved and shown, and a file opened by its vendor; test data removed; entry added to `docs/runbooks/event-week-smoke.md` — **T012** | Vercel + prod | | | ☐ |
+
+## Docs to update at close (FR-029)
+
+| File | Change |
+|---|---|
+| `CLAUDE.md` | migration list gains `016` (that one line ships in the migration PR, T003; the rest at close); Database Schema gains `application_notes`, the retired column, `template_creator_emails()`, the narrowed view, the two storage policies, `P0005`; server-action notes for `applications.ts` and `templates.ts`; Database state; Recent Changes; Current Development Phase |
+| `docs/ARCHITECTURE.md` | §3 (the vendor layer now proven; inserts only through the RPC), §5 (`application_notes`), §9 (the isolation suite), §10 (strike "cross-vendor isolation, still hand-verified") |
+| `docs/ROADMAP.md` | Tier 3: strike the `users_with_roles` item and "Cross-vendor isolation is the natural next suite"; the Tier 1 table's storage row names the new policy pair; add the two items from `research.md` "Found on the way" |
+| `specs/README.md` | 012 row |
+| `docs/backlog/2026-10-06-uat-and-go-live.md` | tick Spec 012; close UAT-10 |
+| `docs/superpowers/plans/2026-11-21-post-launch-hardening.md` | tick B1–B10 |
+| `supabase/migrations/README.md` | `016` row (in the migration PR); "next prefix" line |
+| `docs/runbooks/reset-hosted-project.md` | inventory query counts `application_notes`; the FK table in §0 gains `application_notes.application_id → applications` (CASCADE) and the Verify table in §5 lists it; one line under §3: since `016` no signed-in session can delete an object, and options A–C are unaffected |
+| `docs/runbooks/event-week-smoke.md` | the promotion entry (P2) |
+| `docs/runbooks/backup-restore.md` | one note in the restore drill: it loads a hosted dump onto the schema the migrations build, so a dump taken before `016` that holds a note fails `applications_organizer_notes_retired`; restore such a dump on a tree without `016`. Backups taken after `016` are unaffected |
+| `.specify/memory/constitution.md` | no change expected (version stays 1.1.3) |
