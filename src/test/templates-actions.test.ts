@@ -166,16 +166,29 @@ beforeEach(() => {
 // =============================================================================
 
 describe('listTemplates', () => {
-  it('returns templates with creator email joined from users_with_roles', async () => {
+  it('returns templates with creator email from template_creator_emails', async () => {
     ok([{ ...TEMPLATE, template_questions: [{ id: TQ1_ID }] }]);
-    ok([{ id: USER_ID, email: 'organizer@example.com' }]);
+    ok([{ creator_id: USER_ID, email: 'organizer@example.com' }]);
 
     const result = await listTemplates();
 
+    expect(mockRpc).toHaveBeenCalledWith('template_creator_emails');
     expect(result.success).toBe(true);
     expect(result.data).toHaveLength(1);
     expect(result.data![0].createdByEmail).toBe('organizer@example.com');
     expect(result.data![0].questionCount).toBe(1);
+  });
+
+  it('leaves createdByEmail null and still succeeds when the creator read fails', async () => {
+    ok([{ ...TEMPLATE, template_questions: [] }]);
+    enqueue(null, { code: '42501', message: 'Organizer role required' });
+
+    const result = await listTemplates();
+
+    expect(mockRpc).toHaveBeenCalledWith('template_creator_emails');
+    expect(result.success).toBe(true);
+    expect(result.data![0].createdBy).toBe(USER_ID);
+    expect(result.data![0].createdByEmail).toBeNull();
   });
 
   it('returns null createdByEmail and skips user query for orphaned templates', async () => {
@@ -186,6 +199,7 @@ describe('listTemplates', () => {
     expect(result.success).toBe(true);
     expect(result.data![0].createdBy).toBeNull();
     expect(result.data![0].createdByEmail).toBeNull();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 
   it('rejects when caller lacks organizer role', async () => {

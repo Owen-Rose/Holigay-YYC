@@ -48,6 +48,32 @@ export type Database = {
           },
         ]
       }
+      application_notes: {
+        Row: {
+          application_id: string
+          notes: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          notes: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          notes?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_notes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           booth_preference: string | null
@@ -497,6 +523,13 @@ export type Database = {
           event_name: string
           vendor_created: boolean
           vendor_id: string
+        }[]
+      }
+      template_creator_emails: {
+        Args: never
+        Returns: {
+          creator_id: string
+          email: string
         }[]
       }
     }

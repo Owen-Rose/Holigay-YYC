@@ -83,11 +83,25 @@ export const vendorInfoSchema = z
   .extend(productLinkFieldsSchema.shape);
 
 // =============================================================================
+// Organizer Notes Schema
+// =============================================================================
+
+/**
+ * Input of updateApplicationNotes (spec 012). An empty string means "no note"
+ * and deletes the application_notes row.
+ */
+export const applicationNotesSchema = z.object({
+  id: z.string().uuid(),
+  notes: z.string(),
+});
+
+// =============================================================================
 // TypeScript Types
 // =============================================================================
 
 export type FileInput = z.infer<typeof fileSchema>;
 export type VendorInfo = z.infer<typeof vendorInfoSchema>;
+export type ApplicationNotesInput = z.infer<typeof applicationNotesSchema>;
 
 // Allowed file type
 export type AllowedFileType = (typeof ALLOWED_FILE_TYPES)[number];

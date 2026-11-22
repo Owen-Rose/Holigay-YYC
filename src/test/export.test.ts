@@ -59,7 +59,7 @@ const APPLICATION = {
   id: 'app-1',
   status: 'pending',
   submitted_at: '2026-11-03T18:00:00Z',
-  organizer_notes: 'Strong fit',
+  application_notes: { notes: 'Strong fit' },
   vendor: {
     business_name: 'Jane Crafts',
     contact_name: 'Jane Doe',
@@ -155,6 +155,24 @@ describe('exportApplicationsCSV', () => {
     ]) {
       expect(select).not.toContain(gone);
     }
+  });
+
+  it('reads the note from application_notes, not the retired column (spec 012)', async () => {
+    await exportApplicationsCSV();
+
+    const select = selects['applications']!;
+    expect(select).toContain('application_notes ( notes )');
+    expect(select).not.toContain('organizer_notes');
+  });
+
+  it('leaves Organizer Notes blank for an application with no note', async () => {
+    applicationsResult = { data: [{ ...APPLICATION, application_notes: null }], error: null };
+
+    const result = await exportApplicationsCSV();
+
+    const [, row] = rows(result.data!.csv);
+    expect(row![9]).toBe('');
+    expect(row).toHaveLength(FR_014_HEADERS.length);
   });
 
   it('uses the same header row when the search matches no vendor', async () => {

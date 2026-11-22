@@ -377,11 +377,18 @@ export async function seedFixtures(): Promise<SecurityFixtures> {
         event_id: activeEventId,
         vendor_id: vendor!.id,
         status: 'pending',
-        organizer_notes: 'SEEDED INTERNAL NOTE — must never be readable by anon',
       })
       .select('id')
       .single();
     if (applicationError || !application) fail('application', applicationError?.message);
+
+    // Since migration 016 a note is a row of application_notes; the old
+    // applications.organizer_notes column is locked to NULL.
+    const { error: noteError } = await service.from('application_notes').insert({
+      application_id: application!.id,
+      notes: 'SEEDED INTERNAL NOTE — must never be readable by anon',
+    });
+    if (noteError) fail('application note', noteError.message);
 
     const storagePrefix = `security-${suffix}`;
 

@@ -60,7 +60,7 @@ const APPLICATION_ROW = {
   status: 'pending',
   submitted_at: '2026-11-03T18:00:00Z',
   updated_at: '2026-11-03T18:00:00Z',
-  organizer_notes: null,
+  application_notes: { notes: 'Strong fit' },
   vendor: VENDOR,
   event: {
     id: 'event-1',
@@ -107,6 +107,29 @@ describe('getApplicationById', () => {
       expect(selects['applications']).not.toContain(column);
       expect(result.data).not.toHaveProperty(column);
     }
+  });
+
+  it('maps the application_notes embed onto organizer_notes (spec 012)', async () => {
+    const result = await getApplicationById('app-1');
+
+    expect(result.data!.organizer_notes).toBe('Strong fit');
+    expect(result.data).not.toHaveProperty('application_notes');
+  });
+
+  it('maps a missing note (null embed) to a null organizer_notes', async () => {
+    applicationResult = { data: { ...APPLICATION_ROW, application_notes: null }, error: null };
+
+    const result = await getApplicationById('app-1');
+
+    expect(result.success).toBe(true);
+    expect(result.data!.organizer_notes).toBeNull();
+  });
+
+  it('reads the note from application_notes, not the retired column', async () => {
+    await getApplicationById('app-1');
+
+    expect(selects['applications']).toContain('application_notes ( notes )');
+    expect(selects['applications']).not.toContain('organizer_notes');
   });
 
   it('answers not found when the row is not visible', async () => {

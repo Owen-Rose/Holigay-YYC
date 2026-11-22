@@ -41,16 +41,20 @@ describe.runIf(stackUp)('anon reads', () => {
   // ---------------------------------------------------------------------------
 
   it('R1: the seeded private rows really exist (ground truth via service role)', async () => {
-    const [vendors, applications, attachments, answers] = await Promise.all([
+    const [vendors, applications, notes, attachments, answers] = await Promise.all([
       service.from('vendors').select('id').eq('id', fx.seededVendorId),
-      service.from('applications').select('id, organizer_notes').eq('id', fx.seededApplicationId),
+      service.from('applications').select('id').eq('id', fx.seededApplicationId),
+      service
+        .from('application_notes')
+        .select('notes')
+        .eq('application_id', fx.seededApplicationId),
       service.from('attachments').select('id').eq('application_id', fx.seededApplicationId),
       service.from('application_answers').select('id').eq('application_id', fx.seededApplicationId),
     ]);
 
     expect(vendors.data ?? []).toHaveLength(1);
     expect(applications.data ?? []).toHaveLength(1);
-    expect(applications.data?.[0]?.organizer_notes).toBe(SEEDED_NOTE);
+    expect(notes.data?.[0]?.notes).toBe(SEEDED_NOTE);
     expect(attachments.data ?? []).toHaveLength(1);
     expect(answers.data ?? []).toHaveLength(1);
   });
@@ -64,6 +68,7 @@ describe.runIf(stackUp)('anon reads', () => {
     const { data } = await anon.from('applications').select('*');
     expect(data ?? []).toHaveLength(0);
     expect(JSON.stringify(data ?? [])).not.toContain(SEEDED_NOTE);
+    expect((await anon.from('application_notes').select('*')).error?.code).toBe('42501');
   });
 
   it('R1: anon reads zero rows from attachments', async () => {

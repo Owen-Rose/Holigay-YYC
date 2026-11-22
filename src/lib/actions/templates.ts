@@ -13,7 +13,6 @@ import type { Database, Json } from '@/types/database';
 type TemplateRow = Database['public']['Tables']['questionnaire_templates']['Row'];
 type TemplateQuestionRow = Database['public']['Tables']['template_questions']['Row'];
 type EventQuestionRow = Database['public']['Tables']['event_questions']['Row'];
-type UsersWithRolesRow = Database['public']['Views']['users_with_roles']['Row'];
 
 // ---------------------------------------------------------------------------
 // Schemas (not exported — internal to this file)
@@ -86,16 +85,13 @@ export async function listTemplates(): Promise<{
     ),
   ];
 
+  // Creator addresses come from the narrow organizer/admin-only RPC; the
+  // account list (users_with_roles) is admin-only since spec 012. A failed or
+  // refused call leaves every creator null, which the list renders as "—".
   const emailMap = new Map<string, string>();
   if (creatorIds.length > 0) {
-    const { data: users } = await supabase
-      .from('users_with_roles' as 'user_profiles')
-      .select('id, email')
-      .in('id', creatorIds)
-      .returns<UsersWithRolesRow[]>();
-    (users ?? []).forEach((u) => {
-      if (u.id && u.email) emailMap.set(u.id, u.email);
-    });
+    const { data: creators } = await supabase.rpc('template_creator_emails');
+    (creators ?? []).forEach((c) => emailMap.set(c.creator_id, c.email));
   }
 
   const data = (templates ?? []).map((t) => ({

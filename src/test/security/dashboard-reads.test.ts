@@ -56,7 +56,7 @@ describe.runIf(stackUp)('organizer dashboard reads', () => {
         status,
         submitted_at,
         updated_at,
-        organizer_notes,
+        application_notes ( notes ),
         vendor:vendors (
           id,
           business_name,
@@ -79,7 +79,7 @@ describe.runIf(stackUp)('organizer dashboard reads', () => {
     const row = data![0]!;
     expect(row.id).toBe(fx.seededApplicationId);
     expect(row.status).toBe('pending');
-    expect(row.organizer_notes).toBe(SEEDED_NOTE);
+    expect(row.application_notes?.notes).toBe(SEEDED_NOTE);
     expect(row.vendor).not.toBeNull();
     expect(row.vendor?.id).toBe(fx.seededVendorId);
     expect(row.vendor?.email).toBe(fx.seededVendorEmail);

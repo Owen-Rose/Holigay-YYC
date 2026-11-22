@@ -15,12 +15,13 @@
 // Five sign-ins in this file (GoTrue allows 30 per 5 minutes). Every address
 // ends in the run suffix, so purgeRun sweeps any vendor row a submission makes.
 //
-// Red first (research R10). The 21 cases that state a rule 016 adds are
-// written `it.fails(...)`: on the 015 schema their bodies fail, and CI passing
-// them is the proof that each gap is real (quickstart row L1 records the
-// failing assertion of each). The migration PR (T003) turns each into
-// `it(...)` with its body unchanged. The 16 cases that already hold are plain
-// `it(...)` throughout, there to catch a later loosening.
+// Red first (research R10). The 21 cases that state a rule 016 adds were
+// written as expected failures by the suite PR (T002): on the 015 schema their
+// bodies failed, and CI passing them proved each gap real (quickstart row L1
+// records the failing assertion of each). The migration PR (T003) turned each
+// into a plain `it(...)` with its body unchanged (row L2). The 16 cases that
+// already held were plain `it(...)` throughout, there to catch a later
+// loosening.
 //
 // On 015 several red cases really do what they attempt (remove a file, store a
 // submission, write a note or a role). Each puts back only what it changed, in
@@ -69,16 +70,6 @@ const FIXTURE_OBJECTS = ['a-answer', 'b-answer', 'a-legacy', 'b-legacy', 'orphan
 const REFUSED = { body: null, refused: true };
 /** What a served download or signed URL looks like through `download` / `sign`. */
 const served = (name: string) => ({ body: name, refused: false });
-
-/**
- * `application_notes` and `template_creator_emails` arrive with migration 016,
- * so src/types/database.ts does not know them yet and the typed client would
- * not compile. T003 regenerates the types and deletes this helper; its call
- * sites then use the typed client directly.
- */
-function untyped(client: Client): SupabaseClient {
-  return client as unknown as SupabaseClient;
-}
 
 /** Unwraps a fixture write, or fails the whole file with what went wrong. */
 function must<R extends { data: unknown; error: { message: string } | null }>(
@@ -218,7 +209,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
 
   /** Service-role ground truth: the note stored for an application, or null. */
   async function noteOf(applicationId: string): Promise<string | null> {
-    const { data, error } = await untyped(service)
+    const { data, error } = await service
       .from('application_notes')
       .select('notes')
       .eq('application_id', applicationId)
@@ -403,18 +394,18 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
       'legacy attachments'
     );
 
-    // The 015 schema keeps the note on the application row. T003 moves this seed
-    // to application_notes (a fixture edit, not a change to any case body).
+    // Since 016 a note is a row of application_notes; the old column is locked
+    // (T003 moved this seed from applications.organizer_notes — a fixture edit,
+    // not a change to any case body).
     for (const [applicationId, note] of [
       [aAppId, NOTE_A],
       [bAppId, NOTE_B],
     ] as const) {
       must(
         await service
-          .from('applications')
-          .update({ organizer_notes: note })
-          .eq('id', applicationId)
-          .select('id')
+          .from('application_notes')
+          .insert({ application_id: applicationId, notes: note })
+          .select('application_id')
           .single(),
         'note'
       );
@@ -538,14 +529,14 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     expect(await sign(vendorA.client, 'a-answer')).toEqual(served('a-answer'));
   });
 
-  it.fails("I8: a vendor cannot download or link another vendor's files", async () => {
+  it("I8: a vendor cannot download or link another vendor's files", async () => {
     expect(await download(vendorA.client, 'b-answer')).toEqual(REFUSED);
     expect(await download(vendorA.client, 'b-legacy')).toEqual(REFUSED);
     expect(await sign(vendorA.client, 'b-answer')).toEqual(REFUSED);
     expect(await sign(vendorA.client, 'b-legacy')).toEqual(REFUSED);
   });
 
-  it.fails("I9: a vendor cannot delete another vendor's file", async () => {
+  it("I9: a vendor cannot delete another vendor's file", async () => {
     try {
       expect(await remove(vendorA.client, 'b-answer')).toEqual([]);
       expect(await stored('b-answer')).toBe(true);
@@ -556,7 +547,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     }
   });
 
-  it.fails('I10: a vendor cannot delete their own file', async () => {
+  it('I10: a vendor cannot delete their own file', async () => {
     try {
       expect(await remove(vendorA.client, 'a-answer')).toEqual([]);
       expect(await stored('a-answer')).toBe(true);
@@ -566,7 +557,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     }
   });
 
-  it.fails('I11: organizers and admins cannot delete a file from a session', async () => {
+  it('I11: organizers and admins cannot delete a file from a session', async () => {
     // Objects of the case's own, never a fixture object.
     for (const [caller, name] of [
       [org, 'org-remove'],
@@ -588,16 +579,13 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     }
   });
 
-  it.fails(
-    'I13: a vendor cannot open or list a file no application of theirs refers to',
-    async () => {
-      expect(await download(vendorA.client, 'orphan')).toEqual(REFUSED);
-      expect(await sign(vendorA.client, 'orphan')).toEqual(REFUSED);
-      expect(await listing(vendorA.client)).toEqual(['a-answer', 'a-legacy']);
-    }
-  );
+  it('I13: a vendor cannot open or list a file no application of theirs refers to', async () => {
+    expect(await download(vendorA.client, 'orphan')).toEqual(REFUSED);
+    expect(await sign(vendorA.client, 'orphan')).toEqual(REFUSED);
+    expect(await listing(vendorA.client)).toEqual(['a-answer', 'a-legacy']);
+  });
 
-  it.fails('I14: an account with no vendor record cannot open any file', async () => {
+  it('I14: an account with no vendor record cannot open any file', async () => {
     for (const name of ['a-answer', 'orphan']) {
       expect(await download(vendorC.client, name)).toEqual(REFUSED);
       expect(await sign(vendorC.client, name)).toEqual(REFUSED);
@@ -636,7 +624,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
   // Claims and direct writes (FR-002, FR-030)
   // ---------------------------------------------------------------------------
 
-  it.fails("I17: a submission naming another vendor's file is refused", async () => {
+  it("I17: a submission naming another vendor's file is refused", async () => {
     let created: string | undefined;
     try {
       const { data, error } = await submit(
@@ -662,45 +650,42 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     }
   });
 
-  it.fails("I18: after the refused claim the file is still only B's", async () => {
+  it("I18: after the refused claim the file is still only B's", async () => {
     expect(await download(vendorA.client, 'b-answer')).toEqual(REFUSED);
     expect(await download(vendorB.client, 'b-answer')).toEqual(served('b-answer'));
   });
 
-  it.fails(
-    'I19: every caller is refused a claim on a file another application refers to',
-    async () => {
-      const fresh = freshEmail('i19');
-      const created: Array<string | undefined> = [];
-      try {
-        const byAnon = await submit(
-          anon,
-          payload(eventFId, fresh, [fileAnswer(eventFFileQuestionId, 'b-answer')])
-        );
-        created.push(byAnon.data?.application_id);
-        expect(byAnon.error?.code).toBe(FILE_CLAIMED);
+  it('I19: every caller is refused a claim on a file another application refers to', async () => {
+    const fresh = freshEmail('i19');
+    const created: Array<string | undefined> = [];
+    try {
+      const byAnon = await submit(
+        anon,
+        payload(eventFId, fresh, [fileAnswer(eventFFileQuestionId, 'b-answer')])
+      );
+      created.push(byAnon.data?.application_id);
+      expect(byAnon.error?.code).toBe(FILE_CLAIMED);
 
-        const byOrg = await submit(
-          org.client,
-          payload(eventFId, org.email, [fileAnswer(eventFFileQuestionId, 'b-answer')])
-        );
-        created.push(byOrg.data?.application_id);
-        expect(byOrg.error?.code).toBe(FILE_CLAIMED);
+      const byOrg = await submit(
+        org.client,
+        payload(eventFId, org.email, [fileAnswer(eventFFileQuestionId, 'b-answer')])
+      );
+      created.push(byOrg.data?.application_id);
+      expect(byOrg.error?.code).toBe(FILE_CLAIMED);
 
-        const legacy = await submit(
-          anon,
-          payload(eventFId, fresh, [fileAnswer(eventFFileQuestionId, 'b-legacy')])
-        );
-        created.push(legacy.data?.application_id);
-        expect(legacy.error?.code).toBe(FILE_CLAIMED);
+      const legacy = await submit(
+        anon,
+        payload(eventFId, fresh, [fileAnswer(eventFFileQuestionId, 'b-legacy')])
+      );
+      created.push(legacy.data?.application_id);
+      expect(legacy.error?.code).toBe(FILE_CLAIMED);
 
-        const { data: vendors } = await service.from('vendors').select('id').eq('email', fresh);
-        expect(vendors ?? []).toEqual([]);
-      } finally {
-        await deleteApplications(created);
-      }
+      const { data: vendors } = await service.from('vendors').select('id').eq('email', fresh);
+      expect(vendors ?? []).toEqual([]);
+    } finally {
+      await deleteApplications(created);
     }
-  );
+  });
 
   it('I20: a refused submission leaves an unclaimed file free to use', async () => {
     const { error: uploadError } = await upload(vendorA.client, 'a-new');
@@ -720,7 +705,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     expect(await download(vendorA.client, 'a-new')).toEqual(served('a-new'));
   });
 
-  it.fails('I21: a vendor cannot add applications, answers or file records directly', async () => {
+  it('I21: a vendor cannot add applications, answers or file records directly', async () => {
     // Plain inserts, no `.select()`: INSERT … RETURNING would also apply the
     // SELECT policies and could refuse a row for a reason other than the rule.
     try {
@@ -807,7 +792,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
   // Organizer notes (FR-012, FR-013, FR-015)
   // ---------------------------------------------------------------------------
 
-  it.fails('I23: a vendor never reads the organizer note on their own application', async () => {
+  it('I23: a vendor never reads the organizer note on their own application', async () => {
     const named = await vendorA.client
       .from('applications')
       .select('id, organizer_notes')
@@ -825,25 +810,25 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     expect(Object.values(everything.data ?? {})).not.toContain(NOTE_A);
   });
 
-  it.fails('I24: a vendor reads no notes, and anon is refused the notes table', async () => {
-    const all = await untyped(vendorA.client).from('application_notes').select('*');
+  it('I24: a vendor reads no notes, and anon is refused the notes table', async () => {
+    const all = await vendorA.client.from('application_notes').select('*');
     expect(all.error).toBeNull();
     expect(all.data).toEqual([]);
 
-    const own = await untyped(vendorA.client)
+    const own = await vendorA.client
       .from('application_notes')
       .select('*')
       .eq('application_id', aAppId);
     expect(own.error).toBeNull();
     expect(own.data).toEqual([]);
 
-    const byAnon = await untyped(anon).from('application_notes').select('*');
+    const byAnon = await anon.from('application_notes').select('*');
     expect(byAnon.error?.code).toBe(PERMISSION_DENIED);
   });
 
-  it.fails('I25: organizers and admins read each note as one embedded object', async () => {
+  it('I25: organizers and admins read each note as one embedded object', async () => {
     for (const caller of [org, adm]) {
-      const { data, error } = await untyped(caller.client)
+      const { data, error } = await caller.client
         .from('applications')
         .select('id, application_notes ( notes )')
         .in('id', [aAppId, bAppId]);
@@ -855,29 +840,29 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     }
   });
 
-  it.fails('I26: organizers and admins write notes', async () => {
+  it('I26: organizers and admins write notes', async () => {
     // Ends where it started (NOTE-A, NOTE-B), so I27 compares against constants.
     const edited = 'NOTE-A edited by ORG';
-    const upserted = await untyped(org.client)
+    const upserted = await org.client
       .from('application_notes')
       .upsert({ application_id: aAppId, notes: edited }, { onConflict: 'application_id' });
     expect(upserted.error).toBeNull();
     expect(await noteOf(aAppId)).toBe(edited);
 
-    const deleted = await untyped(org.client)
+    const deleted = await org.client
       .from('application_notes')
       .delete()
       .eq('application_id', bAppId);
     expect(deleted.error).toBeNull();
     expect(await noteOf(bAppId)).toBeNull();
 
-    const inserted = await untyped(org.client)
+    const inserted = await org.client
       .from('application_notes')
       .insert({ application_id: bAppId, notes: NOTE_B });
     expect(inserted.error).toBeNull();
     expect(await noteOf(bAppId)).toBe(NOTE_B);
 
-    const updated = await untyped(adm.client)
+    const updated = await adm.client
       .from('application_notes')
       .update({ notes: NOTE_A })
       .eq('application_id', aAppId);
@@ -885,19 +870,19 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     expect(await noteOf(aAppId)).toBe(NOTE_A);
   });
 
-  it.fails('I27: a vendor cannot write notes, and the old column takes nothing', async () => {
+  it('I27: a vendor cannot write notes, and the old column takes nothing', async () => {
     for (const applicationId of [aAppId, bAppId]) {
       const row = { application_id: applicationId, notes: 'written by A' };
 
-      const inserted = await untyped(vendorA.client).from('application_notes').insert(row);
+      const inserted = await vendorA.client.from('application_notes').insert(row);
       expect(inserted.error?.code).toBe(PERMISSION_DENIED);
 
-      const upserted = await untyped(vendorA.client)
+      const upserted = await vendorA.client
         .from('application_notes')
         .upsert(row, { onConflict: 'application_id' });
       expect(upserted.error?.code).toBe(PERMISSION_DENIED);
 
-      const updated = await untyped(vendorA.client)
+      const updated = await vendorA.client
         .from('application_notes')
         .update({ notes: 'written by A' })
         .eq('application_id', applicationId)
@@ -905,7 +890,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
       expect(updated.error).toBeNull();
       expect(updated.data).toEqual([]);
 
-      const deleted = await untyped(vendorA.client)
+      const deleted = await vendorA.client
         .from('application_notes')
         .delete()
         .eq('application_id', applicationId)
@@ -914,7 +899,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
       expect(deleted.data).toEqual([]);
     }
 
-    const byAnon = await untyped(anon)
+    const byAnon = await anon
       .from('application_notes')
       .insert({ application_id: aAppId, notes: 'written by anon' });
     expect(byAnon.error?.code).toBe(PERMISSION_DENIED);
@@ -936,7 +921,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     expect(application?.organizer_notes).toBeNull();
   });
 
-  it.fails('I28: the application record can never hold a note again', async () => {
+  it('I28: the application record can never hold a note again', async () => {
     let written = false;
     try {
       const { error } = await service
@@ -956,7 +941,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
   // The account list and template creators (FR-008 to FR-011)
   // ---------------------------------------------------------------------------
 
-  it.fails('I29: a vendor cannot list accounts, not even their own', async () => {
+  it('I29: a vendor cannot list accounts, not even their own', async () => {
     const all = await vendorA.client.from('users_with_roles').select('id');
     expect(all.error).toBeNull();
     expect(all.data).toEqual([]);
@@ -966,7 +951,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     expect(own.data).toEqual([]);
   });
 
-  it.fails('I30: an organizer cannot list accounts', async () => {
+  it('I30: an organizer cannot list accounts', async () => {
     const all = await org.client.from('users_with_roles').select('id');
     expect(all.error).toBeNull();
     expect(all.data).toEqual([]);
@@ -1001,7 +986,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     expect(error?.code).toBe(PERMISSION_DENIED);
   });
 
-  it.fails('I33: the account list follows a role change on the next request', async () => {
+  it('I33: the account list follows a role change on the next request', async () => {
     try {
       const promote = await service
         .from('user_profiles')
@@ -1031,10 +1016,10 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
     }
   });
 
-  it.fails('I34: organizers and admins read template creators by id and address only', async () => {
+  it('I34: organizers and admins read template creators by id and address only', async () => {
     const nonCreators = [vendorA, vendorB, vendorC, adm].map((u) => u.userId);
     for (const caller of [org, adm]) {
-      const { data, error } = await untyped(caller.client).rpc('template_creator_emails');
+      const { data, error } = await caller.client.rpc('template_creator_emails');
       expect(error).toBeNull();
       const rows = (data ?? []) as Array<Record<string, unknown>>;
       for (const row of rows) expect(Object.keys(row).sort()).toEqual(['creator_id', 'email']);
@@ -1044,9 +1029,9 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
       expect(rows.filter((r) => nonCreators.includes(r['creator_id'] as string))).toEqual([]);
     }
 
-    const byVendor = await untyped(vendorA.client).rpc('template_creator_emails');
+    const byVendor = await vendorA.client.rpc('template_creator_emails');
     expect(byVendor.error?.code).toBe(PERMISSION_DENIED);
-    const byAnon = await untyped(anon).rpc('template_creator_emails');
+    const byAnon = await anon.rpc('template_creator_emails');
     expect(byAnon.error?.code).toBe(PERMISSION_DENIED);
   });
 
@@ -1054,7 +1039,7 @@ describe.runIf(stackUp)('vendor isolation (spec 012)', () => {
   // The deadline (FR-018 to FR-020)
   // ---------------------------------------------------------------------------
 
-  it.fails('I35: a submission after the deadline day is refused for every caller', async () => {
+  it('I35: a submission after the deadline day is refused for every caller', async () => {
     const created: Array<string | undefined> = [];
     try {
       for (const [client, email] of [

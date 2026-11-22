@@ -7,7 +7,9 @@
 // the vendor has any session — while moving download and delete behind an
 // authenticated session. The organizer dashboard's createSignedUrl() flow
 // (src/app/dashboard/applications/[id]/attachments-list.tsx:109) must keep
-// working; ST3 is what proves it.
+// working; ST3 is what proves it. Migration 016 (spec 012) narrowed download
+// to organizers, admins and the owning vendor and removed session delete
+// entirely (ST4); vendor-isolation.test.ts covers the vendor side.
 //
 // Each test uploads its own object, so the file is order-independent;
 // cleanupFixtures sweeps the whole run prefix afterwards.
@@ -136,10 +138,11 @@ describe.runIf(stackUp)('storage policies', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // ST4 — deletion is authenticated-only (the posture `deleteFile` used to break)
+  // ST4 — nobody deletes from a session: migration 016 (spec 012) dropped the
+  // authenticated delete policy, so only the service role removes objects
   // ---------------------------------------------------------------------------
 
-  it('ST4: anon cannot delete a file, an authenticated organizer can', async () => {
+  it('ST4: nobody can delete a file from a session', async () => {
     const path = await uploadAsAnon('st4-remove.txt');
 
     const { data: anonRemoved } = await anon.storage.from(BUCKET).remove([path]);
@@ -154,7 +157,7 @@ describe.runIf(stackUp)('storage policies', () => {
       .remove([path]);
 
     expect(authedError).toBeNull();
-    expect(authedRemoved ?? []).toHaveLength(1);
-    await expect(existsUnderPrefix('st4-remove.txt')).resolves.toBe(false);
+    expect(authedRemoved ?? []).toHaveLength(0);
+    await expect(existsUnderPrefix('st4-remove.txt')).resolves.toBe(true);
   });
 });

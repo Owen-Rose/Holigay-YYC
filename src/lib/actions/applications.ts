@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { DATE_LONG, formatDateOnly, todayDateOnly } from '@/lib/format-date';
 import type { Json } from '@/types/database';
@@ -7,6 +8,7 @@ import { APPLICATION_STATUSES, type ApplicationStatus } from '@/lib/constants/ap
 import { sendEmail } from '@/lib/email/client';
 import { statusUpdateEmail } from '@/lib/email/templates';
 import { requireRole } from '@/lib/auth/roles';
+import { applicationNotesSchema } from '@/lib/validations/application';
 
 // =============================================================================
 // Types
@@ -137,7 +139,7 @@ export async function getApplications(
       status,
       submitted_at,
       updated_at,
-      organizer_notes,
+      application_notes ( notes ),
       vendor:vendors (
         id,
         business_name,
@@ -237,7 +239,7 @@ export async function getApplications(
       status: app.status,
       submitted_at: app.submitted_at,
       updated_at: app.updated_at,
-      organizer_notes: app.organizer_notes,
+      organizer_notes: app.application_notes?.notes ?? null,
       // Supabase returns the joined table as an object (not array) when the FK is unique per row
       vendor: app.vendor as ApplicationWithVendor['vendor'],
     }));
@@ -351,7 +353,7 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
       status,
       submitted_at,
       updated_at,
-      organizer_notes,
+      application_notes ( notes ),
       vendor:vendors (
         id,
         business_name,
@@ -466,7 +468,7 @@ export async function getApplicationById(id: string): Promise<GetApplicationById
       status: application.status,
       submitted_at: application.submitted_at,
       updated_at: application.updated_at,
-      organizer_notes: application.organizer_notes,
+      organizer_notes: application.application_notes?.notes ?? null,
       vendor: application.vendor as ApplicationDetail['vendor'],
       event: application.event as ApplicationDetail['event'],
       attachments: attachments || [],
@@ -593,7 +595,7 @@ export async function updateApplicationStatus(
       `
       id,
       status,
-      organizer_notes,
+      application_notes ( notes ),
       vendor:vendors (
         contact_name,
         business_name,
@@ -674,7 +676,7 @@ export async function updateApplicationStatus(
         eventName: event.name,
         eventDate,
         status,
-        organizerNotes: application.organizer_notes,
+        organizerNotes: application.application_notes?.notes ?? null,
       });
 
       // Send the notification email
@@ -707,6 +709,10 @@ export async function updateApplicationStatus(
 /**
  * Updates the organizer notes for an application
  *
+ * Since spec 012 (migration 016) a note is a row of `application_notes`, which
+ * only organizers and admins may read or write (RLS); no row means no note.
+ * Saving an empty note deletes the row.
+ *
  * @param id - The application UUID
  * @param notes - The new notes content
  * @returns UpdateApplicationResponse indicating success or failure
@@ -715,6 +721,14 @@ export async function updateApplicationNotes(
   id: string,
   notes: string
 ): Promise<UpdateApplicationResponse> {
+  const parsed = applicationNotesSchema.safeParse({ id, notes });
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: 'Invalid notes',
+    };
+  }
+
   // Only organizers and admins can edit organizer notes
   const auth = await requireRole('organizer');
   if (!auth.success) {
@@ -725,14 +739,16 @@ export async function updateApplicationNotes(
   }
 
   const supabase = await createClient();
+  const applicationId = parsed.data.id;
 
-  const { error } = await supabase
-    .from('applications')
-    .update({
-      organizer_notes: notes || null,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id);
+  const { error } = parsed.data.notes
+    ? await supabase
+        .from('application_notes')
+        .upsert(
+          { application_id: applicationId, notes: parsed.data.notes },
+          { onConflict: 'application_id' }
+        )
+    : await supabase.from('application_notes').delete().eq('application_id', applicationId);
 
   if (error) {
     console.error('Error updating application notes:', error);
@@ -741,6 +757,20 @@ export async function updateApplicationNotes(
       error: 'Failed to update notes',
     };
   }
+
+  // Move the application's "Last Updated", as saving a note always has. The
+  // note is already saved, so a failure here is logged, not returned.
+  const { error: bumpError } = await supabase
+    .from('applications')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', applicationId);
+
+  if (bumpError) {
+    console.error('Error updating application timestamp after saving notes:', bumpError);
+  }
+
+  revalidatePath('/dashboard/applications');
+  revalidatePath(`/dashboard/applications/${applicationId}`);
 
   return {
     success: true,
