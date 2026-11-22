@@ -13,6 +13,10 @@ and the template seed, `seeded_from_template_id` populated, and real-database su
 builder and template write paths (which retire the T050 waiver's main gap). Tier 2 is
 closed; the rest of the document stands as written.
 
+**Update (2026-11-22):** **spec 012** (migration `016`) closed Tier 3's `users_with_roles`
+item and added the cross-vendor isolation suite; the four things it found and left alone are
+new Tier 3 items.
+
 **Review verdict, for the record:** the foundation is solid — lean dependency set, strict
 TS with zero suppressions, one consistent mutation pattern, behavioral tests, portable
 schema. Nothing here calls for a rewrite or a stack change. The work below is ordered by
@@ -31,6 +35,7 @@ in-flight feature safely, then paying down consistency debt.
 | **Public data exposure (spec 006)** | ✅ **Closed in dev and prod.** Shipped to `dev` in PR #7 (2026-08-22); migrations `009`–`011` applied to the prod project and `dev` promoted to `main` on 2026-09-13. Prod probe checklist run 2026-09-18 (007 T012) and the live test submission done 2026-10-08 (007 T021) — every "Prod rollout record" box ticked. |
 | **Dynamic questionnaires (spec 005)** | ✅ **Feature-complete.** Shipped to `dev` with 006; on prod since 2026-09-13. Required-answer semantics fixed by 006/US3; builder atomicity and `seeded_from_template_id` fixed by Phase 11 (migration `012`, 2026-09-14). Migration 012 on dev and prod since 2026-09-14 |
 | **Vendor linking and contact fields (spec 011)** | ✅ **Shipped 2026-11-03.** PRs #70–#72 and #74–#79; migration `015` on dev 2026-11-02 and prod 2026-11-03 (with `014`), promoted in BL-17 (`5003918..b6ea7e5`). Applications reach the vendor dashboard whichever came first (self-heal RPC, tie at submit, email locked on `/apply`); three product links replace phone; the fixed application form is retired |
+| **Vendor data isolation (spec 012)** | ✅ **Shipped 2026-11-22.** PRs #87–#89; migration `016` on dev and prod 2026-11-22, promoted the same day (`6c6a9cc..4027ce7`, smoke 5/5 ×3). A signed-in vendor reads only their own files, never organizer notes (now `application_notes`) and no account list; no session deletes a bucket object; the RPC refuses a claimed file (`P0005`) and a submission after the deadline day (`P0001`). Proven on every PR by `src/test/security/vendor-isolation.test.ts` (I1–I38) |
 | Deployment | Vercel + dev/prod Supabase; deployed but barely used — low migration risk, real freedom to restructure |
 
 ---
@@ -102,7 +107,7 @@ failure leaves no orphaned application.
 | 1. Submission RPC | `submit_public_application(jsonb)` — one `SECURITY DEFINER` function serving **both** form variants via a nullable answers argument, as the plan's parenthetical suggested. Signals failures as ERRCODEs (`P0001`–`P0004`) mapped to user copy by `src/lib/submission/errors.ts`. Zod validation and show-if re-evaluation stayed in the actions, unchanged. |
 | 2. Drop broad anon policies | All seven dropped. `anon_select_active_events`, `anon_select_event_questionnaires`, `anon_select_event_questions` kept. Also **revoked** `anon` EXECUTE on `create_event_with_default_questionnaire` and `ensure_event_questionnaire` — an exposure the review missed: both were anon-invocable. |
 | 3. Gate `deleteFile` | **Deleted instead of gated.** Nothing in the app called it; `src/app/test-upload/` went with it. No delete capability is better than a guarded one. |
-| 4. Storage policies in SQL | Migration 011 §4 creates the `attachments` bucket (`public = false`) and exactly three policies: `attachments_anon_insert`, `attachments_authenticated_select`, `attachments_authenticated_delete`. |
+| 4. Storage policies in SQL | Migration 011 §4 creates the `attachments` bucket (`public = false`) and exactly three policies: `attachments_anon_insert`, `attachments_authenticated_select`, `attachments_authenticated_delete`. **Since spec 012** (migration `016` §2) the bucket carries the pair `attachments_anon_insert` + `attachments_select_own_or_organizer`: the two broad authenticated policies are dropped, organizers/admins read every file, a vendor reads only files their own applications refer to, and there is no delete policy — only the service role removes objects. |
 | — (not planned) | A `security` Vitest project — `src/test/security/`, five suites against a live local stack — plus a parallel `security-tests` CI job that cannot silently skip (`CI_REQUIRE_SECURITY_TESTS=1`). This is Tier 3's RLS-integration-test item, pulled forward. |
 
 Both silent-write bugs and the orphaned-row bug are fixed by construction: the RPC runs as
@@ -149,10 +154,12 @@ rewrite session.
   touch them. Kills the three-coexisting-shapes drift and per-file response types.
 - ~~**`requireVendor()` helper**~~ next to `requireRole()` — replaces the ownership-scoping
   block copy-pasted 5× in `vendor-dashboard.ts`/`vendors.ts`. ✅ **Met by spec 011** — `resolveVendorId()` in `src/lib/vendor/` is the one vendor lookup every loader uses.
-- **`users_with_roles` is readable by any authenticated JWT** (migration `013` closed the
+- ~~**`users_with_roles` is readable by any authenticated JWT**~~ (migration `013` closed the
   `anon` read — spec 009 research R20). Consider `security_invoker` plus an admin-only
   policy, or an admin-only RPC, so a signed-in vendor cannot list every account's email
-  and role.
+  and role. ✅ **Closed by spec 012** — migration `016` §4 makes it a security-barrier view
+  that returns rows only to an admin session (and the service and owner roles); the
+  template list reads creators through the narrow `template_creator_emails()`.
 - ~~**Read-auth consistency**~~: add `requireRole('organizer')` to organizer-facing reads in
   `applications.ts`/`events.ts` (as `templates.ts` already does). RLS remains the
   authority; this restores the two-layer convention and makes intent legible. ✅ **Shipped as BL-21** — the five readers call `requireRole('organizer')`; `src/test/organizer-read-auth.test.ts`.
@@ -168,8 +175,9 @@ rewrite session.
   reads/writes, storage, the submission RPC's failure modes, and organizer dashboard reads.
   It self-skips when the stack is down and is forced on in CI via
   `CI_REQUIRE_SECURITY_TESTS=1`. Spec 005 Phase 11 added the builder-save and
-  template-write suites (including lock-on-publish via the RPC). Cross-vendor isolation is
-  the natural next suite to add.
+  template-write suites (including lock-on-publish via the RPC). Spec 012 added the
+  cross-vendor isolation suite (`vendor-isolation.test.ts`, I1–I38), written red against
+  `015` first and turned green by migration `016`.
 - **Make `updateTemplate` atomic.** It still does delete-all-then-reinsert across two
   PostgREST calls (`templates.ts`); the questionnaire save shows the shape of the fix (a
   small `SECURITY DEFINER` RPC). Low stakes — templates are organizer-only and cheap to
@@ -178,6 +186,23 @@ rewrite session.
   `admin.ts`, `auth.ts` and `roles.ts` are gone; `updateUserRole` and `updateEventStatus` have
   action tests (`admin-actions.test.ts`, `lock-on-publish.test.ts`); attachment orphaning went
   with the legacy form (spec 011).
+- **Vendor details can be overwritten knowing only the email** (since spec 011, migration
+  `015` §5). `submit_public_application` upserts the vendor row by email, so a signed-out
+  caller who knows a vendor's address can replace its business name, description and links
+  and add a pending application to that vendor's dashboard. This runs against spec 012's
+  aim; it was left out to keep `016` narrow (spec 012 `research.md`, "Found by the review of
+  #89"). Fixing it changes the submission RPC, so it needs a spec and a migration.
+- **`authenticated_select_events` is `USING (true)`** (migration `005`): a signed-in vendor
+  can read draft and closed events through the API. Event rows are not vendor data, so this
+  is low stakes; narrow it to active events for vendors when next touching event RLS.
+  Found by spec 012 (`research.md`, "Found on the way, left alone").
+- **`vendor_update_own` covers every column** (migration `005`): a vendor can change any
+  column of their own `vendors` row, including `email`. Uniqueness stops a collision with
+  another vendor and the account tie is unaffected; a column-scoped grant or a profile RPC
+  would close it. Found by spec 012.
+- **`updateApplicationStatus` calls no `revalidatePath`** (constitution IV) although the
+  review page and the list render the status it changes. Spec 012 fixed the same gap in
+  `updateApplicationNotes`; add the two calls the next time the status action is touched.
 
 ---
 
@@ -302,7 +327,7 @@ operational readiness, not implementation.
 | **M1 — Safe** ✅ | Spec 006 shipped to `dev` 2026-08-22: submission RPC, anon policies dropped, `deleteFile` **removed**, storage policies in SQL, security suite proving all of it, CI gate green. **Prod closed 2026-09-13**: `009`–`011` pushed to the prod project (history repaired first — its `schema_migrations` was empty like dev's), all object markers verified, `dev` promoted to `main` (`3dc243c`). Probe checklist run 2026-09-18 (007 T012); live test submission 2026-10-08 (007 T021) — no residual | done |
 | **M2 — Feature-complete** ✅ | Spec 005 shipped to `dev` 2026-08-22 with T050 waived; Phase 11 (2026-09-14) landed the atomic builder save with real-DB suites (retiring the waiver's main gap) and populated `seeded_from_template_id`. Migration `012` on dev and prod, dev probe passed, promoted to `main` 2026-09-14 | done |
 | **M3 — Production-ready** ✅ | Ops checklist below + organizer UAT dry-run (fake event end-to-end on a preview deploy: apply → review → status email), Tier 3 fixes as UAT surfaces them. **Sequenced in [M3-PLAN.md](./M3-PLAN.md)** (2026-09-13). **Closed 2026-10-08** (spec 007 T022): every checklist box ticked below; organizer session held 2026-10-06/07 with its three fixes shipped (#55–#57); `dev` → `main` 2026-10-07; prod smoke 5/5 + live submission 2026-10-08. Residual: the T008 seven-day dev-active check (2026-10-15) | done |
-| **M4 — Live** (entered 2026-10-08) | Production live on `vendors.holigayeventsyyc.ca` since 2026-10-07; first real event pending. Phase 4 promotion done 2026-10-08 (`e342cf6`, `main` = `dev`); prod clean slate verified (BL-08), final smoke 5/5 (BL-09), `/forgot-password` mail proven (BL-13). Remaining: BL-12 real organizer invites (Owen) and the T008 seven-day check (2026-10-15). Maintenance mode after the first event | in progress |
+| **M4 — Live** (entered 2026-10-08) | Production live on `vendors.holigayeventsyyc.ca` since 2026-10-07; first real event pending. Phase 4 promotion done 2026-10-08 (`e342cf6`, `main` = `dev`); prod clean slate verified (BL-08), final smoke 5/5 (BL-09), `/forgot-password` mail proven (BL-13). T008 closed 2026-11-03 (seven-day check passed, interim keep-alive workflow removed). Later promotions: BL-17 (2026-11-03, `5003918..b6ea7e5`, spec 011 and the organizers' vendor-side UAT round), BL-24 (2026-11-21, `1f171b4..6c6a9cc`, Phase 6 Track A) and spec 012 (2026-11-22, `6c6a9cc..4027ce7`, migration `016` first). Remaining: BL-12 real organizer invites (Owen) and UAT2-6 (email copy, waiting on the organizers). Maintenance mode after the first event | in progress |
 
 **Live order of work for M3 → M4** (organizer UAT, production rollout, clean slate):
 [backlog/2026-10-06-uat-and-go-live.md](./backlog/2026-10-06-uat-and-go-live.md).

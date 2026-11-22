@@ -51,6 +51,7 @@ What `ON DELETE` does on this schema, so the order below makes sense:
 | `applications.vendor_id → vendors` | CASCADE | deleting a vendor removes its applications |
 | `attachments.application_id → applications` | CASCADE | attachment **rows** go with the application; the **bytes** do not |
 | `application_answers.application_id → applications` | CASCADE | |
+| `application_notes.application_id → applications` | CASCADE | organizer notes (migration `016`) go with their application |
 | `application_answers.event_question_id → event_questions` | **RESTRICT** | an answer blocks deleting its question — and therefore its questionnaire and event — unless the answers go first |
 | `event_questionnaires.event_id → events` | CASCADE | |
 | `event_questions.event_questionnaire_id → event_questionnaires` | CASCADE | |
@@ -76,6 +77,7 @@ UNION ALL SELECT 'event_questions', count(*) FROM event_questions
 UNION ALL SELECT 'vendors', count(*) FROM vendors
 UNION ALL SELECT 'applications', count(*) FROM applications
 UNION ALL SELECT 'application_answers', count(*) FROM application_answers
+UNION ALL SELECT 'application_notes', count(*) FROM application_notes
 UNION ALL SELECT 'attachments', count(*) FROM attachments
 UNION ALL SELECT 'questionnaire_templates', count(*) FROM questionnaire_templates
 UNION ALL SELECT 'template_questions', count(*) FROM template_questions
@@ -150,7 +152,10 @@ Do this before the SQL, while `attachments.file_path` can still tell you what to
 > dashboard, still counts against quota, and can no longer be found or removed. The Storage
 > API deletes both. Use SQL against `storage.objects` only to *read*.
 
-Three ways, in order of preference:
+Three ways, in order of preference. Since migration `016` no signed-in app session can
+delete an object (the bucket has no delete policy); A–C are unaffected, because none of them
+goes through an app session — option A was used this way on dev on 2026-11-22 (spec 012
+quickstart row D8).
 
 ```bash
 # A. Dashboard (Owen): Storage → attachments → uploads/ → select every file except
@@ -230,7 +235,7 @@ Re-run section 1 in full. Expected after a normal run:
 
 | Check | Expected |
 |---|---|
-| `events`, `event_questionnaires`, `event_questions`, `vendors`, `applications`, `application_answers`, `attachments` | 0 each |
+| `events`, `event_questionnaires`, `event_questions`, `vendors`, `applications`, `application_answers`, `application_notes`, `attachments` | 0 each |
 | `questionnaire_templates`, `template_questions` | unchanged from the inventory |
 | `auth.users` and `user_profiles` | exactly the keep-list, same count |
 | 1.2 | every row's email is on the keep-list, with the role you expect |

@@ -79,9 +79,9 @@ Authorization is enforced three times, at decreasing distance from the data:
 |---|---|---|
 | 1. Middleware | role fetched per-request, redirects | Route access (UX-level, not security) |
 | 2. Server actions | `requireRole('organizer' \| 'admin')` from `src/lib/auth/roles.ts` | Every mutation; some reads |
-| 3. RLS | policies on all 9 tables, using `get_user_role()` + `auth.uid()` | Everything — the real boundary |
+| 3. RLS | policies on all 11 tables (and the `attachments` bucket's `storage.objects` rows), using `get_user_role()` + `auth.uid()` | Everything — the real boundary |
 
-Two facts make layer 3 the one that matters:
+Three facts make layer 3 the one that matters:
 
 1. **The app uses the anon key everywhere but one place.** The only service-role client
    is `src/lib/supabase/admin.ts` (spec 009), imported solely by `src/lib/actions/team.ts`
@@ -97,6 +97,17 @@ Two facts make layer 3 the one that matters:
    Signed-in vendors reach their own rows through `auth.uid()`-scoped RLS, and the
    vendor loaders call `link_vendor_account()` (authenticated-only, no arguments) to tie
    an account to its vendor row by address — the two linking RPCs of spec 011.
+3. **A signed-in vendor is held to their own rows, and this is proven, not hand-checked.**
+   Since spec 012 (migration 016) the INSERT policies on `applications`, `attachments` and
+   `application_answers` are organizer/admin-only, so a vendor writes those rows only
+   through `submit_public_application`, which refuses a file another application already
+   refers to (`P0005`) and a submission after the deadline day (`P0001`). A vendor reads
+   only the bucket objects their own applications refer to
+   (`attachments_select_own_or_organizer`); no signed-in session can delete an object.
+   Organizer notes live in the organizer/admin-only `application_notes`, and
+   `users_with_roles` returns rows to admins only. `src/test/security/vendor-isolation.test.ts`
+   (I1–I38) asserts each rule for two vendors, a vendor account with no record, an
+   organizer, an admin and an anonymous caller on every pull request.
 
 Roles are `vendor | organizer | admin` (enum `user_role`), stored in `user_profiles`,
 which is auto-created by the `handle_new_user` trigger on signup (default `vendor`,
@@ -151,7 +162,8 @@ Core (migrations 001–008):
 ```
 events ──< applications >── vendors ──── auth.users (via user_id, nullable)
               │
-              └──< attachments
+              ├──< attachments
+              └──1 application_notes                     (migration 016, spec 012)
 user_profiles ─── auth.users (1:1, role source of truth)
 ```
 
@@ -175,6 +187,13 @@ Design choices that matter:
   template never mutates past events.
 - **Answers are immutable** (`ON DELETE RESTRICT` from questions, no UPDATE/DELETE
   policies) — review integrity by construction.
+- **Organizer notes have their own table.** RLS filters rows, not columns, so a note kept
+  in `applications.organizer_notes` reached every vendor who could read their own
+  application. Migration 016 moved each note into `application_notes` (keyed by
+  `application_id`, organizer/admin-only RLS, `ON DELETE CASCADE` from the application),
+  emptied the old column and locks it with the `applications_organizer_notes_retired`
+  CHECK. The actions embed the note and map it back to `organizer_notes`, so the review
+  page, the CSV and the status mail did not change.
 - **An event without a questionnaire** is shown on `/apply` as "This event is not accepting
   applications right now." — the original static form was retired by spec 011, and every
   event since spec 005 is created with a questionnaire; `ensure_event_questionnaire()` can
@@ -300,28 +319,55 @@ Vitest runs **two projects** (`vitest.config.ts`):
   **real local Supabase stack** with all migrations applied, so it tests the policies that
   actually ship rather than a mock of them. `harness.ts` builds anon / service-role /
   authenticated organizer / vendor clients and seeds + tears down its own fixtures per run.
-  Seven suites: anon reads, anon writes, storage, the submission RPC's success and failure
-  modes, organizer dashboard reads, the atomic questionnaire save (`save_event_questionnaire`
-  posture, ownership, lock, and mid-batch rollback), and template writes under RLS. It
+  Eleven suites: anon reads, anon writes, storage, the submission RPC's success and failure
+  modes, organizer dashboard reads (spec 006); the atomic questionnaire save
+  (`save_event_questionnaire` posture, ownership, lock, and mid-batch rollback) and template
+  writes under RLS (spec 005 Phase 11); the invite flow's view columns (spec 009); the
+  default-questionnaire seed's show-if rules (migration 014); account linking (spec 011);
+  and cross-vendor isolation, I1–I38 (spec 012). It
   **self-skips** when no stack is reachable (so
   `npm test` stays green offline) and is forced to run in CI by
   `CI_REQUIRE_SECURITY_TESTS=1` in the parallel `security-tests` job.
 
-**Still not covered:** `admin.ts` (role mutation), `auth.ts`, `export.ts`, `vendors.ts`.
+**Still not covered:** every action file now has action-level unit tests except
+`upload.ts` (`uploadFile` is only mocked, in the form test) and `signIn`/`signOut` in
+`auth.ts` (mocked in the login-page and dashboard-layout tests; `signUp` and the password
+actions have their own tests).
 On the RLS side the security suite covers the anon surface, storage, the submission path,
-the builder/template write paths, and lock-on-publish (through the save RPC);
-**cross-vendor isolation** (vendor A reading vendor B's applications) is still verified
-only by hand — the obvious next suite.
+the builder/template write paths, lock-on-publish (through the save RPC), account linking,
+and — since spec 012 — cross-vendor isolation for every caller kind.
 
 ## 10. Where the weak points are
 
 Kept deliberately short — the full analysis and fix plan is in [ROADMAP.md](./ROADMAP.md):
 
-1. Consistency drift per §7; remaining test gaps per §9 — notably cross-vendor isolation,
-   still hand-verified.
+1. Consistency drift per §7; remaining test gaps per §9.
 2. `updateTemplate` still replaces a template's questions with delete-all-then-reinsert
    across two PostgREST calls (non-atomic). Same fix shape as the questionnaire save; low
    stakes, tracked in ROADMAP Tier 3.
+3. **Vendor details can be overwritten knowing only the email** (since spec 011, migration
+   015). `submit_public_application` upserts the vendor row by email, so a signed-out
+   caller who knows a vendor's address can replace its business name, description and
+   links, and add a pending application to that vendor's dashboard. Found by the review of
+   PR #89 and left out of spec 012 to keep its migration narrow
+   (`specs/012-vendor-data-isolation/research.md`, "Found by the review of #89"); tracked in
+   ROADMAP Tier 3.
+
+**Resolved by spec 012** (2026-11-22, migration 016; proven by
+`src/test/security/vendor-isolation.test.ts`):
+
+- ~~Any signed-in user could read, sign or delete any object in the `attachments` bucket~~
+  — `attachments_authenticated_select` and `attachments_authenticated_delete` are dropped;
+  `attachments_select_own_or_organizer` lets organizers/admins read every file and a vendor
+  only the files their own applications refer to, and no session can delete. A submission
+  or direct insert that names another vendor's file is refused.
+- ~~Any signed-in vendor could list every account's email and role through
+  `users_with_roles`~~ — the view returns rows to admins only; the template list reads
+  creators through `template_creator_emails()`.
+- ~~A vendor reading their own application received the organizer's note~~ — notes moved
+  to `application_notes` (§5).
+- ~~A submission after the deadline was accepted by the RPC~~ — `P0001` once the deadline
+  day has ended in Edmonton; the deadline had been a listing rule only.
 
 **Resolved by spec 005 Phase 11** (2026-09-14):
 

@@ -5,10 +5,12 @@ the ROADMAP M3 checklist and the 2026-09-27 UAT findings. This is the single ord
 list of what stands between today and (a) inviting real organizers to the training
 deployment and (b) going live on production with a clean environment.
 
-**Status 2026-11-03:** (b) is done — production has been live since 2026-10-07. Phases 0–3
+**Status 2026-11-22:** (b) is done — production has been live since 2026-10-07. Phases 0–3
 are complete and archived (see below); Phase 4 has BL-12 open; Phase 5 (the organizers'
 vendor-side UAT feedback, triaged 2026-10-31) reached prod in BL-17 on 2026-11-03 — UAT2-6
-(email copy) remains for a later promotion.
+(email copy) remains for a later promotion. Phase 6 (post-launch hardening) is on prod:
+BL-19–BL-23 in BL-24 (2026-11-21), spec 012 on 2026-11-22; only the optional BL-25–BL-27
+remain.
 
 Decisions this list is built on (Owen, 2026-10-06):
 
@@ -253,7 +255,7 @@ Source: the 2026-11-21 status review. Plan, triage and per-task steps:
       Owner: agent · Shape: PR · Blocked by: nothing.
 - [x] **BL-24** (`main` `1f171b4..6c6a9cc` 2026-11-21) — Promotion `dev` → `main` after BL-20–BL-23; event-week smoke runbook.
       Owner: joint · Shape: promotion · Blocked by: BL-20–BL-23.
-- [ ] **Spec 012** — Vendor data isolation: attachment read/delete rules, the
+- [x] **Spec 012** (PRs #87–#89 merged 2026-11-22; `016` on dev and prod; promoted `6c6a9cc..4027ce7`) — Vendor data isolation: attachment read/delete rules, the
       `users_with_roles` read, organizer notes, the submission deadline check (Owen, 2026-11-21), and a
       cross-vendor isolation suite. Migration `016`.
       Owner: agent; Owen for dev/prod · Shape: Speckit spec · Blocked by: nothing.
@@ -281,15 +283,16 @@ Not needed for UAT or go-live on the current stack.
   in the future, so an active event saved with the optional deadline blank is invisible to
   vendors and `/apply?event_id=` says "Event not found". Decide between listing deadline-less
   events and making the deadline required on the event form. → **BL-20**.~~ Fixed by BL-20.
-- **UAT-10** — `attachments_authenticated_select` (migration 011) lets any signed-in
+- ~~**UAT-10** — `attachments_authenticated_select` (migration 011) lets any signed-in
   user read or sign any object in the bucket. Scoping reads to organizers plus the
-  owning vendor is an RLS change, so it needs a spec (ROADMAP Tier 3 candidate). → **spec 012**.
+  owning vendor is an RLS change, so it needs a spec (ROADMAP Tier 3 candidate). → **spec 012**.~~
+  Fixed by spec 012 (migration `016`, on prod 2026-11-22): `attachments_select_own_or_organizer`.
 - **ROADMAP Tier 3 leftovers:** shared `ActionResponse<T>`; `requireVendor()` helper;
   `requireRole('organizer')` on organizer-facing reads in `applications.ts`/`events.ts`;
   split `applications.ts`; atomic `updateTemplate`; cross-vendor isolation security
   suite; tests for `admin.ts` role changes and `updateEventStatus`; the `as Role` cast
   in `admin.ts`. (`requireVendor()` is partly met by spec 011's `resolveVendorId()`; the
-  legacy-submit attachment orphaning went with the legacy form.) Read-auth, the tests and the cast are BL-21/BL-22; cross-vendor isolation is spec 012; the rest is parked with reasons in the 2026-11-21 plan.
+  legacy-submit attachment orphaning went with the legacy form.) Read-auth, the tests and the cast are BL-21/BL-22; cross-vendor isolation is spec 012 (shipped 2026-11-22); the rest is parked with reasons in the 2026-11-21 plan.
 - **ROADMAP Tier 4:** ~~retire the legacy form~~ (spec 011, 2026-11-03); role in JWT claims; email via `after()`;
   structured logging; Epic 6.9 file previews; Epic 6.10 mobile polish (375 px pass,
   44 px touch targets); shared icon module.
