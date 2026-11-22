@@ -195,5 +195,5 @@ one application with a saved organizer note (D5 checks that it survives the migr
 | `supabase/migrations/README.md` | `016` row (in the migration PR); "next prefix" line |
 | `docs/runbooks/reset-hosted-project.md` | inventory query counts `application_notes`; the FK table in §0 gains `application_notes.application_id → applications` (CASCADE) and the Verify table in §5 lists it; one line under §3: since `016` no signed-in session can delete an object, and options A–C are unaffected |
 | `docs/runbooks/event-week-smoke.md` | the promotion entry (P2) |
-| `docs/runbooks/backup-restore.md` | one note in the restore drill: it loads a hosted dump onto the schema the migrations build, so a dump taken before `016` that holds a note fails `applications_organizer_notes_retired`; restore such a dump on a tree without `016`. Backups taken after `016` are unaffected |
+| `docs/runbooks/backup-restore.md` | **Done in T003** (review of #89): §3.1 resets to the dump's migration level (a dump without `application_notes` restores onto `015`), §3.3a runs `migration up --local`, §3.5 notes the extra `application_notes` rows, Verified-behaviour row 13, and a 2026-11-22 rehearsal of both paths. T013 confirms it is still right |
 | `.specify/memory/constitution.md` | no change expected (version stays 1.1.3) |

@@ -393,6 +393,14 @@ and this text is proven by the security suite rather than by the dry run.
   inside the hosted single-transaction apply.
 - **`listTemplates` discarded the RPC error (fixed).** It is now logged.
 - The two older gaps are recorded below, and the three minor items accepted as they are.
+- **Second review, at `e924e2e`.** Nothing wrong in the SQL, the gates or the actions. One
+  documentation gap was fixed: `docs/runbooks/backup-restore.md` §3 reset the local stack to
+  every migration, so a backup taken before `016` that held a note failed the new CHECK and
+  restored nothing. The runbook now resets to the dump's migration level and migrates
+  afterwards; a local drill proved both paths. One nit was left: `updateApplicationNotes`
+  validates its input before checking the role, an order `contracts/server-actions.md` §1
+  chose on purpose. Its only effect is which error a caller below organizer sees for a
+  malformed id.
 
 ## Rejected or deferred
 
