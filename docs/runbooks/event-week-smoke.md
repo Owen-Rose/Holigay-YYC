@@ -185,18 +185,23 @@ from the verified domain. Stop the timer and record it against SC-004's ten minu
 ### 3.1 Find everything the run created
 
 ```sql
--- Run this FIRST and keep the output. Once the attachments rows are gone you have lost the
--- file_path values, and the object in the bucket becomes an orphan you cannot locate.
+-- Run this FIRST and keep the output. Once the answer and attachments rows are gone you have
+-- lost the object paths, and the object in the bucket becomes an orphan you cannot locate.
+-- The dynamic form stores an upload's path in its file answer (answer_path) and writes no
+-- attachments row, so attachment_path is null for every application made with it — the only
+-- form since spec 011.
 SELECT e.id   AS event_id,
        e.name AS event_name,
        v.id   AS vendor_id,
        v.email,
        a.id   AS application_id,
-       att.id AS attachment_id,
-       att.file_path
+       ans.value->>'path' AS answer_path,
+       att.file_path      AS attachment_path
 FROM vendors v
 JOIN applications a ON a.vendor_id = v.id
 JOIN events e       ON e.id = a.event_id
+LEFT JOIN application_answers ans
+       ON ans.application_id = a.id AND ans.value->>'kind' = 'file'
 LEFT JOIN attachments att ON att.application_id = a.id
 WHERE v.email = 'smoke+<YYYY-MM-DD>@<your domain>';
 ```
@@ -220,7 +225,8 @@ WHERE v.email = 'smoke+<YYYY-MM-DD>@<your domain>'
 > API deletes both. Use SQL against `storage.objects` only to *read* — to confirm a path
 > exists, or to confirm it is gone.
 
-Pick one, using the `file_path` from 3.1:
+Pick one, using the path from 3.1 — `answer_path`, or `attachment_path` on an older row
+(written `<file_path>` below):
 
 ```bash
 # Dashboard: Storage → attachments → uploads/ → select the file → Delete. Simplest for one file.
@@ -257,6 +263,15 @@ WHERE application_id IN (
 --    tells you whether the upload in 2.4 actually recorded a row, and so this stays
 --    visibly paired with 3.2's object delete.
 DELETE FROM attachments
+WHERE application_id IN (
+  SELECT a.id FROM applications a
+  JOIN vendors v ON v.id = a.vendor_id
+  WHERE v.email = 'smoke+<YYYY-MM-DD>@<your domain>'
+);
+
+-- 2a. Belt and braces (since migration 016): application_notes cascades from applications.
+--     Explicit so the row count tells you whether the click-through's note was saved.
+DELETE FROM application_notes
 WHERE application_id IN (
   SELECT a.id FROM applications a
   JOIN vendors v ON v.id = a.vendor_id
@@ -382,7 +397,8 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
   application, 1 vendor, 1 event); 3.4 all 0; prod back to 0 events / 0 vendors / 0 real bucket
   objects. **Gap in 3.1:** it reads the object path from `attachments.file_path`, but the dynamic form
   writes no `attachments` row — the path is in the file answer (`application_answers.value->>'path'`),
-  so 3.1 as written returns a null path and the object would be missed.
+  so 3.1 as written returns a null path and the object would be missed. *(Fixed in 012-T013: 3.1
+  now selects `answer_path`.)*
 - **2026-11-22, production (spec 012 T012).** Migration `016` reached prod first (012 quickstart row
   P1), then `main` fast-forwarded `6c6a9cc..4027ce7` (Vercel Production deployment `7986069147`
   success). `npm run smoke` 5/5 before the push, after the deploy and after cleanup
@@ -399,4 +415,4 @@ Observed while building this runbook (2026-09-18). Re-check if the schema or CLI
   1 application, 1 vendor, 1 event, the throwaway account); prod back to 0 events / 0 vendors / 0 real
   bucket objects, admin + organizer only. Since `016`, 3.3 should also delete `application_notes`
   before the application (it cascades, but the explicit step gives the count). Record: 012 quickstart
-  row P2.
+  row P2. *(Fixed in 012-T013: 3.3 step 2a.)*
