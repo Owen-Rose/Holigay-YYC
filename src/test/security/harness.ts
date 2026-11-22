@@ -109,14 +109,14 @@ export type AuthedOrganizer = AuthedUser;
 /**
  * Creates a confirmed auth user with the given role and returns a client
  * carrying its session. `handle_new_user` inserts the profile as `vendor`;
- * organizers are promoted with the service client afterwards.
+ * organizers and admins are promoted with the service client afterwards.
  *
  * Note: [auth.rate_limit] sign_in_sign_ups is 30 per 5 minutes — keep it to a
  * handful of calls per suite file, never one per test.
  */
 export async function createAuthedUser(
   suffix: string,
-  role: 'organizer' | 'vendor'
+  role: 'organizer' | 'vendor' | 'admin'
 ): Promise<AuthedUser> {
   const service = serviceClient();
   // The seeded vendors row already uses `sec-vendor-<suffix>@…`; a vendor
@@ -124,7 +124,9 @@ export async function createAuthedUser(
   const email =
     role === 'organizer'
       ? `sec-organizer-${suffix}@example.com`
-      : `sec-vendor-user-${suffix}@example.com`;
+      : role === 'admin'
+        ? `sec-admin-${suffix}@example.com`
+        : `sec-vendor-user-${suffix}@example.com`;
   const password = 'sec-harness-password';
 
   const { data: created, error: createError } = await service.auth.admin.createUser({
@@ -163,6 +165,11 @@ export function createAuthedOrganizer(suffix: string): Promise<AuthedUser> {
 /** Vendor session — the "authenticated but not privileged" caller. */
 export function createAuthedVendor(suffix: string): Promise<AuthedUser> {
   return createAuthedUser(suffix, 'vendor');
+}
+
+/** Admin session (spec 012). Pass a distinct suffix per user within one suite. */
+export function createAuthedAdmin(suffix: string): Promise<AuthedUser> {
+  return createAuthedUser(suffix, 'admin');
 }
 
 // -----------------------------------------------------------------------------
