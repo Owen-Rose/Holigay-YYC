@@ -114,8 +114,32 @@ as Vendor from the Team page and deleted afterwards (row D8). Each row ends with
 | Row | Item | Where | Date | Evidence | Done |
 |---|---|---|---|---|---|
 | L0 | Plan-time dry run: the contract SQL applied and probed per caller in one rolled-back transaction | local stack | 2026-11-22 | `research.md` "Dry run": applied cleanly over 015; every probe in its table as designed; database unchanged afterwards (no `application_notes`, the three 011 storage policies, no fixture rows) | ☑ |
-| L1 | **Red.** The isolation suite on a stack at 015: the 21 red cases fail, each for the rule it states; the 16 others pass — **T002** | local stack | | | ☐ |
+| L1 | **Red.** The isolation suite on a stack at 015: the 21 red cases fail, each for the rule it states; the 16 others pass — **T002** | local stack | 2026-11-22 | After `npx supabase db reset` (migrations max `015`), `vendor-isolation.test.ts` as committed: 37 passed. With every `it.fails(` changed to `it(` in the working tree: **21 failed, 16 passed**. The failing ids were exactly I8–I11, I13, I14, I17–I19, I21, I23–I30, I33–I35, each on the assertion that states its rule (per case below). The passing ids were exactly I1–I7, I12, I15, I16, I20, I22, I31, I32, I36, I37. Edit discarded. Afterwards the local database held 0 vendors, applications, events, auth users and bucket objects | ☑ |
 | L2 | **Green.** After `016`: all 37 cases pass as plain `it`; every earlier suite passes; the five edited cases are the only edits to existing cases (`git diff --stat` on `src/test/security/`) — **T003** | local stack + CI | | | ☐ |
+
+**L1, per red case.** Each entry gives the first assertion that failed on 015 and what it received. `download`/`sign` return `{ body, refused }`; "restored" or "deleted" means the case's `finally` put back what it had changed.
+
+- **I8**: A downloads `b-answer`. Received `{ body: 'b-answer', refused: false }`, so B's body came back.
+- **I9**: A removes `b-answer`. Expected `[]`, received one removed object. Restored.
+- **I10**: A removes `a-answer`. Expected `[]`, received one removed object. Restored.
+- **I11**: ORG removes its own `org-remove`. Expected `[]`, received one removed object.
+- **I13**: A downloads `orphan`. Received `{ body: 'orphan', refused: false }`.
+- **I14**: C downloads `a-answer`. Received `{ body: 'a-answer', refused: false }`.
+- **I17**: A submits to event F naming `b-answer`. Expected code `P0005`, received no error: the submission was stored. Deleted.
+- **I18**: A downloads `b-answer` after I17. Received `{ body: 'b-answer', refused: false }`.
+- **I19**: anon submits to F naming `b-answer`. Expected `P0005`, received no error: the submission was stored. Deleted.
+- **I21**: A inserts an `attachments` row naming `b-answer` on A's own application. Expected `42501`, received no error: the row was inserted. Deleted.
+- **I23**: A selects `id, organizer_notes` from their own application. Expected null, received `'NOTE-A'`.
+- **I24**: A selects from `application_notes`. Expected no error, received `PGRST205` (no such table).
+- **I25**: ORG runs the embedded select `application_notes ( notes )`. Expected no error, received `PGRST200` (no such relationship).
+- **I26**: ORG upserts into `application_notes`. Expected no error, received `PGRST205`.
+- **I27**: A inserts into `application_notes`. Expected `42501`, received `PGRST205`.
+- **I28**: the service role sets `applications.organizer_notes`. Expected `23514`, received no error: the note was written. Set back to `NOTE-A`.
+- **I29**: A selects `users_with_roles`. Expected `[]`, received 5 rows (every account on the stack).
+- **I30**: ORG selects `users_with_roles`. Expected `[]`, received 5 rows.
+- **I33**: C is demoted back to vendor and selects its own row. Expected `[]`, received one row. The read as admin before it passed. Role reset to vendor.
+- **I34**: ORG calls `template_creator_emails`. Expected no error, received `PGRST202` (no such function).
+- **I35**: anon submits to the event whose deadline was yesterday. Expected `{ code: 'P0001', message: 'Event is not accepting applications' }`, received no error: the submission was stored. Deleted.
 
 ### Dev project and the training deployment
 
